@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#080c14;--bg2:#0d1526;--bg3:#1a2540;--border:#1e2d4a;--text:#f8fafc;--text2:#94a3b8;--text3:#64748b;--gold:#F59E0B;--gold2:#d97706}
-[data-theme="light"]{--bg:#e8edf5;--bg2:#ffffff;--bg3:#d0d8e8;--border:#9aaac0;--text:#0a1628;--text2:#1a3355;--text3:#2d4a6e;--gold:#c47a00;--gold2:#9a5f00}
+[data-theme="light"]{--bg:#ffffff;--bg2:#ffffff;--bg3:#f5f5f5;--border:#e8e8e8;--text:#111111;--text2:#333333;--text3:#666666;--gold:#c47a00;--gold2:#9a5f00}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;max-width:430px;margin:0 auto;min-height:100vh;transition:background 0.3s,color 0.3s}
 .ar{font-family:'Noto Naskh Arabic',serif;direction:rtl;text-align:right}
@@ -50,40 +50,40 @@ const LANGS = {
 // ── UI TRANSLATIONS ──────────────────────────────────────────────────────────
 const UI_TEXT = {
   de:{
-    welcome:'Willkommen zurück', today:'Heute', due:'Fällig', learned:'Gelernt', xpTotal:'XP Total',
-    dailyGoal:'Tagesziel', continueBtn:''+ui('continueBtn')+'', quoteTitle:''+ui('quoteTitle')+'',
-    quickAccess:'Schnellzugriff', recentWords:''+ui('recentWords')+'',
-    vocab:'Vokabeln', verbs:'Verben', games:'Spiele', voiceChat:''+ui('speakTitle')+'',
-    correction:'Korrektur', stats:''+ui('stats')+'',
-    learnTitle:''+ui('learnTitle')+'', reviews:''+ui('reviews')+'', newWords:'Neue Wörter',
-    areas:''+ui('areas')+'', verbsTitle:'Verben', gamesTitle:'Spiele', corrTitle:'Korrektur',
+    welcome:'Willkommen zurück','learning':'Lernend','total':'Gesamt','statusNew':'Neu','status_neu':'neu','status_lernend':'lernend','status_gelernt':'gelernt','badCards':'Schlechte Karten kommen öfter wieder.','noCards':'Keine Karten.','noVerbs':'Noch keine Verben. Tippe auf + Verb.','sceneFree':'Freies Gespräch','sceneFreeDes':'Chatte frei auf Arabisch','sceneIntro':'Stell dich vor','sceneIntroDes':'Übe dich vorzustellen','sceneShop':'Kunde & Verkäufer','sceneShopDes':'Gespräch im Laden','sceneRest':'Im Restaurant','sceneRestDes':'Essen bestellen','sceneSchool':'In der Schule','sceneSchoolDes':'Schüler und Lehrer','scenePron':'Aussprachetraining','scenePronDes':'Einzelne Wörter üben','todayXP':'XP heute','cardsDue':'Karten fällig','newWords':'Neue Wörter','areas':'Bereiche','cardsWaiting':'Karten warten auf dich!','allLearned':'Alle Karten gelernt – komm morgen wieder.','tapToFlip':'Tippen zum Umdrehen','howWell':'Wie gut kanntest du das Wort?', home:'Home', learn:'Lernen', speak:'Sprechen', profile:'Profil',
+    dailyGoal:'Tagesziel', continueBtn:'▶ Jetzt weiterlernen', quoteTitle:'ARABISCHER SPRUCH DES TAGES',
+    quickAccess:'Schnellzugriff', recentWords:'Zuletzt hinzugefügt',
+    vocab:'Vokabeln', verbs:'Verben', games:'Spiele', voiceChat:'Sprachchat',
+    correction:'Korrektur', stats:'Statistiken',
+    learnTitle:'Was lernst du heute?', reviews:'Wiederholungen', newWords:'Neue Wörter',
+    areas:'Bereiche', verbsTitle:'Verben', gamesTitle:'Spiele', corrTitle:'Korrektur',
     cardsWaiting:'Karten warten auf dich!', allLearned:'Alle Karten gelernt – komm morgen wieder.',
     learnNow:'Jetzt Karten lernen →', singular:'مفرد', plural:'جمع', opposite:'ضد',
-    tapToFlip:''+ui('tapToFlip')+'', howWell:''+ui('howWell')+'',
-    never:'Gar nicht', ok:'Okay', perfect:'Perfekt', skip:''+ui('skip')+'',
-    sessionDone:''+ui('sessionDone')+'', playAgain:''+ui('playAgain')+'',
-    addVocab:''+ui('addVocab')+'', addVerb:'+ Verb', search:''+ui('search')+'',
-    arabicWord:''+ui('arabicWord')+'', translation:''+ui('translation')+'', createCard:''+ui('createCard')+'',
-    aiAnalyzing:''+ui('aiAnalyzing')+'', verbCreate:''+ui('verbCreate')+'', aiConjugating:''+ui('aiConjugating')+'',
-    aiInfo:''+ui('aiInfo')+'',
+    tapToFlip:'Tippen zum Umdrehen', howWell:'Wie gut kanntest du das Wort?',
+    never:'Gar nicht', ok:'Okay', perfect:'Perfekt', skip:'Überspringen',
+    sessionDone:'Session abgeschlossen! 🏆', playAgain:'Nochmal lernen',
+    addVocab:'+ Hinzufügen', addVerb:'+ Verb', search:'🔍 Suchen...',
+    arabicWord:'Arabisches Wort...', translation:'Übersetzung (optional)', createCard:'Karte erstellen',
+    aiAnalyzing:'KI ergänzt...', verbCreate:'Verb erstellen', aiConjugating:'KI erstellt Konjugation...',
+    aiInfo:'KI erstellt alle Konjugationsformen automatisch!',
     past:'Vergangenheit', present:'Gegenwart', future:'Zukunft', imperative:'Befehl', more:'MEHR',
-    exampleSentences:''+ui('exampleSentences')+'', wordStem:''+ui('wordStem')+'',
-    enterText:''+ui('enterText')+'', correctBtn:''+ui('correctBtn')+'',
-    aiCorrecting:''+ui('aiCorrecting')+'', result:'Ergebnis', level:'Niveau', corrections:''+ui('corrections')+'',
+    exampleSentences:'BEISPIELSÄTZE', wordStem:'📚 WORTSTAMM & MERKHILFE',
+    enterText:'Deinen arabischen Text eingeben', correctBtn:'Text korrigieren',
+    aiCorrecting:'KI korrigiert...', result:'Ergebnis', level:'Niveau', corrections:'Korrekturen',
     speakTitle:'Sprachchat', speakDesc:'Führe echte Gespräche auf Arabisch mit KI',
     voiceToVoice:'Voice to Voice', voiceInfo:'Sprich Arabisch – die KI antwortet mit Stimme und korrigiert dich',
-    chooseScene:''+ui('chooseScene')+'', back:'← Zurück', send:'→', listening:''+ui('listening')+'',
+    chooseScene:'Szenarien wählen', back:'← Zurück', send:'→', listening:'● Aufnahme läuft...',
     typeOrMic:'اكتب أو استخدم الميكروفون...', correct:'✓ Richtig!', wrongCorr:'✗ Korrektur',
-    profileTitle:''+ui('profileTitle')+'', projects:'Projekte', newProject:''+ui('newProject')+'',
-    language:'Sprache', appearance:''+ui('appearance')+'', nightMode:''+ui('nightMode')+'',
-    dayMode:''+ui('dayMode')+'', statsTitle:'Statistiken', streak:'Streak', record:'Rekord',
+    profileTitle:'Einstellungen', projects:'Projekte', newProject:'+ Neues Projekt',
+    language:'Sprache', appearance:'Erscheinungsbild', nightMode:'🌙 Nacht-Modus',
+    dayMode:'☀️ Tag-Modus', statsTitle:'Statistiken', streak:'Streak', record:'Rekord',
     vocabStatus:'Vokabelstatus', todayXP:'XP heute', cardsDue:'Karten fällig',
-    noVocab:'Noch keine Vokabeln', contextMore:''+ui('contextMore')+'',
-    meanings:''+ui('meanings')+'', relatedWords:''+ui('relatedWords')+'',
-    loadContext:''+ui('loadContext')+'', loading:'Lädt...',
+    noVocab:'Noch keine Vokabeln', contextMore:'🔍 Kontext & Mehr anzeigen',
+    meanings:'BEDEUTUNGEN & KONTEXT', relatedWords:'VERWANDTE WÖRTER (نفس الجذر)',
+    loadContext:'🔍 Kontext laden', loading:'Lädt...',
   },
   en:{
-    welcome:'Welcome back', today:'Today', due:'Due', learned:'Learned', xpTotal:'XP Total',
+    welcome:'Welcome back','learning':'Learning','total':'Total','statusNew':'New','status_neu':'new','status_lernend':'learning','status_gelernt':'learned','badCards':'Bad cards will come more often.','noCards':'No cards.','noVerbs':'No verbs yet. Tap + Verb.','sceneFree':'Free conversation','sceneFreeDes':'Chat freely in Arabic','sceneIntro':'Introduce yourself','sceneIntroDes':'Practice introducing yourself','sceneShop':'Customer & seller','sceneShopDes':'Conversation in a shop','sceneRest':'At the restaurant','sceneRestDes':'Order food','sceneSchool':'At school','sceneSchoolDes':'Student and teacher','scenePron':'Pronunciation training','scenePronDes':'Practice individual words','todayXP':'XP today','cardsDue':'Cards due','newWords':'New words','areas':'Sections','cardsWaiting':'cards waiting for you!','allLearned':'All cards learned – come back tomorrow.','tapToFlip':'Tap to flip','howWell':'How well did you know this?', home:'Home', learn:'Learn', speak:'Speak', profile:'Profile',
     dailyGoal:'Daily goal', continueBtn:'▶ Continue learning', quoteTitle:'ARABIC QUOTE OF THE DAY',
     quickAccess:'Quick access', recentWords:'Recently added',
     vocab:'Vocabulary', verbs:'Verbs', games:'Games', voiceChat:'Voice Chat',
@@ -116,7 +116,7 @@ const UI_TEXT = {
     loadContext:'🔍 Load context', loading:'Loading...',
   },
   ru:{
-    welcome:'С возвращением', today:'Сегодня', due:'К повторению', learned:'Изучено', xpTotal:'XP всего',
+    welcome:'С возвращением','learning':'Изучается','total':'Всего','statusNew':'Новые','status_neu':'новое','status_lernend':'изучается','status_gelernt':'изучено','badCards':'Плохие карточки будут встречаться чаще.','noCards':'Нет карточек.','noVerbs':'Глаголов пока нет. Нажмите + Глагол.','sceneFree':'Свободный разговор','sceneFreeDes':'Общайтесь по-арабски','sceneIntro':'Представьтесь','sceneIntroDes':'Потренируйтесь представляться','sceneShop':'Покупатель и продавец','sceneShopDes':'Разговор в магазине','sceneRest':'В ресторане','sceneRestDes':'Заказать еду','sceneSchool':'В школе','sceneSchoolDes':'Ученик и учитель','scenePron':'Тренировка произношения','scenePronDes':'Практика отдельных слов','todayXP':'XP сегодня','cardsDue':'Карточек к повторению','newWords':'Новые слова','areas':'Разделы','cardsWaiting':'карточек ждут вас!','allLearned':'Все карточки изучены – вернитесь завтра.','tapToFlip':'Нажмите чтобы перевернуть','howWell':'Насколько хорошо вы знали?', home:'Главная', learn:'Учить', speak:'Говорить', profile:'Профиль',
     dailyGoal:'Дневная цель', continueBtn:'▶ Продолжить обучение', quoteTitle:'АРАБСКАЯ ЦИТАТА ДНЯ',
     quickAccess:'Быстрый доступ', recentWords:'Недавно добавленные',
     vocab:'Словарь', verbs:'Глаголы', games:'Игры', voiceChat:'Голосовой чат',
@@ -149,7 +149,7 @@ const UI_TEXT = {
     loadContext:'🔍 Загрузить контекст', loading:'Загрузка...',
   },
   ur:{
-    welcome:'خوش آمدید واپس', today:'آج', due:'مراجعت', learned:'سیکھا', xpTotal:'کل XP',
+    welcome:'خوش آمدید واپس','learning':'سیکھ رہا ہے','total':'کل','statusNew':'نیا','status_neu':'نیا','status_lernend':'سیکھ رہا','status_gelernt':'سیکھا','badCards':'خراب کارڈ زیادہ آئیں گے۔','noCards':'کوئی کارڈ نہیں۔','noVerbs':'ابھی کوئی فعل نہیں۔ + فعل دبائیں۔','sceneFree':'آزاد گفتگو','sceneFreeDes':'عربی میں آزادانہ بات کریں','sceneIntro':'اپنا تعارف کروائیں','sceneIntroDes':'تعارف کروانے کی مشق','sceneShop':'خریدار اور فروشندہ','sceneShopDes':'دکان میں گفتگو','sceneRest':'ریستوران میں','sceneRestDes':'کھانا آرڈر کریں','sceneSchool':'اسکول میں','sceneSchoolDes':'طالب علم اور استاد','scenePron':'تلفظ کی تربیت','scenePronDes':'انفرادی الفاظ کی مشق','todayXP':'آج کا XP','cardsDue':'واجب کارڈ','newWords':'نئے الفاظ','areas':'حصے','cardsWaiting':'کارڈ آپ کا انتظار کر رہے ہیں!','allLearned':'سب کارڈ سیکھے – کل واپس آئیں۔','tapToFlip':'پلٹنے کے لیے ٹیپ کریں','howWell':'آپ کو کتنا یاد تھا؟', home:'ہوم', learn:'سیکھیں', speak:'بولیں', profile:'پروفائل',
     dailyGoal:'روزانہ ہدف', continueBtn:'▶ سیکھنا جاری رکھیں', quoteTitle:'آج کا عربی قول',
     quickAccess:'فوری رسائی', recentWords:'حال ہی میں شامل',
     vocab:'الفاظ', verbs:'فعل', games:'کھیل', voiceChat:'آواز چیٹ',
@@ -305,10 +305,10 @@ function render(){
   const due=getVocab().filter(isDue).length;
 
   const TABS=[
-    {id:'home',icon:'🏠',label:'Home'},
-    {id:'lernen',icon:'📚',label:'Lernen'},
-    {id:'sprechen',icon:'🎤',label:'Sprechen'},
-    {id:'profil',icon:'👤',label:'Profil'},
+    {id:'home',icon:'🏠',label:ui('home')||'Home'},
+    {id:'lernen',icon:'📚',label:ui('learn')||'Lernen'},
+    {id:'sprechen',icon:'🎤',label:ui('speak')||'Sprechen'},
+    {id:'profil',icon:'👤',label:ui('profile')||'Profil'},
   ];
   nav.innerHTML=TABS.map(t=>`<button onclick="goTab('${t.id}')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0;position:relative">
     <span style="font-size:20px">${t.icon}</span>
@@ -328,14 +328,14 @@ function goTab(t){ tab=t; subView=null; render(); }
 // ═══════════════════════════════════════════════════════
 // HOME
 // ═══════════════════════════════════════════════════════
-const QUICK=[
-  {icon:'📖',title:ui('vocab'),desc:'Wörter hinzufügen & verwalten',action:()=>{tab='lernen';subView='vokabeln';render();}},
-  {icon:'📚',title:ui('verbs'),desc:'Konjugationen lernen',action:()=>{tab='lernen';subView='verben';render();}},
-  {icon:'🎮',title:ui('games'),desc:'Spielerisch Arabisch üben',action:()=>{tab='lernen';subView='spiele';render();}},
+function getQUICK(){return[
+  {icon:'📖',title:ui('vocab'),desc:ui('vocab')+' hinzufügen & verwalten',action:()=>{tab='lernen';subView='vokabeln';render();}},
+  {icon:'📚',title:ui('verbs'),desc:ui('verbs')+' – Konjugationstabellen',action:()=>{tab='lernen';subView='verben';render();}},
+  {icon:'🎮',title:ui('games'),desc:'Spielerisch üben',action:()=>{tab='lernen';subView='spiele';render();}},
   {icon:'🎤',title:ui('voiceChat'),desc:'Mit KI auf Arabisch sprechen',action:()=>{tab='sprechen';subView=null;render();}},
   {icon:'✍️',title:ui('correction'),desc:'Texte prüfen und verbessern',action:()=>{tab='lernen';subView='korrektor';render();}},
   {icon:'📊',title:ui('stats'),desc:'Dein Lernfortschritt im Überblick',action:()=>{tab='profil';subView='stats';render();}},
-];
+];}
 
 function renderHome(app){
   const vocab=getVocab();
@@ -345,81 +345,77 @@ function renderHome(app){
   const xpGoal=100;
   const xpPct=Math.min(((streak.todayXP||0)/xpGoal)*100,100);
   const motto=getTodayMotto();
+  const words=ui('vocab')||'Wörter';
+  const days=lang==='de'?'TAGE':lang==='en'?'DAYS':lang==='ru'?'ДНИ':'دن';
 
   app.innerHTML=`<div style="padding:20px 16px 100px">
-    <!-- Begrüßung -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-top:6px">
       <div>
         <div style="font-size:13px;color:var(--text3);font-weight:500">مرحباً بك</div>
-        <div style="font-size:26px;font-weight:800;color:var(--text);line-height:1.2">Willkommen zurück</div>
-        <div style="font-size:13px;color:var(--text3);margin-top:4px">${getP().name} · ${total} Wörter</div>
+        <div style="font-size:26px;font-weight:800;color:var(--text);line-height:1.2">${ui('welcome')}</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">${getP().name} · ${total} ${words}</div>
       </div>
       <div style="text-align:center;background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:14px;padding:10px 14px;cursor:pointer" onclick="goTab('profil')">
         <div style="font-size:22px">🔥</div>
         <div style="font-size:18px;font-weight:900;color:var(--gold);line-height:1">${streak.days}</div>
-        <div style="font-size:9px;color:#78716c;letter-spacing:1px">TAGE</div>
+        <div style="font-size:9px;color:#78716c;letter-spacing:1px">${days}</div>
       </div>
     </div>
 
-    <!-- Fortschritts-Karten -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
       <div class="card" style="padding:14px;text-align:center">
         <div style="font-size:22px;font-weight:900;color:#ef4444">${due}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">ui('due')</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${ui('due')}</div>
       </div>
       <div class="card" style="padding:14px;text-align:center">
         <div style="font-size:22px;font-weight:900;color:#a3e635">${gelernt}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">ui('learned')</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${ui('learned')}</div>
       </div>
       <div class="card" style="padding:14px;text-align:center">
         <div style="font-size:22px;font-weight:900;color:var(--gold)">${streak.totalXP||0}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">ui('xpTotal')</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${ui('xpTotal')}</div>
       </div>
     </div>
 
-    <!-- Tagesziel -->
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:700;color:var(--text)">🎯 '+ui('dailyGoal')+'</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">🎯 ${ui('dailyGoal')}</div>
         <div style="font-size:12px;color:var(--text3)">${streak.todayXP||0} / ${xpGoal} XP</div>
       </div>
       <div style="background:var(--bg3);border-radius:6px;height:8px">
         <div style="width:${xpPct}%;background:linear-gradient(90deg,var(--gold),#a3e635);height:8px;border-radius:6px;transition:width 0.6s ease"></div>
       </div>
       <div style="margin-top:12px">
-        <button class="gold-btn" onclick="goTab('lernen')" style="font-size:14px;padding:12px 0">▶ Jetzt weiterlernen</button>
+        <button class="gold-btn" onclick="goTab('lernen')" style="font-size:14px;padding:12px 0">${ui('continueBtn')}</button>
       </div>
     </div>
 
-    <!-- Motto des Tages -->
     <div style="background:linear-gradient(135deg,#0f1f3d,#1a2a5e);border:1px solid #2d4a8a;border-radius:18px;padding:20px;margin-bottom:16px">
-      <div style="font-size:10px;color:#60a5fa;letter-spacing:2px;font-weight:700;margin-bottom:12px">ARABISCHER SPRUCH DES TAGES</div>
+      <div style="font-size:10px;color:#60a5fa;letter-spacing:2px;font-weight:700;margin-bottom:12px">${ui('quoteTitle')}</div>
       <div class="ar" style="font-size:28px;color:#f8fafc;font-weight:700;line-height:1.8;margin-bottom:10px">${motto.ar}</div>
-      <div style="font-size:14px;color:#93c5fd;font-weight:600;margin-bottom:6px">${motto.de}</div>
-      <div style="font-size:12px;color:#64748b">${motto.hint}</div>
+      <div style="font-size:14px;color:#93c5fd;font-weight:600;margin-bottom:6px">${motto.tr?motto.tr[lang]||motto.tr.de:motto.de}</div>
+      <div style="font-size:12px;color:#64748b">${motto.hint?((typeof motto.hint==='object')?motto.hint[lang]||motto.hint.de:motto.hint):''}</div>
     </div>
 
-    <!-- Schnellzugriff -->
-    <div style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Schnellzugriff</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">${ui('quickAccess')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-      ${QUICK.map((q,i)=>`<div class="quick-card" onclick="(${q.action.toString()})()">
+      ${getQUICK().map((q,i)=>`<div class="quick-card" onclick="(${q.action.toString()})()">
         <div style="font-size:26px">${q.icon}</div>
         <div style="font-size:14px;font-weight:700;color:var(--text)">${q.title}</div>
         <div style="font-size:11px;color:var(--text3);line-height:1.4">${q.desc}</div>
       </div>`).join('')}
     </div>
 
-    <!-- Zuletzt gelernt -->
-    ${vocab.length>0?`<div style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Zuletzt hinzugefügt</div>
+    ${vocab.length>0?`<div style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">${ui('recentWords')}</div>
     ${vocab.slice(0,3).map(v=>`<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:14px">
-      <div><div style="font-size:13px;color:var(--text2)">${getTr(v)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${v.wordType||''} · ${v.status||'neu'}</div></div>
+      <div><div style="font-size:13px;color:var(--text2)">${getTr(v)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${v.wordType||''} · ${ui('status_'+v.status)||v.status||'neu'}</div></div>
       <div class="ar" style="font-size:24px;color:var(--gold);font-weight:700">${v.harakat||v.arabic}</div>
     </div>`).join('')}`:''}
   </div>`;
 }
 
 // ═══════════════════════════════════════════════════════
-// LERNEN (enthält Vokabeln, Karten, Verben, Spiele, Korrektur)
+// LERNEN (enthält ${ui('vocab')}, Karten, ${ui('verbs')}, ${ui('games')}, ${ui('correction')})
 // ═══════════════════════════════════════════════════════
 function renderLernen(app){
   if(subView==='vokabeln') { renderVokabeln(app); return; }
@@ -434,20 +430,20 @@ function renderLernen(app){
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="padding-top:6px;margin-bottom:24px">
       <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Lernen</div>
-      <div style="font-size:26px;font-weight:800;color:var(--text)">Was lernst du heute?</div>
+      <div style="font-size:26px;font-weight:800;color:var(--text)">${ui('learnTitle')}</div>
     </div>
 
     <!-- Hauptlernbereich -->
     <div onclick="subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid ${due>0?'#22c55e':'var(--border)'};border-radius:18px;padding:20px;margin-bottom:12px;cursor:pointer">
       <div style="font-size:28px;margin-bottom:8px">🔄</div>
-      <div style="font-size:18px;font-weight:800;color:${due>0?'#4ade80':'var(--text)'}">Wiederholungen</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:4px">${due>0?`${due} Karten warten auf dich!`:'Alle Karten gelernt – komm morgen wieder.'}</div>
+      <div style="font-size:18px;font-weight:800;color:${due>0?'#4ade80':'var(--text)'}">${ui("reviews")}</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px">${due>0?`${due} ${ui('cardsWaiting')}`:ui('allLearned')}}</div>
       ${due>0?`<div style="margin-top:12px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;padding:10px;text-align:center;color:#0a1628;font-weight:800;font-size:14px">Jetzt ${due} Karten lernen →</div>`:''}
     </div>
 
     <div onclick="subView='karten';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;cursor:pointer;display:flex;gap:14px;align-items:center">
       <div style="font-size:32px">✨</div>
-      <div><div style="font-size:16px;font-weight:700;color:var(--text)">Neue Wörter</div><div style="font-size:12px;color:var(--text3);margin-top:2px">${neu} neue Wörter noch nicht gelernt</div></div>
+      <div><div style="font-size:16px;font-weight:700;color:var(--text)">${ui('newWords')}</div><div style="font-size:12px;color:var(--text3);margin-top:2px">${neu} neue Wörter</div></div>
       <div style="color:var(--text3);font-size:20px;margin-left:auto">›</div>
     </div>
 
@@ -455,10 +451,10 @@ function renderLernen(app){
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin:20px 0 12px">Bereiche</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       ${[
-        {icon:'📖',title:'Vokabeln',desc:'Wörter verwalten',sv:'vokabeln'},
-        {icon:'📚',title:'Verben',desc:'Konjugationstabellen',sv:'verben'},
-        {icon:'🎮',title:'Spiele',desc:'Spielerisch üben',sv:'spiele'},
-        {icon:'✍️',title:'Korrektur',desc:'Texte prüfen',sv:'korrektor'},
+        {icon:'📖',title:ui('vocab'),desc:ui('vocab')+' verwalten',sv:'vokabeln'},
+        {icon:'📚',title:ui('verbs'),desc:'Konjugationstabellen',sv:'verben'},
+        {icon:'🎮',title:ui('games'),desc:'Spielerisch üben',sv:'spiele'},
+        {icon:'✍️',title:ui('correction'),desc:'Texte prüfen',sv:'korrektor'},
       ].map(q=>`<div class="quick-card" onclick="subView='${q.sv}';render()">
         <div style="font-size:24px">${q.icon}</div>
         <div style="font-size:14px;font-weight:700;color:var(--text)">${q.title}</div>
@@ -475,10 +471,10 @@ function renderVokabeln(app){
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
       <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
-      <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Vokabeln</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">${ui('vocab')}</div></div>
       <button onclick="showAddVocab()" class="gold-btn" style="width:auto;padding:8px 16px;margin-left:auto;font-size:13px">+ Hinzufügen</button>
     </div>
-    ${due>0?`<div onclick="subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid #22c55e;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer"><div><div style="font-size:13px;font-weight:700;color:#4ade80">🔔 ${due} Wiederholungen fällig</div><div style="font-size:11px;color:var(--text3)">Tippe um zu lernen</div></div><div style="font-size:24px;font-weight:800;color:#4ade80">${due}</div></div>`:''}
+    ${due>0?`<div onclick="subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid #22c55e;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer"><div><div style="font-size:13px;font-weight:700;color:#4ade80">🔔 ${due} ${ui('reviews')} fällig</div><div style="font-size:11px;color:var(--text3)">Tippe um zu lernen</div></div><div style="font-size:24px;font-weight:800;color:#4ade80">${due}</div></div>`:''}
     <input placeholder="🔍 Suchen..." oninput="filterVocab(this.value)" style="margin-bottom:14px"/>
     <div id="vocabList">${vocab.map(v=>vocabCard(v)).join('')}</div>
   </div>`;
@@ -502,7 +498,7 @@ function vocabCard(v){
         ${v.exampleArabic?`<div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:10px"><div class="ar" style="font-size:16px;color:var(--text);line-height:1.9">${v.exampleArabic}</div><div style="font-size:11px;color:var(--text3);margin-top:3px">${exTr}</div></div>`:''}
         <button onclick="showVocabMehr(${v.id})" style="margin-top:10px;background:none;border:1px solid #3b2d6e;border-radius:10px;padding:8px 14px;color:#a78bfa;font-size:12px;font-weight:700;cursor:pointer;width:100%">🔍 Kontext & Mehr anzeigen</button>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
-        <span style="background:${sb};color:${sc};border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700">${v.status||'neu'}</span>
+        <span style="background:${sb};color:${sc};border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700">${ui('status_'+v.status)||v.status||'neu'}</span>
         <button onclick="deleteVocab(${v.id})" style="background:#3b1a1a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">Löschen</button>
       </div>
     </div>
@@ -593,13 +589,13 @@ function showCard(app){
   if(lD){
     app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Session abgeschlossen! 🏆</div></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">${[['Perfekt','p','#a3e635'],['Gut','g','#F59E0B'],['Schlecht','s','#ef4444']].map(([l,k,c])=>`<div class="card" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:${c}">${lS[k]}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`).join('')}</div>
-    ${lS.s>0?`<div style="background:#1a1000;border:1px solid #92400e;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--gold)">Schlechte Karten kommen öfter wieder.</div>`:''}
-    <button class="gold-btn" onclick="renderKarten(document.getElementById('app'))">Nochmal lernen</button></div>`; return;
+    ${lS.s>0?`<div style="background:#1a1000;border:1px solid #92400e;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--gold)">${ui('badCards')||'Schlechte Karten kommen öfter wieder.'}</div>`:''}
+    <button class="gold-btn" onclick="renderKarten(document.getElementById('app'))">${ui('playAgain')}</button></div>`; return;
   }
   if(!lP.length){
     app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Lernkarten</div></div>
     <div style="display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px">${fb}</div>
-    <div style="text-align:center;color:var(--text3);padding:60px 0;font-size:15px">Keine Karten.</div></div>`; return;
+    <div style="text-align:center;color:var(--text3);padding:60px 0;font-size:15px">${ui('noCards')||'Keine Karten.'}</div></div>`; return;
   }
   const card=lP[lI];
   const tr=getTr(card), exTr=getExTr(card);
@@ -613,7 +609,7 @@ function showCard(app){
     <div style="background:var(--bg3);border-radius:4px;height:4px;margin-bottom:16px"><div style="width:${((lI+1)/lP.length)*100}%;background:${(card.failCount||0)>1?'#ef4444':'var(--gold)'};height:4px;border-radius:4px;transition:width 0.4s"></div></div>
     <div onclick="lF=!lF;showCard(document.getElementById('app'))" style="background:var(--bg2);border:1px solid ${(card.failCount||0)>1?'#7f1d1d':'var(--border)'};border-radius:20px;padding:24px;min-height:260px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;margin-bottom:14px">
       ${!lF?`${(card.failCount||0)>0?`<div style="font-size:10px;color:#f97316;margin-bottom:10px;font-weight:700">SCHWIERIG – ${card.failCount}x falsch</div>`:''}
-      <div style="font-size:12px;color:var(--gold);font-weight:700;letter-spacing:1px;margin-bottom:18px">Tippen zum Umdrehen</div>
+      <div style="font-size:12px;color:var(--gold);font-weight:700;letter-spacing:1px;margin-bottom:18px">${ui('tapToFlip')}</div>
       <div class="ar" style="font-size:58px;color:var(--gold);font-weight:700;line-height:1.4;margin-bottom:10px">${card.harakat||card.arabic}</div>
       <div style="font-size:12px;color:var(--text3)">${card.wordType||''}</div>`
       :`<div style="width:100%">
@@ -624,9 +620,9 @@ function showCard(app){
         </div>
         ${card.exampleArabic?`<div style="background:var(--bg3);border-radius:12px;padding:14px"><div class="ar" style="font-size:18px;color:var(--text);line-height:2;margin-bottom:6px">${card.exampleArabic}</div><div style="font-size:12px;color:var(--text3)">${exTr}</div></div>`:''}</div>`}
     </div>
-    ${lF?`<div><div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:10px">Wie gut kanntest du das Wort?</div>
+    ${lF?`<div><div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:10px">${ui('howWell')}</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">${RATES.map(r=>`<button onclick="rateCard(${r.s})" style="background:var(--bg2);border:1px solid ${r.c}44;border-radius:14px;padding:14px 6px;cursor:pointer;text-align:center"><div style="font-size:14px;font-weight:800;color:${r.c}">${r.l}</div>${r.s<2?'<div style="font-size:9px;color:var(--text3);margin-top:2px">öfter</div>':r.s>=4?'<div style="font-size:9px;color:var(--text3);margin-top:2px">seltener</div>':''}</button>`).join('')}</div>
-    <button onclick="lF=false;lI++;if(lI>=lP.length){lD=true;}showCard(document.getElementById('app'))" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;width:100%;color:var(--text2);font-weight:700;cursor:pointer">Überspringen</button></div>`:''}`
+    <button onclick="lF=false;lI++;if(lI>=lP.length){lD=true;}showCard(document.getElementById('app'))" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;width:100%;color:var(--text2);font-weight:700;cursor:pointer">${ui('skip')}</button></div>`:''}`
 }
 function rateCard(score){
   const card=lP[lI];
@@ -654,7 +650,7 @@ function renderVerben(app){
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
       <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
-      <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Verben</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">${ui('verbs')}</div></div>
       <button onclick="showAddVerb()" class="gold-btn" style="width:auto;padding:8px 14px;margin-left:auto;font-size:13px">+ Verb</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
@@ -663,10 +659,10 @@ function renderVerben(app){
         <div style="font-size:11px;color:var(--text3);font-weight:600">${tn.label}</div>
       </button>`).join('')}
     </div>
-    ${verbs.length===0?`<div style="text-align:center;color:var(--text3);padding:40px 0">Noch keine Verben. Tippe auf + Verb.</div>`:''}
+    ${verbs.length===0?`<div style="text-align:center;color:var(--text3);padding:40px 0">${ui('noVerbs')}</div>`:''}
     ${verbs.map(v=>`<div style="display:flex;margin-bottom:10px">
       <button onclick="showVerbDetail(${v.id})" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-right:none;border-radius:18px 0 0 18px;padding:14px 16px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-size:13px;color:var(--text2)">${getTr(v)}</div>${v.konjugation?.[activeTense]?.[0]?`<div class="ar" style="font-size:13px;color:${tc.color};margin-top:4px">${v.konjugation[activeTense][0].a}</div>`:''}</div>
+        <div><div style="font-size:13px;color:var(--text2)">${getTr(v)}</div>${(v.konjugation&&v.konjugation[activeTense]&&v.konjugation[activeTense][0])?`<div class="ar" style="font-size:13px;color:${tc.color};margin-top:4px">${v.konjugation[activeTense][0].a}</div>`:''}</div>
         <div style="display:flex;align-items:center;gap:8px"><div class="ar" style="font-size:28px;color:var(--gold);font-weight:700">${v.arabic}</div><div style="color:${tc.color};font-size:18px">›</div></div>
       </button>
       <button onclick="setVerbs(getVerbs().filter(x=>x.id!==${v.id}));renderVerben(document.getElementById('app'))" style="background:#3b1a1a;border:1px solid #7f1d1d;border-radius:0 18px 18px 0;padding:0 14px;cursor:pointer;color:#fca5a5;font-size:14px">✕</button>
@@ -681,39 +677,40 @@ function showVerbDetail(id){
   let mehrLoading=false;
 
   function draw(){
-    const tc=TENSES.find(x=>x.key===vt);
+    const tc=TENSES.find(x=>x.key===vt)||TENSES[0];
     const existing=document.getElementById('verbModal'); if(existing)existing.remove();
     const m=document.createElement('div'); m.id='verbModal';
     m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:150;display:flex;flex-direction:column;overflow:hidden';
     m.innerHTML=`
     <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
       <div><div style="font-size:11px;color:var(--text3)">VERB</div><div class="ar" style="font-size:26px;color:var(--gold);font-weight:700">${verb.arabic}</div><div style="font-size:13px;color:var(--text2)">${getTr(verb)}</div></div>
-      <button onclick="document.getElementById('verbModal').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <div style="display:flex;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto">
-      ${TENSES.map(tn=>`<div onclick="vt='${tn.key}';draw()" style="flex-shrink:0;padding:12px 14px;cursor:pointer;border-bottom:${vt===tn.key?`3px solid ${tn.color}`:'3px solid transparent'};background:${vt===tn.key?'var(--bg2)':'transparent'};-webkit-tap-highlight-color:transparent">
-        <div style="font-size:10px;font-weight:700;color:${vt===tn.key?tn.color:'var(--text3)'};white-space:nowrap">${tn.label.toUpperCase()}</div>
-        <div class="ar" style="font-size:13px;color:${vt===tn.key?tn.color:'var(--text3)'};text-align:right">${tn.ar}</div>
-      </div>`).join('')}
-      <div onclick="showMehr()" style="flex-shrink:0;padding:12px 14px;cursor:pointer;border-bottom:${vt==='mehr'?'3px solid #a78bfa':'3px solid transparent'};background:${vt==='mehr'?'var(--bg2)':'transparent'};-webkit-tap-highlight-color:transparent">
-        <div style="font-size:10px;font-weight:700;color:${vt==='mehr'?'#a78bfa':'var(--text3)'};white-space:nowrap">MEHR</div>
-        <div style="font-size:13px;color:${vt==='mehr'?'#a78bfa':'var(--text3)'};text-align:center">＋</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div onclick="showMehr()" style="background:${vt==='mehr'?'#a78bfa':'var(--bg3)'};border:none;color:${vt==='mehr'?'white':'var(--text2)'};border-radius:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-weight:700">···</div>
+        <div onclick="document.getElementById('verbModal').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:16px">✕</div>
       </div>
     </div>
-    <div id="verbContent" style="flex:1;overflow-y:auto;padding:16px">
-      ${vt==='mehr'?renderMehrContent():renderTenseContent(tc,verb)}
+    <div style="flex:1;overflow-y:auto;padding:16px">
+      ${vt==='mehr'?renderMehrContent():`
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;margin-bottom:16px">
+          ${TENSES.map(tn=>`<div onclick="vt='${tn.key}';draw()" style="flex-shrink:0;padding:8px 14px;border-radius:20px;cursor:pointer;background:${vt===tn.key?tn.color+'22':'var(--bg3)'};border:1px solid ${vt===tn.key?tn.color:'var(--border)'};-webkit-tap-highlight-color:transparent">
+            <div style="font-size:11px;font-weight:700;color:${vt===tn.key?tn.color:'var(--text3)'};white-space:nowrap">${tn.label}</div>
+            <div class="ar" style="font-size:12px;color:${vt===tn.key?tn.color:'var(--text3)'};text-align:right">${tn.ar}</div>
+          </div>`).join('')}
+        </div>
+        ${renderTenseContent(tc,verb)}
+      `}
     </div>`;
     document.body.appendChild(m);
   }
 
   function renderTenseContent(tc,verb){
     return `<div style="font-size:12px;font-weight:700;color:${tc.color};margin-bottom:12px">${tc.label}</div>
-    ${(verb.konjugation?.[vt]||[]).map(f=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+    ${((verb.konjugation&&verb.konjugation[vt])||[]).map(f=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:11px;color:var(--text3)">${f.p} · ${f.d}</div>
       <div class="ar" style="font-size:26px;color:${tc.color};font-weight:700">${f.a}</div>
     </div>`).join('')}
-    ${verb.konjugation?.beispiele?.length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:20px 0 10px">BEISPIELSÄTZE</div>${verb.konjugation.beispiele.map(b=>`<div class="card"><div class="ar" style="font-size:18px;color:var(--text);line-height:1.9;margin-bottom:6px">${b.a}</div><div style="font-size:12px;color:var(--text3)">${b.d}</div></div>`).join('')}`:''}
-    ${verb.konjugation?.merksatz?`<div style="background:linear-gradient(135deg,#1a1f3a,#0d1226);border:1px solid #2d3a6e;border-radius:14px;padding:16px;margin-top:16px"><div style="font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:8px">📚 WORTSTAMM & MERKHILFE</div><div style="font-size:13px;color:#93c5fd;line-height:1.6">${verb.konjugation.merksatz}</div></div>`:''}`;
+    ${verb.konjugation&&verb.konjugation.beispiele&&verb.konjugation.beispiele.length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:20px 0 10px">BEISPIELSÄTZE</div>${verb.konjugation.beispiele.map(b=>`<div class='card'><div class="ar" style="font-size:18px;color:var(--text);line-height:1.9;margin-bottom:6px">${b.a}</div><div style="font-size:12px;color:var(--text3)">${b.d}</div></div>`).join('')}`:''}
+    ${verb.konjugation&&verb.konjugation.merksatz?`<div style="background:linear-gradient(135deg,#1a1f3a,#0d1226);border:1px solid #2d3a6e;border-radius:14px;padding:16px;margin-top:16px"><div style="font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:8px">📚 WORTSTAMM & MERKHILFE</div><div style="font-size:13px;color:#93c5fd;line-height:1.6">${verb.konjugation.merksatz}</div></div>`:''}`;
   }
 
   function renderMehrContent(){
@@ -724,13 +721,13 @@ function showVerbDetail(id){
     </div>`;
     return `<div style="margin-bottom:16px">
       <div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:12px">BEDEUTUNGEN & KONTEXT</div>
-      ${mehrData.bedeutungen?.map(b=>`<div style="background:var(--bg2);border:1px solid #3b2d6e;border-radius:14px;padding:14px;margin-bottom:10px">
+      ${(mehrData.bedeutungen||[]).map(b=>`<div style="background:var(--bg2);border:1px solid #3b2d6e;border-radius:14px;padding:14px;margin-bottom:10px">
         <div style="font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:6px">${b.kontext}</div>
         <div class="ar" style="font-size:20px;color:var(--gold);margin-bottom:4px">${b.arabisch}</div>
         <div style="font-size:12px;color:var(--text3)">${b.deutsch}</div>
         ${b.beispiel?`<div class="ar" style="font-size:14px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${b.beispiel}</div>`:''}
       </div>`).join('')||''}
-      ${mehrData.verwandte?.length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:16px 0 10px">VERWANDTE WÖRTER (نفس الجذر)</div>
+      ${mehrData.verwandte&&mehrData.verwandte.length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:16px 0 10px">VERWANDTE WÖRTER (نفس الجذر)</div>
       ${mehrData.verwandte.map(w=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
         <div><div style="font-size:12px;color:var(--text3)">${w.deutsch}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${w.wortart}</div></div>
         <div class="ar" style="font-size:22px;color:#60a5fa;font-weight:700">${w.arabisch}</div>
@@ -791,7 +788,7 @@ function renderSpiele(app){
     app.innerHTML=`<div style="padding:20px 16px 100px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
         <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
-        <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Spiele</div></div>
+        <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">${ui('games')}</div></div>
       </div>
       ${[
         {mode:'mc',title:'Multiple Choice',desc:'Arabisch sehen → Bedeutung wählen',color:'#60a5fa',icon:'🎯'},
@@ -800,7 +797,7 @@ function renderSpiele(app){
         {mode:'hoeren',title:'Hören & Erkennen',desc:'Wort wird vorgelesen – welches ist es?',color:'#f472b6',icon:'👂'},
         {mode:'luecke',title:'Lückentext',desc:'Fehlende Wörter im Satz ergänzen',color:'#34d399',icon:'📖'},
         {mode:'paare',title:'Paare finden',desc:'Arabisch und Übersetzung zusammenführen',color:'#fb923c',icon:'🔗'},
-        {mode:'saetze',title:'Sätze übersetzen',desc:'KI generiert Sätze mit deinen Vokabeln',color:'#c084fc',icon:'💬'},
+        {mode:'saetze',title:'Sätze übersetzen',desc:'KI generiert Sätze mit Vokabeln',color:'#c084fc',icon:'💬'},
         {mode:'schnell',title:'Schnellantwort',desc:'So schnell wie möglich antworten',color:'#f87171',icon:'⚡'},
         {mode:'plural',title:'Plural-Trainer',desc:'Mehrzahl des arabischen Worts nennen',color:'#38bdf8',icon:'🔢'},
         {mode:'wortart',title:'Wortart erkennen',desc:'Nomen, Verb oder Adjektiv?',color:'#a3e635',icon:'🏷️'},
@@ -851,7 +848,7 @@ function renderSpiele(app){
 async function startGame(mode){
   gMode=mode;gI=0;gScore=0;gDone=false;gResult=null;gAns='';
   const vocab=getVocab();
-  if(vocab.length<4){alert('Mindestens 4 Vokabeln nötig!');gMode=null;renderSpiele(document.getElementById('app'));return;}
+  if(vocab.length<4){alert('Mindestens 4 '+ui('vocab')+' nötig!');gMode=null;renderSpiele(document.getElementById('app'));return;}
   renderSpiele(document.getElementById('app'));
   const sh=arr=>[...arr].sort(()=>Math.random()-0.5);
 
@@ -901,37 +898,37 @@ function renderKorrektor(app){
       <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
       <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Text-Korrektor</div></div>
     </div>
-    <div class="card"><div style="font-size:12px;color:var(--gold);margin-bottom:8px;font-weight:600">Deinen arabischen Text eingeben</div>
+    <div class="card"><div style="font-size:12px;color:var(--gold);margin-bottom:8px;font-weight:600">${ui('enterText')}</div>
       <textarea id="corrIn" placeholder="أكتب نصك هنا..." class="ar" style="font-size:22px;height:120px;resize:none;line-height:1.8"></textarea>
-      <button class="gold-btn" style="margin-top:12px" onclick="correctText()" id="corrBtn">Text korrigieren</button>
+      <button class="gold-btn" style="margin-top:12px" onclick="correctText()" id="corrBtn">${ui('correctBtn')}</button>
     </div>
     ${cResult?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:14px;font-weight:700;color:var(--text)">'+ui('result')+'</div><span style="background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700">'+ui('level')+': ${cResult.level}</span></div>
     <div class="card"><div style="font-size:11px;color:#4ade80;margin-bottom:8px;font-weight:700">KORRIGIERTER TEXT</div><div class="ar" style="font-size:22px;color:var(--text);line-height:1.9">${cResult.corrected}</div></div>
-    ${cResult.corrections?.length?`<div class="card"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">Korrekturen</div>${cResult.corrections.map(c=>`<div style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px"><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="ar" style="background:#3b1a1a;color:#ef4444;border-radius:8px;padding:3px 10px;font-size:16px">${c.original}</span><span style="color:var(--text3)">→</span><span class="ar" style="background:#1a3b1a;color:#4ade80;border-radius:8px;padding:3px 10px;font-size:16px">${c.fixed}</span></div><div style="font-size:12px;color:var(--text2)">${c.explanation}</div></div>`).join('')}</div>`:''}`:''}
+    ${cResult.corrections&&cResult.corrections.length?`<div class="card"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">${ui('corrections')}</div>${cResult.corrections.map(c=>`<div style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px"><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="ar" style="background:#3b1a1a;color:#ef4444;border-radius:8px;padding:3px 10px;font-size:16px">${c.original}</span><span style="color:var(--text3)">→</span><span class="ar" style="background:#1a3b1a;color:#4ade80;border-radius:8px;padding:3px 10px;font-size:16px">${c.fixed}</span></div><div style="font-size:12px;color:var(--text2)">${c.explanation}</div></div>`).join('')}</div>`:''}`:''}
   </div>`;
 }
 async function correctText(){
   const input=document.getElementById('corrIn').value.trim(); if(!input)return;
-  const btn=document.getElementById('corrBtn'); btn.textContent='KI korrigiert...'; btn.disabled=true;
+  const btn=document.getElementById('corrBtn'); btn.textContent=ui('aiCorrecting'); btn.disabled=true;
   try{
     const raw=await callAI(`Correct this Arabic text: "${input}". ONLY JSON: {"corrected":"corrected with full diacritics","corrections":[{"original":"wrong","fixed":"correct","explanation":"explanation in ${LANGS[lang].name}"}],"level":"A1/A2/B1/B2/C1/C2"}`);
     const p=pJ(raw);
     if(p){cResult=p;renderKorrektor(document.getElementById('app'));}
-    else{alert('KI Fehler');btn.textContent='Text korrigieren';btn.disabled=false;}
-  }catch(e){alert('Fehler: '+e.message);btn.textContent='Text korrigieren';btn.disabled=false;}
+    else{alert('KI Fehler');btn.textContent=ui('correctBtn');btn.disabled=false;}
+  }catch(e){alert('Fehler: '+e.message);btn.textContent=ui('correctBtn');btn.disabled=false;}
 }
 
 // ═══════════════════════════════════════════════════════
 // SPRECHEN
 // ═══════════════════════════════════════════════════════
-const SCENES=[
-  {id:'frei',ar:'محادثة حرة',de:'Freies Gespräch',desc:'Chatte frei auf Arabisch',icon:'💬'},
-  {id:'vorstellen',ar:'تقديم النفس',de:'Stell dich vor',desc:'Übe dich vorzustellen',icon:'👋'},
-  {id:'einkauf',ar:'في المتجر',de:'Kunde & Verkäufer',desc:'Gespräch im Laden',icon:'🛍️'},
-  {id:'restaurant',ar:'في المطعم',de:'Im Restaurant',desc:'Essen bestellen',icon:'🍽️'},
-  {id:'schule',ar:'في المدرسة',de:'In der Schule',desc:'Schüler und Lehrer',icon:'🏫'},
-  {id:'aussprache',ar:'تدريب النطق',de:'Aussprachetraining',desc:'Einzelne Wörter üben',icon:'🎯'},
-];
+function getSCENES(){return[
+  {id:'frei',ar:'محادثة حرة',de:()=>ui('sceneFree'),desc:()=>ui('sceneFreeDes'),icon:'💬'},
+  {id:'vorstellen',ar:'تقديم النفس',de:()=>ui('sceneIntro'),desc:()=>ui('sceneIntroDes'),icon:'👋'},
+  {id:'einkauf',ar:'في المتجر',de:()=>ui('sceneShop'),desc:()=>ui('sceneShopDes'),icon:'🛍️'},
+  {id:'restaurant',ar:'في المطعم',de:()=>ui('sceneRest'),desc:()=>ui('sceneRestDes'),icon:'🍽️'},
+  {id:'schule',ar:'في المدرسة',de:()=>ui('sceneSchool'),desc:()=>ui('sceneSchoolDes'),icon:'🏫'},
+  {id:'aussprache',ar:'تدريب النطق',de:()=>ui('scenePron'),desc:()=>ui('scenePronDes'),icon:'🎯'},
+];}
 let vScene=null,vMsgs=[],vRec=false,vLoad=false,vRecObj=null;
 
 function renderSprechen(app){
@@ -940,17 +937,17 @@ function renderSprechen(app){
     <div style="padding-top:6px;margin-bottom:20px">
       <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Sprechen</div>
       <div style="font-size:26px;font-weight:800;color:var(--text)">Sprachchat</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:4px">Führe echte Gespräche auf Arabisch mit KI</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px">${ui('speakDesc')}</div>
     </div>
     <div style="background:linear-gradient(135deg,#0f1f3d,#1a2a5e);border:1px solid #2d4a8a;border-radius:18px;padding:18px;margin-bottom:20px">
       <div style="font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:8px">🎤 VOICE TO VOICE</div>
-      <div style="font-size:13px;color:#93c5fd;line-height:1.5">Sprich Arabisch – die KI antwortet mit Stimme und korrigiert dich automatisch</div>
+      <div style="font-size:13px;color:#93c5fd;line-height:1.5">${ui('voiceInfo')}</div>
     </div>
-    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Szenarien wählen</div>
-    ${SCENES.map(s=>`<div onclick="startVoice('${s.id}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
+    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">${ui('chooseScene')}</div>
+    ${getSCENES().map(s=>`<div onclick="startVoice('${s.id}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
       <div style="display:flex;gap:12px;align-items:center">
         <div style="font-size:28px">${s.icon}</div>
-        <div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px">${s.de}</div><div style="font-size:11px;color:var(--text3)">${s.desc}</div></div>
+        <div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px">${s.de()}</div><div style="font-size:11px;color:var(--text3)">${s.desc()}</div></div>
       </div>
       <div style="text-align:right"><div class="ar" style="font-size:14px;color:var(--gold)">${s.ar}</div><div style="color:var(--text3);font-size:18px;margin-top:4px">›</div></div>
     </div>`).join('')}
@@ -963,7 +960,7 @@ function renderVoiceChat(app){
     <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
       <div>
         <div style="font-size:11px;color:var(--text3)">SPRACH-CHAT</div>
-        <div style="font-size:16px;font-weight:800;color:var(--text)">${SCENES.find(s=>s.id===vScene)?.de||''}</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text)">${(getSCENES().find(s=>s.id===vScene)||{de:()=>''}).de()}</div>
       </div>
       <button onclick="vScene=null;vMsgs=[];render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer">← Zurück</button>
     </div>
@@ -986,7 +983,7 @@ function renderVoiceChat(app){
         ${speechOk?`<div onclick="vRec?stopRec():startRec()" style="background:${vRec?'#ef4444':'#1e3a5f'};border:1px solid ${vRec?'#ef4444':'#3b5f8a'};border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:white;font-size:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent">${vRec?'■':'🎤'}</div>`:''}
         <div onclick="var v=document.getElementById('vIn');if(v&&v.value.trim())window._sendV(v.value)" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:#080c14;font-weight:800;flex-shrink:0;display:flex;align-items:center;font-size:18px;-webkit-tap-highlight-color:transparent">→</div>
       </div>
-      ${vRec?`<div style="font-size:11px;color:#ef4444;text-align:center;margin-top:6px;font-weight:600">● Aufnahme läuft...</div>`:''}
+      ${vRec?`<div style="font-size:11px;color:#ef4444;text-align:center;margin-top:6px;font-weight:600">${ui('listening')}</div>`:''}
     </div>
   </div>`;
   setTimeout(()=>{const c=document.getElementById('vchat');if(c)c.scrollTop=c.scrollHeight;},100);
@@ -995,10 +992,10 @@ function renderVoiceChat(app){
 async function startVoice(sceneId){
   vScene=sceneId; vMsgs=[]; vLoad=true;
   renderSprechen(document.getElementById('app'));
-  const s=SCENES.find(x=>x.id===sceneId);
+  const s=getSCENES().find(x=>x.id===sceneId);
   const prompt=sceneId==='frei'
     ?`أنت شريك محادثة عربي. أجب باللغة العربية مع الشكل الكامل فقط. جمل بسيطة. ابدأ بتحية.`
-    :`أنت في سيناريو: "${s.de}". أجب باللغة العربية مع الشكل الكامل. ابدأ في دورك بجملتين بسيطتين.`;
+    :`أنت في سيناريو: "${s.de()}". أجب باللغة العربية مع الشكل الكامل. ابدأ في دورك بجملتين بسيطتين.`;
   try{
     const raw=await callAI(prompt,200);
     vMsgs=[{role:'ai',text:raw.trim()}];
@@ -1070,10 +1067,10 @@ function renderProfil(app){
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="padding-top:6px;margin-bottom:24px">
       <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Profil</div>
-      <div style="font-size:26px;font-weight:800;color:var(--text)">Einstellungen</div>
+      <div style="font-size:26px;font-weight:800;color:var(--text)">${ui('profileTitle')}</div>
     </div>
     <div style="background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:18px;padding:18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:14px;font-weight:800;color:var(--gold)">🔥 ${streak.days} Tage Streak</div><div style="font-size:12px;color:#78716c;margin-top:4px">Längster: ${streak.longest} Tage · ${streak.totalXP||0} XP</div></div>
+      <div><div style="font-size:14px;font-weight:800;color:var(--gold)">🔥 ${streak.days} ${ui('record')||'Tage'} Streak</div><div style="font-size:12px;color:#78716c;margin-top:4px">${ui('record')||'Längster'}: ${streak.longest} Tage · ${streak.totalXP||0} XP</div></div>
       <div style="font-size:40px;font-weight:900;color:var(--gold)">${streak.days}</div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
@@ -1081,14 +1078,14 @@ function renderProfil(app){
       <div class="card" style="padding:14px;text-align:center"><div style="font-size:22px;font-weight:900;color:#60a5fa">${lernend}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Lernend</div></div>
       <div class="card" style="padding:14px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--gold)">${vocab.length}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Gesamt</div></div>
     </div>
-    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Projekte</div>
-    ${projects.map((p,i)=>`<div onclick="curProject=${i};goTab('lernen')" style="background:${curProject===i?'linear-gradient(135deg,#1a2f1a,#0d1a0d)':'var(--bg2)'};border:1px solid ${curProject===i?'#22c55e':'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:14px;font-weight:700;color:${curProject===i?'#4ade80':'var(--text)'}">${p.name} ${curProject===i?'✓':''}</div><div style="font-size:11px;color:var(--text3)">${(p.vocab||[]).length} Vokabeln · ${(p.verbs||[]).length} Verben</div></div><div style="color:var(--text3);font-size:18px">›</div></div>`).join('')}
-    <button onclick="addNewProject()" style="background:none;border:2px dashed var(--border);border-radius:14px;padding:14px;width:100%;color:var(--text3);cursor:pointer;font-size:14px;font-weight:600;margin-bottom:20px">+ Neues Projekt</button>
-    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Sprache</div>
+    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('projects')}</div>
+    ${projects.map((p,i)=>`<div onclick="curProject=${i};goTab('lernen')" style="background:${curProject===i?'linear-gradient(135deg,#1a2f1a,#0d1a0d)':'var(--bg2)'};border:1px solid ${curProject===i?'#22c55e':'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:14px;font-weight:700;color:${curProject===i?'#4ade80':'var(--text)'}">${p.name} ${curProject===i?'✓':''}</div><div style="font-size:11px;color:var(--text3)">${(p.vocab||[]).length} ${ui('vocab')} · ${(p.verbs||[]).length} ${ui('verbs')}</div></div><div style="color:var(--text3);font-size:18px">›</div></div>`).join('')}
+    <button onclick="addNewProject()" style="background:none;border:2px dashed var(--border);border-radius:14px;padding:14px;width:100%;color:var(--text3);cursor:pointer;font-size:14px;font-weight:600;margin-bottom:20px">${ui('newProject')}</button>
+    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('language')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
       ${Object.entries(LANGS).map(([code,l])=>`<div onclick="changeLang('${code}')" style="background:${lang===code?'var(--gold)':'var(--bg2)'};color:${lang===code?'#080c14':'var(--text)'};border:1px solid ${lang===code?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center;-webkit-tap-highlight-color:transparent">${l.flag} ${l.name}</div>`).join('')}
     </div>
-    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Erscheinungsbild</div>
+    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('appearance')}</div>
     <div onclick="toggleTheme()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <span style="font-size:14px;font-weight:600;color:var(--text)">${theme==='dark'?'🌙 Nacht-Modus':'☀️ Tag-Modus'}</span>
       <div style="width:52px;height:28px;background:${theme==='dark'?'#334155':'var(--gold)'};border-radius:14px;position:relative">
@@ -1096,10 +1093,10 @@ function renderProfil(app){
       </div>
     </div>
     <div onclick="subView='stats';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:14px;font-weight:600;color:var(--text)">📊 Statistiken</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text)">📊 ${ui('stats')}</div>
       <div style="color:var(--text3);font-size:18px">›</div>
     </div>
-    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der Sprache</div>
+    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der ${ui('language')}</div>
   </div>`;
 }
 
@@ -1129,13 +1126,17 @@ function renderStats(app){
         <div><div style="font-size:30px;font-weight:900;color:var(--gold)">${streak.totalXP||0}</div><div style="font-size:10px;color:#78716c">XP</div></div>
       </div>
     </div>
-    <div class="card">${total===0?'<div style="color:var(--text3);text-align:center;padding:20px">Noch keine Vokabeln</div>':
-      [['Gelernt',gelernt,'#a3e635'],['Lernend',lernend,'#60a5fa'],['Neu',neu,'var(--text3)']].map(([l,v,c])=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text2)">${l}</span><span style="color:${c};font-weight:700">${v}</span></div><div style="background:var(--bg3);border-radius:4px;height:8px"><div style="width:${total?Math.round(v/total*100):0}%;background:${c};height:8px;border-radius:4px"></div></div></div>`).join('')
+    <div class="card">${total===0?`<div style="color:var(--text3);text-align:center;padding:20px">${ui('noVocab')}</div>`:
+      [[ui('learned'),gelernt,'#a3e635'],[(ui('learning')||'Lernend'),lernend,'#60a5fa'],['Neu',neu,'var(--text3)']].map(([l,v,c])=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text2)">${l}</span><span style="color:${c};font-weight:700">${v}</span></div><div style="background:var(--bg3);border-radius:4px;height:8px"><div style="width:${total?Math.round(v/total*100):0}%;background:${c};height:8px;border-radius:4px"></div></div></div>`).join('')
     }</div>
   </div>`;
 }
 // BOOT
-render();
+try {
+  render();
+} catch(e) {
+  document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;font-size:14px">Fehler: ' + e.message + '<br><br>' + e.stack + '</div>';
+}
 </script>
 </body>
 </html>
