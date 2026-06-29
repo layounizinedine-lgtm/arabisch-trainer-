@@ -47,6 +47,143 @@ const LANGS = {
   ur:{name:'اردو',flag:'🇵🇰'}
 };
 
+// ── UI TRANSLATIONS ──────────────────────────────────────────────────────────
+const UI_TEXT = {
+  de:{
+    welcome:'Willkommen zurück', today:'Heute', due:'Fällig', learned:'Gelernt', xpTotal:'XP Total',
+    dailyGoal:'Tagesziel', continueBtn:''+ui('continueBtn')+'', quoteTitle:''+ui('quoteTitle')+'',
+    quickAccess:'Schnellzugriff', recentWords:''+ui('recentWords')+'',
+    vocab:'Vokabeln', verbs:'Verben', games:'Spiele', voiceChat:''+ui('speakTitle')+'',
+    correction:'Korrektur', stats:''+ui('stats')+'',
+    learnTitle:''+ui('learnTitle')+'', reviews:''+ui('reviews')+'', newWords:'Neue Wörter',
+    areas:''+ui('areas')+'', verbsTitle:'Verben', gamesTitle:'Spiele', corrTitle:'Korrektur',
+    cardsWaiting:'Karten warten auf dich!', allLearned:'Alle Karten gelernt – komm morgen wieder.',
+    learnNow:'Jetzt Karten lernen →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    tapToFlip:''+ui('tapToFlip')+'', howWell:''+ui('howWell')+'',
+    never:'Gar nicht', ok:'Okay', perfect:'Perfekt', skip:''+ui('skip')+'',
+    sessionDone:''+ui('sessionDone')+'', playAgain:''+ui('playAgain')+'',
+    addVocab:''+ui('addVocab')+'', addVerb:'+ Verb', search:''+ui('search')+'',
+    arabicWord:''+ui('arabicWord')+'', translation:''+ui('translation')+'', createCard:''+ui('createCard')+'',
+    aiAnalyzing:''+ui('aiAnalyzing')+'', verbCreate:''+ui('verbCreate')+'', aiConjugating:''+ui('aiConjugating')+'',
+    aiInfo:''+ui('aiInfo')+'',
+    past:'Vergangenheit', present:'Gegenwart', future:'Zukunft', imperative:'Befehl', more:'MEHR',
+    exampleSentences:''+ui('exampleSentences')+'', wordStem:''+ui('wordStem')+'',
+    enterText:''+ui('enterText')+'', correctBtn:''+ui('correctBtn')+'',
+    aiCorrecting:''+ui('aiCorrecting')+'', result:'Ergebnis', level:'Niveau', corrections:''+ui('corrections')+'',
+    speakTitle:'Sprachchat', speakDesc:'Führe echte Gespräche auf Arabisch mit KI',
+    voiceToVoice:'Voice to Voice', voiceInfo:'Sprich Arabisch – die KI antwortet mit Stimme und korrigiert dich',
+    chooseScene:''+ui('chooseScene')+'', back:'← Zurück', send:'→', listening:''+ui('listening')+'',
+    typeOrMic:'اكتب أو استخدم الميكروفون...', correct:'✓ Richtig!', wrongCorr:'✗ Korrektur',
+    profileTitle:''+ui('profileTitle')+'', projects:'Projekte', newProject:''+ui('newProject')+'',
+    language:'Sprache', appearance:''+ui('appearance')+'', nightMode:''+ui('nightMode')+'',
+    dayMode:''+ui('dayMode')+'', statsTitle:'Statistiken', streak:'Streak', record:'Rekord',
+    vocabStatus:'Vokabelstatus', todayXP:'XP heute', cardsDue:'Karten fällig',
+    noVocab:'Noch keine Vokabeln', contextMore:''+ui('contextMore')+'',
+    meanings:''+ui('meanings')+'', relatedWords:''+ui('relatedWords')+'',
+    loadContext:''+ui('loadContext')+'', loading:'Lädt...',
+  },
+  en:{
+    welcome:'Welcome back', today:'Today', due:'Due', learned:'Learned', xpTotal:'XP Total',
+    dailyGoal:'Daily goal', continueBtn:'▶ Continue learning', quoteTitle:'ARABIC QUOTE OF THE DAY',
+    quickAccess:'Quick access', recentWords:'Recently added',
+    vocab:'Vocabulary', verbs:'Verbs', games:'Games', voiceChat:'Voice Chat',
+    correction:'Correction', stats:'Statistics',
+    learnTitle:'What are you learning today?', reviews:'Reviews', newWords:'New words',
+    areas:'Sections', verbsTitle:'Verbs', gamesTitle:'Games', corrTitle:'Correction',
+    cardsWaiting:'cards waiting for you!', allLearned:'All cards learned – come back tomorrow.',
+    learnNow:'Learn cards now →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    tapToFlip:'Tap to flip', howWell:'How well did you know this?',
+    never:'Not at all', ok:'Okay', perfect:'Perfect', skip:'Skip',
+    sessionDone:'Session complete! 🏆', playAgain:'Learn again',
+    addVocab:'+ Add', addVerb:'+ Verb', search:'🔍 Search...',
+    arabicWord:'Arabic word...', translation:'Translation (optional)', createCard:'Create card',
+    aiAnalyzing:'AI analyzing...', verbCreate:'Create verb', aiConjugating:'AI creating conjugation...',
+    aiInfo:'AI creates all conjugation forms automatically!',
+    past:'Past', present:'Present', future:'Future', imperative:'Imperative', more:'MORE',
+    exampleSentences:'EXAMPLE SENTENCES', wordStem:'📚 WORD ROOT & MEMORY TIP',
+    enterText:'Enter your Arabic text', correctBtn:'Correct text',
+    aiCorrecting:'AI correcting...', result:'Result', level:'Level', corrections:'Corrections',
+    speakTitle:'Voice Chat', speakDesc:'Have real conversations in Arabic with AI',
+    voiceToVoice:'Voice to Voice', voiceInfo:'Speak Arabic – AI responds with voice and corrects you',
+    chooseScene:'Choose scenario', back:'← Back', send:'→', listening:'● Recording...',
+    typeOrMic:'Type or use microphone...', correct:'✓ Correct!', wrongCorr:'✗ Correction',
+    profileTitle:'Settings', projects:'Projects', newProject:'+ New project',
+    language:'Language', appearance:'Appearance', nightMode:'🌙 Night mode',
+    dayMode:'☀️ Day mode', statsTitle:'Statistics', streak:'Streak', record:'Record',
+    vocabStatus:'Vocabulary status', todayXP:'XP today', cardsDue:'Cards due',
+    noVocab:'No vocabulary yet', contextMore:'🔍 Show context & more',
+    meanings:'MEANINGS & CONTEXT', relatedWords:'RELATED WORDS (same root)',
+    loadContext:'🔍 Load context', loading:'Loading...',
+  },
+  ru:{
+    welcome:'С возвращением', today:'Сегодня', due:'К повторению', learned:'Изучено', xpTotal:'XP всего',
+    dailyGoal:'Дневная цель', continueBtn:'▶ Продолжить обучение', quoteTitle:'АРАБСКАЯ ЦИТАТА ДНЯ',
+    quickAccess:'Быстрый доступ', recentWords:'Недавно добавленные',
+    vocab:'Словарь', verbs:'Глаголы', games:'Игры', voiceChat:'Голосовой чат',
+    correction:'Проверка', stats:'Статистика',
+    learnTitle:'Что учим сегодня?', reviews:'Повторение', newWords:'Новые слова',
+    areas:'Разделы', verbsTitle:'Глаголы', gamesTitle:'Игры', corrTitle:'Проверка',
+    cardsWaiting:'карточек ждут вас!', allLearned:'Все карточки изучены – вернитесь завтра.',
+    learnNow:'Учить карточки →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    tapToFlip:'Нажмите чтобы перевернуть', howWell:'Насколько хорошо вы знали?',
+    never:'Совсем нет', ok:'Нормально', perfect:'Превосходно', skip:'Пропустить',
+    sessionDone:'Сессия завершена! 🏆', playAgain:'Учить снова',
+    addVocab:'+ Добавить', addVerb:'+ Глагол', search:'🔍 Поиск...',
+    arabicWord:'Арабское слово...', translation:'Перевод (необязательно)', createCard:'Создать карточку',
+    aiAnalyzing:'ИИ анализирует...', verbCreate:'Создать глагол', aiConjugating:'ИИ создаёт спряжение...',
+    aiInfo:'ИИ создаёт все формы спряжения автоматически!',
+    past:'Прошедшее', present:'Настоящее', future:'Будущее', imperative:'Повелительное', more:'ЕЩЁ',
+    exampleSentences:'ПРИМЕРЫ ПРЕДЛОЖЕНИЙ', wordStem:'📚 КОРЕНЬ И ПОДСКАЗКА',
+    enterText:'Введите ваш арабский текст', correctBtn:'Проверить текст',
+    aiCorrecting:'ИИ проверяет...', result:'Результат', level:'Уровень', corrections:'Исправления',
+    speakTitle:'Голосовой чат', speakDesc:'Ведите настоящие разговоры на арабском с ИИ',
+    voiceToVoice:'Голос к голосу', voiceInfo:'Говорите по-арабски – ИИ отвечает голосом и исправляет',
+    chooseScene:'Выберите сценарий', back:'← Назад', send:'→', listening:'● Запись...',
+    typeOrMic:'Напишите или используйте микрофон...', correct:'✓ Правильно!', wrongCorr:'✗ Исправление',
+    profileTitle:'Настройки', projects:'Проекты', newProject:'+ Новый проект',
+    language:'Язык', appearance:'Внешний вид', nightMode:'🌙 Ночной режим',
+    dayMode:'☀️ Дневной режим', statsTitle:'Статистика', streak:'Серия', record:'Рекорд',
+    vocabStatus:'Статус словаря', todayXP:'XP сегодня', cardsDue:'Карточек к повторению',
+    noVocab:'Слов ещё нет', contextMore:'🔍 Контекст и подробности',
+    meanings:'ЗНАЧЕНИЯ И КОНТЕКСТ', relatedWords:'РОДСТВЕННЫЕ СЛОВА (тот же корень)',
+    loadContext:'🔍 Загрузить контекст', loading:'Загрузка...',
+  },
+  ur:{
+    welcome:'خوش آمدید واپس', today:'آج', due:'مراجعت', learned:'سیکھا', xpTotal:'کل XP',
+    dailyGoal:'روزانہ ہدف', continueBtn:'▶ سیکھنا جاری رکھیں', quoteTitle:'آج کا عربی قول',
+    quickAccess:'فوری رسائی', recentWords:'حال ہی میں شامل',
+    vocab:'الفاظ', verbs:'فعل', games:'کھیل', voiceChat:'آواز چیٹ',
+    correction:'تصحیح', stats:'اعداد و شمار',
+    learnTitle:'آج کیا سیکھ رہے ہیں؟', reviews:'مراجعت', newWords:'نئے الفاظ',
+    areas:'حصے', verbsTitle:'فعل', gamesTitle:'کھیل', corrTitle:'تصحیح',
+    cardsWaiting:'کارڈ آپ کا انتظار کر رہے ہیں!', allLearned:'سب کارڈ سیکھے – کل واپس آئیں۔',
+    learnNow:'کارڈ سیکھیں →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    tapToFlip:'پلٹنے کے لیے ٹیپ کریں', howWell:'آپ کو کتنا یاد تھا؟',
+    never:'بالکل نہیں', ok:'ٹھیک', perfect:'کامل', skip:'چھوڑیں',
+    sessionDone:'سیشن مکمل! 🏆', playAgain:'دوبارہ سیکھیں',
+    addVocab:'+ شامل کریں', addVerb:'+ فعل', search:'🔍 تلاش...',
+    arabicWord:'عربی لفظ...', translation:'ترجمہ (اختیاری)', createCard:'کارڈ بنائیں',
+    aiAnalyzing:'AI تجزیہ...', verbCreate:'فعل بنائیں', aiConjugating:'AI صرف بنا رہا ہے...',
+    aiInfo:'AI تمام صرفی شکلیں خودبخود بناتا ہے!',
+    past:'ماضی', present:'حال', future:'مستقبل', imperative:'امر', more:'مزید',
+    exampleSentences:'مثال کے جملے', wordStem:'📚 مادہ اور یادداشت',
+    enterText:'اپنا عربی متن درج کریں', correctBtn:'متن درست کریں',
+    aiCorrecting:'AI درست کر رہا ہے...', result:'نتیجہ', level:'سطح', corrections:'تصحیحات',
+    speakTitle:'آواز چیٹ', speakDesc:'AI کے ساتھ عربی میں گفتگو کریں',
+    voiceToVoice:'آواز سے آواز', voiceInfo:'عربی بولیں – AI آواز سے جواب دیتا ہے',
+    chooseScene:'منظرنامہ چنیں', back:'← واپس', send:'→', listening:'● ریکارڈنگ...',
+    typeOrMic:'لکھیں یا مائیکروفون استعمال کریں...', correct:'✓ درست!', wrongCorr:'✗ تصحیح',
+    profileTitle:'ترتیبات', projects:'منصوبے', newProject:'+ نیا منصوبہ',
+    language:'زبان', appearance:'ظاہری شکل', nightMode:'🌙 رات کا موڈ',
+    dayMode:'☀️ دن کا موڈ', statsTitle:'اعداد و شمار', streak:'سلسلہ', record:'ریکارڈ',
+    vocabStatus:'الفاظ کی حالت', todayXP:'آج کا XP', cardsDue:'واجب کارڈ',
+    noVocab:'ابھی کوئی الفاظ نہیں', contextMore:'🔍 سیاق و سباق دیکھیں',
+    meanings:'معانی اور سیاق', relatedWords:'متعلقہ الفاظ (ایک ہی مادہ)',
+    loadContext:'🔍 سیاق لوڈ کریں', loading:'لوڈ ہو رہا ہے...',
+  }
+};
+function ui(key){ return (UI_TEXT[lang]||UI_TEXT.de)[key]||key; }
+
 // ═══════════════════════════════════════════════════════
 // PROJECTS & DATA
 // ═══════════════════════════════════════════════════════
@@ -64,12 +201,42 @@ let projects = JSON.parse(localStorage.getItem('projects_v2') || 'null') || [{
 let curProject = 0;
 
 const MOTTOS = [
-  {ar:'مَنْ جَدَّ وَجَدَ',de:'Wer sich anstrengt, der findet.',hint:'Ein klassisches arabisches Sprichwort über Ausdauer.'},
+  {ar:'مَنْ جَدَّ وَجَدَ',de:'Wer sich anstrengt, der findet.',hint:'Ausdauer führt zum Erfolg.'},
   {ar:'الْعِلْمُ نُورٌ',de:'Wissen ist Licht.',hint:'Wissen erleuchtet den Verstand.'},
-  {ar:'اُطْلُبِ الْعِلْمَ مِنَ الْمَهْدِ إِلَى اللَّحْدِ',de:'Suche Wissen von der Wiege bis zur Bahre.',hint:'Lebenslanges Lernen im Islam.'},
-  {ar:'رُبَّ أَخٍ لَمْ تَلِدْهُ أُمُّكَ',de:'Manch ein Bruder wurde nicht von deiner Mutter geboren.',hint:'Über echte Freundschaft.'},
   {ar:'اللِّسَانُ مِيزَانُ الْإِنْسَانِ',de:'Die Zunge ist das Maß des Menschen.',hint:'Sprache offenbart den Charakter.'},
+  {ar:'اُطْلُبِ الْعِلْمَ مِنَ الْمَهْدِ إِلَى اللَّحْدِ',de:'Suche Wissen von der Wiege bis zur Bahre.',hint:'Lebenslanges Lernen.'},
+  {ar:'رُبَّ أَخٍ لَمْ تَلِدْهُ أُمُّكَ',de:'Manch ein Bruder wurde nicht von deiner Mutter geboren.',hint:'Über echte Freundschaft.'},
+  {ar:'الصَّبْرُ مِفْتَاحُ الْفَرَجِ',de:'Geduld ist der Schlüssel zur Erleichterung.',hint:'Geduld wird immer belohnt.'},
+  {ar:'خَيْرُ الْكَلَامِ مَا قَلَّ وَدَلَّ',de:'Die beste Rede ist die, die kurz und bedeutsam ist.',hint:'Qualität über Quantität.'},
+  {ar:'مَنْ صَبَرَ ظَفِرَ',de:'Wer geduldig ist, siegt.',hint:'Ausdauer führt zum Sieg.'},
+  {ar:'الْوَقْتُ كَالسَّيْفِ إِنْ لَمْ تَقْطَعْهُ قَطَعَكَ',de:'Die Zeit ist wie ein Schwert – nutze sie, bevor sie dich beherrscht.',hint:'Zeitmanagement ist entscheidend.'},
+  {ar:'لَا تُؤَجِّلْ عَمَلَ الْيَوْمِ إِلَى الْغَدِ',de:'Schiebe die Arbeit des heutigen Tages nicht auf morgen.',hint:'Prokrastination vermeiden.'},
+  {ar:'الْعَقْلُ السَّلِيمُ فِي الْجِسْمِ السَّلِيمِ',de:'Ein gesunder Geist wohnt in einem gesunden Körper.',hint:'Körper und Geist sind verbunden.'},
+  {ar:'كُنْ قَرِيبًا مِنَ اللهِ وَكُنْ كَمَا تُرِيدُ',de:'Sei nahe bei Gott, und du kannst sein, was du willst.',hint:'Spirituelle Stärke.'},
+  {ar:'مَنْ لَا يَعْرِفُ مِنْ أَيْنَ أَتَى، لَا يَعْرِفُ إِلَى أَيْنَ يَذْهَبُ',de:'Wer nicht weiß, woher er kommt, weiß nicht, wohin er geht.',hint:'Die Bedeutung von Wurzeln.'},
+  {ar:'خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ',de:'Der beste Mensch ist der, der anderen am nützlichsten ist.',hint:'Altruismus und Dienst.'},
+  {ar:'إِذَا أَرَدْتَ أَنْ تُطَاعَ فَاطْلُبْ الْمُسْتَطَاعَ',de:'Wenn du gehorcht werden willst, verlange nur das Mögliche.',hint:'Realistische Erwartungen.'},
+  {ar:'الصِّدْقُ مَنْجَاةٌ',de:'Ehrlichkeit ist Rettung.',hint:'Wahrhaftigkeit schützt.'},
+  {ar:'التَّعَلُّمُ فِي الصِّغَرِ كَالنَّقْشِ عَلَى الْحَجَرِ',de:'Lernen in der Jugend ist wie das Gravieren in Stein.',hint:'Früh lernen bleibt lebenslang.'},
+  {ar:'مَنْ يَزْرَعِ الْخَيْرَ يَحْصُدِ الْبَرَكَةَ',de:'Wer Gutes sät, erntet Segen.',hint:'Gutes tun wird belohnt.'},
+  {ar:'لَا يَأْتِي الرِّزْقُ بِالتَّمَنِّي',de:'Reichtum kommt nicht durch Wünschen.',hint:'Handeln ist nötig.'},
+  {ar:'الْبِدَايَةُ نِصْفُ الطَّرِيقِ',de:'Der Anfang ist die Hälfte des Weges.',hint:'Der erste Schritt ist der wichtigste.'},
+  {ar:'قِيمَةُ الْمَرْءِ مَا يُحْسِنُهُ',de:'Der Wert eines Menschen liegt in dem, was er gut kann.',hint:'Kompetenz definiert uns.'},
+  {ar:'الأَخُ الصَّادِقُ مَنْ صَدَقَكَ لَا مَنْ صَدَّقَكَ',de:'Ein aufrichtiger Bruder ist, wer dir die Wahrheit sagt, nicht wer dir zustimmt.',hint:'Echte Freundschaft.'},
+  {ar:'إِنَّ مَعَ الْعُسْرِ يُسْرًا',de:'Mit jeder Schwierigkeit kommt auch Erleichterung.',hint:'Aus dem Quran – Hoffnung in schweren Zeiten.'},
+  {ar:'مَا قَلَّ وَكَفَى خَيْرٌ مِمَّا كَثُرَ وَأَلْهَى',de:'Wenig, das genügt, ist besser als viel, das ablenkt.',hint:'Bescheidenheit und Genügsamkeit.'},
+  {ar:'الْحِكْمَةُ ضَالَّةُ الْمُؤْمِنِ',de:'Weisheit ist das verlorene Gut des Gläubigen.',hint:'Suche Weisheit überall.'},
+  {ar:'تَكَلَّمْ حَتَّى أَرَاكَ',de:'Sprich, damit ich dich sehe.',hint:'Sprache zeigt den Menschen.'},
+  {ar:'الْجَارُ قَبْلَ الدَّارِ',de:'Der Nachbar kommt vor dem Haus.',hint:'Gute Nachbarschaft ist wichtiger als das Haus selbst.'},
+  {ar:'اِجْعَلْ مِنْ نَفْسِكَ مَا تَتَمَنَّاهُ',de:'Werde das, was du dir ersehnst.',hint:'Selbstgestaltung und Willensstärke.'},
+  {ar:'لَيْسَ الْجَمَالُ بِالثِّيَابِ، بَلِ الْجَمَالُ جَمَالُ الْعِلْمِ',de:'Schönheit liegt nicht in Kleidern, sondern in Wissen.',hint:'Innere Werte zählen mehr.'},
+  {ar:'كُلُّ يَوْمٍ لَمْ تَتَعَلَّمْ فِيهِ شَيْئًا هُوَ يَوْمٌ ضَائِعٌ',de:'Jeder Tag, an dem du nichts lernst, ist ein verlorener Tag.',hint:'Tägliches Lernen ist Pflicht.'},
 ];
+// Pick motto based on day of year for true daily rotation
+function getTodayMotto(){
+  const d=new Date(); const dayOfYear=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
+  return MOTTOS[dayOfYear%MOTTOS.length];
+}
 
 function saveProjects(){ try{localStorage.setItem('projects_v2',JSON.stringify(projects))}catch{} }
 function getP(){ return projects[curProject]||projects[0]; }
@@ -162,12 +329,12 @@ function goTab(t){ tab=t; subView=null; render(); }
 // HOME
 // ═══════════════════════════════════════════════════════
 const QUICK=[
-  {icon:'📖',title:'Vokabeln',desc:'Wörter hinzufügen & verwalten',action:()=>{tab='lernen';subView='vokabeln';render();}},
-  {icon:'📚',title:'Verben',desc:'Konjugationen lernen',action:()=>{tab='lernen';subView='verben';render();}},
-  {icon:'🎮',title:'Spiele',desc:'Spielerisch Arabisch üben',action:()=>{tab='lernen';subView='spiele';render();}},
-  {icon:'🎤',title:'Sprachchat',desc:'Mit KI auf Arabisch sprechen',action:()=>{tab='sprechen';subView=null;render();}},
-  {icon:'✍️',title:'Korrektur',desc:'Texte prüfen und verbessern',action:()=>{tab='lernen';subView='korrektor';render();}},
-  {icon:'📊',title:'Statistiken',desc:'Dein Lernfortschritt im Überblick',action:()=>{tab='profil';subView='stats';render();}},
+  {icon:'📖',title:ui('vocab'),desc:'Wörter hinzufügen & verwalten',action:()=>{tab='lernen';subView='vokabeln';render();}},
+  {icon:'📚',title:ui('verbs'),desc:'Konjugationen lernen',action:()=>{tab='lernen';subView='verben';render();}},
+  {icon:'🎮',title:ui('games'),desc:'Spielerisch Arabisch üben',action:()=>{tab='lernen';subView='spiele';render();}},
+  {icon:'🎤',title:ui('voiceChat'),desc:'Mit KI auf Arabisch sprechen',action:()=>{tab='sprechen';subView=null;render();}},
+  {icon:'✍️',title:ui('correction'),desc:'Texte prüfen und verbessern',action:()=>{tab='lernen';subView='korrektor';render();}},
+  {icon:'📊',title:ui('stats'),desc:'Dein Lernfortschritt im Überblick',action:()=>{tab='profil';subView='stats';render();}},
 ];
 
 function renderHome(app){
@@ -177,7 +344,7 @@ function renderHome(app){
   const total=vocab.length;
   const xpGoal=100;
   const xpPct=Math.min(((streak.todayXP||0)/xpGoal)*100,100);
-  const motto=MOTTOS[new Date().getDate()%MOTTOS.length];
+  const motto=getTodayMotto();
 
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <!-- Begrüßung -->
@@ -198,22 +365,22 @@ function renderHome(app){
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
       <div class="card" style="padding:14px;text-align:center">
         <div style="font-size:22px;font-weight:900;color:#ef4444">${due}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">Fällig</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">ui('due')</div>
       </div>
       <div class="card" style="padding:14px;text-align:center">
         <div style="font-size:22px;font-weight:900;color:#a3e635">${gelernt}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">Gelernt</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">ui('learned')</div>
       </div>
       <div class="card" style="padding:14px;text-align:center">
         <div style="font-size:22px;font-weight:900;color:var(--gold)">${streak.totalXP||0}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">XP Total</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">ui('xpTotal')</div>
       </div>
     </div>
 
     <!-- Tagesziel -->
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:700;color:var(--text)">🎯 Tagesziel</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">🎯 '+ui('dailyGoal')+'</div>
         <div style="font-size:12px;color:var(--text3)">${streak.todayXP||0} / ${xpGoal} XP</div>
       </div>
       <div style="background:var(--bg3);border-radius:6px;height:8px">
@@ -333,13 +500,52 @@ function vocabCard(v){
           ${isAdj&&v.opposite&&v.opposite!==''?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">ضد</div><div class="ar" style="font-size:24px;color:#60a5fa;font-weight:700">${v.oppHarakat||v.opposite}</div></div>`:''}
         </div>
         ${v.exampleArabic?`<div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:10px"><div class="ar" style="font-size:16px;color:var(--text);line-height:1.9">${v.exampleArabic}</div><div style="font-size:11px;color:var(--text3);margin-top:3px">${exTr}</div></div>`:''}
-      </div>
+        <button onclick="showVocabMehr(${v.id})" style="margin-top:10px;background:none;border:1px solid #3b2d6e;border-radius:10px;padding:8px 14px;color:#a78bfa;font-size:12px;font-weight:700;cursor:pointer;width:100%">🔍 Kontext & Mehr anzeigen</button>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
         <span style="background:${sb};color:${sc};border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700">${v.status||'neu'}</span>
         <button onclick="deleteVocab(${v.id})" style="background:#3b1a1a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">Löschen</button>
       </div>
     </div>
   </div>`;
+}
+
+async function showVocabMehr(id){
+  const v=getVocab().find(x=>x.id===id); if(!v)return;
+  const m=document.createElement('div'); m.className='overlay';
+  m.innerHTML=`<div class="sheet" style="max-height:85vh">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div><div class="ar" style="font-size:24px;color:var(--gold);font-weight:700">${v.harakat||v.arabic}</div><div style="font-size:13px;color:var(--text3)">${getTr(v)}</div></div>
+      <button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div id="vocabMehrContent" style="text-align:center;padding:20px;color:var(--text3)">
+      <div style="font-size:13px;margin-bottom:20px">Lade Kontext für <span class="ar" style="color:var(--gold)">${v.arabic}</span>...</div>
+      <div style="font-size:24px">⏳</div>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+  try{
+    const raw=await callAI(`For Arabic word "${v.arabic}" (${getTr(v)}): All meanings in different contexts and related words from same root. ONLY JSON:
+{"bedeutungen":[{"kontext":"context label","arabisch":"with diacritics","deutsch":"meaning","beispiel":"example with diacritics"}],"verwandte":[{"arabisch":"with diacritics","deutsch":"meaning","wortart":"Nomen/Verb/Adjektiv"}]}`,800);
+    const p=pJ(raw);
+    const el=document.getElementById('vocabMehrContent');
+    if(p&&el){
+      el.innerHTML=`<div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:12px;text-align:left">BEDEUTUNGEN & KONTEXT</div>
+      ${(p.bedeutungen||[]).map(b=>`<div style="background:var(--bg3);border:1px solid #3b2d6e;border-radius:14px;padding:14px;margin-bottom:10px;text-align:left">
+        <div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:6px">${b.kontext}</div>
+        <div class="ar" style="font-size:20px;color:var(--gold);margin-bottom:4px">${b.arabisch}</div>
+        <div style="font-size:12px;color:var(--text3)">${b.deutsch}</div>
+        ${b.beispiel?`<div class="ar" style="font-size:13px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.8">${b.beispiel}</div>`:''}
+      </div>`).join('')}
+      ${(p.verwandte||[]).length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:16px 0 10px;text-align:left">VERWANDTE WÖRTER (نفس الجذر)</div>
+      ${p.verwandte.map(w=>`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:12px;color:var(--text2)">${w.deutsch}</div><div style="font-size:11px;color:var(--text3)">${w.wortart}</div></div>
+        <div class="ar" style="font-size:22px;color:#60a5fa;font-weight:700">${w.arabisch}</div>
+      </div>`).join('')}`:''}`;
+    } else if(el){ el.innerHTML='<div style="color:#ef4444">KI Fehler.</div>'; }
+  }catch(e){
+    const el=document.getElementById('vocabMehrContent');
+    if(el) el.innerHTML=`<div style="color:#ef4444">Fehler: ${e.message}</div>`;
+  }
 }
 
 function filterVocab(q){
@@ -376,7 +582,7 @@ async function addVocab(){
 
 // ── KARTEN (Spaced Repetition) ────────────────────────────────────────────────
 let lP=[],lI=0,lF=false,lS={p:0,g:0,s:0},lD=false,lFilter='fällig';
-const RATES=[{l:'Gar nicht',c:'#ef4444',s:0},{l:'Schlecht',c:'#f97316',s:1},{l:'Okay',c:'#eab308',s:2},{l:'Gut',c:'#84cc16',s:3},{l:'Super',c:'#22c55e',s:4},{l:'Perfekt',c:'#a3e635',s:5}];
+const RATES=[{l:ui('never'),c:'#ef4444',s:0},{l:ui('ok'),c:'#eab308',s:2},{l:ui('perfect'),c:'#a3e635',s:5}];
 
 function renderKarten(app){
   lP=buildPool(getVocab(),lFilter); lI=0; lF=false; lS={p:0,g:0,s:0}; lD=false;
@@ -471,33 +677,83 @@ function renderVerben(app){
 function showVerbDetail(id){
   const verb=getVerbs().find(v=>v.id===id); if(!verb)return;
   let vt=activeTense;
+  let mehrData=null;
+  let mehrLoading=false;
+
   function draw(){
     const tc=TENSES.find(x=>x.key===vt);
     const existing=document.getElementById('verbModal'); if(existing)existing.remove();
     const m=document.createElement('div'); m.id='verbModal';
-    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:150;display:flex;flex-direction:column';
-    m.innerHTML=`<div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-      <div><div style="font-size:11px;color:var(--text3)">VERB</div><div class="ar" style="font-size:28px;color:var(--gold);font-weight:700">${verb.arabic}</div><div style="font-size:13px;color:var(--text2)">${getTr(verb)}</div></div>
+    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:150;display:flex;flex-direction:column;overflow:hidden';
+    m.innerHTML=`
+    <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div><div style="font-size:11px;color:var(--text3)">VERB</div><div class="ar" style="font-size:26px;color:var(--gold);font-weight:700">${verb.arabic}</div><div style="font-size:13px;color:var(--text2)">${getTr(verb)}</div></div>
       <button onclick="document.getElementById('verbModal').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:16px">✕</button>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0">
-      ${TENSES.map(tn=>`<button onclick="vt='${tn.key}';draw()" style="background:${vt===tn.key?'var(--bg2)':'transparent'};border:none;border-bottom:${vt===tn.key?`3px solid ${tn.color}`:'3px solid transparent'};padding:12px 4px;cursor:pointer">
-        <span style="font-size:9px;font-weight:700;color:${vt===tn.key?tn.color:'var(--text3)'};display:block">${tn.label.toUpperCase()}</span>
-        <span class="ar" style="font-size:12px;color:${vt===tn.key?tn.color:'var(--text3)'}">${tn.ar}</span>
-      </button>`).join('')}
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:16px">
-      <div style="font-size:12px;font-weight:700;color:${tc.color};margin-bottom:12px">${tc.label}</div>
-      ${(verb.konjugation?.[vt]||[]).map(f=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:11px;color:var(--text3)">${f.p} · ${f.d}</div>
-        <div class="ar" style="font-size:26px;color:${tc.color};font-weight:700">${f.a}</div>
+    <div style="display:flex;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto">
+      ${TENSES.map(tn=>`<div onclick="vt='${tn.key}';draw()" style="flex-shrink:0;padding:12px 14px;cursor:pointer;border-bottom:${vt===tn.key?`3px solid ${tn.color}`:'3px solid transparent'};background:${vt===tn.key?'var(--bg2)':'transparent'};-webkit-tap-highlight-color:transparent">
+        <div style="font-size:10px;font-weight:700;color:${vt===tn.key?tn.color:'var(--text3)'};white-space:nowrap">${tn.label.toUpperCase()}</div>
+        <div class="ar" style="font-size:13px;color:${vt===tn.key?tn.color:'var(--text3)'};text-align:right">${tn.ar}</div>
       </div>`).join('')}
-      ${verb.konjugation?.beispiele?.length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:20px 0 10px">BEISPIELSÄTZE</div>${verb.konjugation.beispiele.map(b=>`<div class="card"><div class="ar" style="font-size:18px;color:var(--text);line-height:1.9;margin-bottom:6px">${b.a}</div><div style="font-size:12px;color:var(--text3)">${b.d}</div></div>`).join('')}`:''}
-      ${verb.konjugation?.merksatz?`<div style="background:linear-gradient(135deg,#1a2a1a,#0d1a10);border:1px solid #166534;border-radius:14px;padding:16px;margin-top:16px"><div style="font-size:12px;font-weight:700;color:#4ade80;margin-bottom:8px">MERKSATZ</div><div style="font-size:13px;color:#a7f3d0;line-height:1.6">${verb.konjugation.merksatz}</div></div>`:''}
+      <div onclick="showMehr()" style="flex-shrink:0;padding:12px 14px;cursor:pointer;border-bottom:${vt==='mehr'?'3px solid #a78bfa':'3px solid transparent'};background:${vt==='mehr'?'var(--bg2)':'transparent'};-webkit-tap-highlight-color:transparent">
+        <div style="font-size:10px;font-weight:700;color:${vt==='mehr'?'#a78bfa':'var(--text3)'};white-space:nowrap">MEHR</div>
+        <div style="font-size:13px;color:${vt==='mehr'?'#a78bfa':'var(--text3)'};text-align:center">＋</div>
+      </div>
+    </div>
+    <div id="verbContent" style="flex:1;overflow-y:auto;padding:16px">
+      ${vt==='mehr'?renderMehrContent():renderTenseContent(tc,verb)}
     </div>`;
     document.body.appendChild(m);
   }
-  window.draw=draw; draw();
+
+  function renderTenseContent(tc,verb){
+    return `<div style="font-size:12px;font-weight:700;color:${tc.color};margin-bottom:12px">${tc.label}</div>
+    ${(verb.konjugation?.[vt]||[]).map(f=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:11px;color:var(--text3)">${f.p} · ${f.d}</div>
+      <div class="ar" style="font-size:26px;color:${tc.color};font-weight:700">${f.a}</div>
+    </div>`).join('')}
+    ${verb.konjugation?.beispiele?.length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:20px 0 10px">BEISPIELSÄTZE</div>${verb.konjugation.beispiele.map(b=>`<div class="card"><div class="ar" style="font-size:18px;color:var(--text);line-height:1.9;margin-bottom:6px">${b.a}</div><div style="font-size:12px;color:var(--text3)">${b.d}</div></div>`).join('')}`:''}
+    ${verb.konjugation?.merksatz?`<div style="background:linear-gradient(135deg,#1a1f3a,#0d1226);border:1px solid #2d3a6e;border-radius:14px;padding:16px;margin-top:16px"><div style="font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:8px">📚 WORTSTAMM & MERKHILFE</div><div style="font-size:13px;color:#93c5fd;line-height:1.6">${verb.konjugation.merksatz}</div></div>`:''}`;
+  }
+
+  function renderMehrContent(){
+    if(mehrLoading) return `<div style="text-align:center;padding:40px;color:var(--text3)">KI lädt Kontext-Bedeutungen...</div>`;
+    if(!mehrData) return `<div style="text-align:center;padding:40px">
+      <div style="font-size:14px;color:var(--text3);margin-bottom:16px">Entdecke alle Bedeutungen und Kontexte von <span class="ar" style="color:var(--gold);font-size:18px">${verb.arabic}</span></div>
+      <button onclick="loadMehr()" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);border:none;border-radius:12px;padding:14px 24px;color:white;font-weight:700;font-size:14px;cursor:pointer">🔍 Kontext laden</button>
+    </div>`;
+    return `<div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:12px">BEDEUTUNGEN & KONTEXT</div>
+      ${mehrData.bedeutungen?.map(b=>`<div style="background:var(--bg2);border:1px solid #3b2d6e;border-radius:14px;padding:14px;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:6px">${b.kontext}</div>
+        <div class="ar" style="font-size:20px;color:var(--gold);margin-bottom:4px">${b.arabisch}</div>
+        <div style="font-size:12px;color:var(--text3)">${b.deutsch}</div>
+        ${b.beispiel?`<div class="ar" style="font-size:14px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${b.beispiel}</div>`:''}
+      </div>`).join('')||''}
+      ${mehrData.verwandte?.length?`<div style="font-size:12px;font-weight:700;color:var(--text);margin:16px 0 10px">VERWANDTE WÖRTER (نفس الجذر)</div>
+      ${mehrData.verwandte.map(w=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:12px;color:var(--text3)">${w.deutsch}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${w.wortart}</div></div>
+        <div class="ar" style="font-size:22px;color:#60a5fa;font-weight:700">${w.arabisch}</div>
+      </div>`).join('')}`:''}
+    </div>`;
+  }
+
+  async function loadMehr(){
+    mehrLoading=true;
+    const c=document.getElementById('verbContent');
+    if(c) c.innerHTML=renderMehrContent();
+    try{
+      const raw=await callAI(`For the Arabic verb "${verb.arabic}" (${getTr(verb)}): Give ALL meanings in different contexts and related words from the same root. ONLY JSON:
+{"bedeutungen":[{"kontext":"Context label e.g. 'Im übertragenen Sinne'","arabisch":"example with diacritics","deutsch":"German meaning","beispiel":"example sentence with diacritics"},{"kontext":"another context","arabisch":"","deutsch":"","beispiel":""}],"verwandte":[{"arabisch":"related word with diacritics","deutsch":"meaning","wortart":"Nomen/Adjektiv/etc"},{"arabisch":"","deutsch":"","wortart":""}]}`,1000);
+      const p=pJ(raw);
+      if(p){ mehrData=p; mehrLoading=false; if(c) c.innerHTML=renderMehrContent(); }
+      else { mehrLoading=false; if(c) c.innerHTML='<div style="color:#ef4444;padding:20px;text-align:center">KI Fehler. Nochmal versuchen.</div>'; }
+    }catch(e){ mehrLoading=false; if(c) c.innerHTML=`<div style="color:#ef4444;padding:20px;text-align:center">Fehler: ${e.message}</div>`; }
+  }
+
+  function showMehr(){ vt='mehr'; draw(); if(!mehrData&&!mehrLoading) {} }
+  window.draw=draw; window.loadMehr=loadMehr; window.showMehr=showMehr;
+  draw();
 }
 
 function showAddVerb(){
@@ -518,8 +774,8 @@ async function addVerb(){
   const btn=document.getElementById('addVerbBtn');
   btn.textContent='KI erstellt Konjugation...'; btn.disabled=true;
   try{
-    const raw=await callAI(`Full Arabic verb conjugation for "${ar}" (${LANGS[lang].name}: "${tr||'translate'}"). ONLY JSON:
-{"arabic":"${ar}","translations":{"de":"German","en":"English","ru":"Russian","ur":"Urdu"},"konjugation":{"vergangenheit":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"gegenwart":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"zukunft":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"befehl":[{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"beispiele":[{"a":"","d":""},{"a":"","d":""},{"a":"","d":""}],"merksatz":"creative memory tip"}}`,2000);
+    const raw=await callAI(`Full Arabic verb conjugation for "${ar}" (${LANGS[lang].name}: "${tr||'translate'}"). First add full diacritics to the root verb. ONLY JSON:
+{"arabic":"${ar} with full diacritics e.g. ذَهَبَ","translations":{"de":"German","en":"English","ru":"Russian","ur":"Urdu"},"konjugation":{"vergangenheit":[{"p":"هُوَ","a":"full diacritics","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"gegenwart":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"zukunft":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"befehl":[{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"beispiele":[{"a":"full diacritics","d":""},{"a":"","d":""},{"a":"","d":""}],"merksatz":"Explain the Arabic root (جذر) of this verb, what letters form it, other words from same root, and a memory tip. E.g. for ذهب: Root is ذ-ه-ب (also means gold ذَهَب). Related: مَذْهَب (school of thought), ذَهَاب (going away)."}}`,2000);
     const p=pJ(raw);
     if(p){setVerbs([{...p,id:Date.now()},...getVerbs()]);document.querySelector('.overlay').remove();renderVerben(document.getElementById('app'));}
     else{alert('KI Fehler');btn.textContent='Verb erstellen';btn.disabled=false;}
@@ -538,13 +794,23 @@ function renderSpiele(app){
         <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Spiele</div></div>
       </div>
       ${[
-        {mode:'mc',title:'Multiple Choice',desc:'Arabisch → Bedeutung wählen',color:'#60a5fa'},
-        {mode:'ar2tr',title:`Arabisch → ${LANGS[lang].name}`,desc:'Arabisches Wort übersetzen',color:'#a3e635'},
-        {mode:'tr2ar',title:`${LANGS[lang].name} → Arabisch`,desc:'Wort auf Arabisch eintippen',color:'#F59E0B'},
-        {mode:'saetze',title:'Sätze übersetzen',desc:'KI generiert Sätze mit deinen Vokabeln',color:'#f472b6'},
-      ].map(g=>`<div onclick="startGame('${g.mode}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
-        <div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">${g.title}</div><div style="font-size:12px;color:var(--text3)">${g.desc}</div></div>
-        <div style="color:${g.color};font-size:22px;flex-shrink:0;margin-left:10px">›</div>
+        {mode:'mc',title:'Multiple Choice',desc:'Arabisch sehen → Bedeutung wählen',color:'#60a5fa',icon:'🎯'},
+        {mode:'ar2tr',title:`Arabisch → ${LANGS[lang].name}`,desc:'Arabisches Wort übersetzen',color:'#a3e635',icon:'📝'},
+        {mode:'tr2ar',title:`${LANGS[lang].name} → Arabisch`,desc:'Wort auf Arabisch eintippen',color:'#F59E0B',icon:'✍️'},
+        {mode:'hoeren',title:'Hören & Erkennen',desc:'Wort wird vorgelesen – welches ist es?',color:'#f472b6',icon:'👂'},
+        {mode:'luecke',title:'Lückentext',desc:'Fehlende Wörter im Satz ergänzen',color:'#34d399',icon:'📖'},
+        {mode:'paare',title:'Paare finden',desc:'Arabisch und Übersetzung zusammenführen',color:'#fb923c',icon:'🔗'},
+        {mode:'saetze',title:'Sätze übersetzen',desc:'KI generiert Sätze mit deinen Vokabeln',color:'#c084fc',icon:'💬'},
+        {mode:'schnell',title:'Schnellantwort',desc:'So schnell wie möglich antworten',color:'#f87171',icon:'⚡'},
+        {mode:'plural',title:'Plural-Trainer',desc:'Mehrzahl des arabischen Worts nennen',color:'#38bdf8',icon:'🔢'},
+        {mode:'wortart',title:'Wortart erkennen',desc:'Nomen, Verb oder Adjektiv?',color:'#a3e635',icon:'🏷️'},
+        {mode:'kontext',title:'Im Kontext',desc:'KI zeigt Satz – welches Wort passt?',color:'#fbbf24',icon:'🧩'},
+      ].map(g=>`<div onclick="startGame('${g.mode}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="font-size:24px">${g.icon}</div>
+          <div><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${g.title}</div><div style="font-size:11px;color:var(--text3)">${g.desc}</div></div>
+        </div>
+        <div style="color:${g.color};font-size:20px;flex-shrink:0;margin-left:8px">›</div>
       </div>`).join('')}
     </div>`; return;
   }
@@ -566,13 +832,19 @@ function renderSpiele(app){
     </div>
     <div style="background:var(--bg3);border-radius:4px;height:4px;margin-bottom:18px"><div style="width:${(gI/gQ.length)*100}%;background:var(--gold);height:4px;border-radius:4px;transition:width 0.4s"></div></div>
     <div class="card" style="min-height:170px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;margin-bottom:16px;border-color:${gResult==='correct'?'#166534':gResult==='wrong'?'#7f1d1d':'var(--border)'}">
-      ${gMode==='mc'||gMode==='ar2tr'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Was bedeutet?</div><div class="ar" style="font-size:54px;color:var(--gold);font-weight:700">${q.harakat||q.arabic}</div><div style="font-size:11px;color:var(--text3);margin-top:8px">${q.wordType||''}</div>`:''}
-      ${gMode==='tr2ar'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Schreibe auf Arabisch:</div><div style="font-size:26px;font-weight:800;color:var(--text)">${qTr}</div>`:''}
-      ${gMode==='saetze'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">${q.dir==='ar2tr'?'Übersetze:':'Übersetze ins Arabische:'}</div><div class="${q.dir==='ar2tr'?'ar':''}" style="font-size:${q.dir==='ar2tr'?'22':'18'}px;color:var(--text);font-weight:600;line-height:1.6">${q.aufgabe}</div>${q.hinweis?`<div style="font-size:11px;color:var(--text3);margin-top:8px">Tipp: ${q.hinweis}</div>`:''}`:''}
-      ${gResult?`<div style="margin-top:14px;padding:10px 16px;background:${gResult==='correct'?'#14532d':'#7f1d1d'};border-radius:10px;width:100%"><div style="font-size:13px;font-weight:700;color:${gResult==='correct'?'#4ade80':'#fca5a5'}">${gResult==='correct'?'Richtig!':'Falsch'}</div>${gResult==='wrong'?`<div style="font-size:12px;color:#94a3b8;margin-top:4px">Richtig: ${gMode==='tr2ar'?`<span class="ar">${q.harakat||q.arabic}</span>`:gMode==='saetze'?q.loesung:qTr}</div>`:''}</div>`:''}
+      ${gMode==='mc'||gMode==='ar2tr'||gMode==='plural'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">${gMode==='plural'?'Mehrzahl (جمع) von:':'Was bedeutet?'}</div><div class="ar" style="font-size:54px;color:var(--gold);font-weight:700">${q.harakat||q.arabic}</div><div style="font-size:11px;color:var(--text3);margin-top:8px">${q.wordType||''}</div>`:''}
+      ${gMode==='hoeren'?`<div style="font-size:11px;color:var(--text3);margin-bottom:16px">Welches Wort wurde vorgelesen?</div><button onclick="speakAr('${(q.harakat||q.arabic).replace(/'/g,"\\'")}');return false" style="background:#1e3a5f;border:1px solid #3b5f8a;border-radius:14px;padding:14px 24px;color:#60a5fa;font-weight:700;cursor:pointer;font-size:16px;margin-bottom:12px">🔊 Nochmal hören</button>`:''}
+      ${gMode==='tr2ar'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Schreibe auf Arabisch:</div><div style="font-size:26px;font-weight:800;color:var(--text)">${getTr(q)}</div>`:''}
+      ${gMode==='wortart'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Was für eine Wortart ist das?</div><div class="ar" style="font-size:48px;color:var(--gold);font-weight:700;margin-bottom:8px">${q.harakat||q.arabic}</div><div style="font-size:14px;color:var(--text2)">${getTr(q)}</div>`:''}
+      ${gMode==='schnell'?`<div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:14px">⚡ SCHNELL!</div><div class="ar" style="font-size:48px;color:var(--gold);font-weight:700">${q.harakat||q.arabic}</div>`:''}
+      ${gMode==='saetze'||gMode==='luecke'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">${gMode==='luecke'?'Ergänze das fehlende Wort:':q.dir==='ar2tr'?'Übersetze:':'Übersetze ins Arabische:'}</div><div class="${(gMode==='saetze'&&q.dir==='ar2tr')||gMode==='luecke'?'ar':''}" style="font-size:${(gMode==='saetze'&&q.dir==='ar2tr')||gMode==='luecke'?'22':'18'}px;color:var(--text);font-weight:600;line-height:1.6">${q.aufgabe}</div>${q.hinweis?`<div style="font-size:11px;color:var(--text3);margin-top:8px">Tipp: ${q.hinweis}</div>`:''}`:''}
+      ${gMode==='kontext'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">Welches Wort passt?</div><div class="ar" style="font-size:20px;color:var(--text);font-weight:600;line-height:1.8;margin-bottom:10px">${q.aufgabe}</div>`:''}      ${gResult?`<div style="margin-top:14px;padding:10px 16px;background:${gResult==='correct'?'#14532d':'#7f1d1d'};border-radius:10px;width:100%"><div style="font-size:13px;font-weight:700;color:${gResult==='correct'?'#4ade80':'#fca5a5'}">${gResult==='correct'?'Richtig!':'Falsch'}</div>${gResult==='wrong'?`<div style="font-size:12px;color:#94a3b8;margin-top:4px">Richtig: ${gMode==='tr2ar'?`<span class="ar">${q.harakat||q.arabic}</span>`:gMode==='saetze'?q.loesung:qTr}</div>`:''}</div>`:''}
     </div>
-    ${gMode==='mc'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${gMC.map(opt=>`<div onclick="checkGame(${opt.id})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div style="font-size:13px;color:var(--text);font-weight:600">${getTr(opt)}</div></div>`).join('')}</div>`:''}
-    ${gMode!=='mc'&&!gResult?`<div><input id="gAns" value="${gAns}" onchange="gAns=this.value" onkeydown="if(event.key==='Enter'&&this.value.trim())checkGame(this.value)" placeholder="${gMode==='tr2ar'?'اكتب هنا...':'Antwort eingeben...'}" class="${gMode==='tr2ar'?'ar':''}" style="font-size:${gMode==='tr2ar'?'22':'15'}px;margin-bottom:10px;color:${gMode==='tr2ar'?'var(--gold)':'var(--text)'}" autofocus/><button class="gold-btn" onclick="const a=document.getElementById('gAns').value;if(a.trim())checkGame(a)">Prüfen</button></div>`:''}
+    ${gMode==='mc'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${gMC.map(opt=>`<div onclick="checkGame(${opt.id})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div style="font-size:13px;color:var(--text);font-weight:600">${getTr(opt)}</div></div>`).join('')}</div>`:''} 
+    ${gMode==='hoeren'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${gMC.map(opt=>`<div onclick="checkGame(${opt.id})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div class="ar" style="font-size:18px;color:var(--gold);font-weight:700">${opt.harakat||opt.arabic}</div></div>`).join('')}</div>`:''}
+    ${gMode==='wortart'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${['Nomen','Verb','Adjektiv','Partikel'].map(w=>`<div onclick="checkGame('${w}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 8px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div style="font-size:13px;color:var(--text);font-weight:600">${w}</div></div>`).join('')}</div>`:''}
+    ${gMode==='kontext'&&!gResult&&q.optionen?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${q.optionen.map(opt=>`<div onclick="checkGame('${opt}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div class="ar" style="font-size:18px;color:var(--gold);font-weight:700">${opt}</div></div>`).join('')}</div>`:''}
+    ${!['mc','hoeren','wortart','kontext'].includes(gMode)&&!gResult?`<div><input id="gAns" value="${gAns}" onchange="gAns=this.value" onkeydown="if(event.key==='Enter'){var a=this.value;if(a.trim())checkGame(a)}" placeholder="${gMode==='tr2ar'||gMode==='luecke'?'اكتب هنا...':'Antwort eingeben...'}" class="${gMode==='tr2ar'||gMode==='luecke'?'ar':''}" style="font-size:${gMode==='tr2ar'||gMode==='luecke'?'22':'15'}px;margin-bottom:10px;color:${gMode==='tr2ar'||gMode==='luecke'?'var(--gold)':'var(--text)'}" autofocus/><button class="gold-btn" onclick="var a=document.getElementById('gAns').value;if(a.trim())checkGame(a)">Prüfen</button></div>`:''}
     ${gResult?`<button class="gold-btn" style="margin-top:12px" onclick="nextGame()">${gI+1>=gQ.length?'Ergebnis sehen':'Weiter →'}</button>`:''}`
 }
 
@@ -582,11 +854,21 @@ async function startGame(mode){
   if(vocab.length<4){alert('Mindestens 4 Vokabeln nötig!');gMode=null;renderSpiele(document.getElementById('app'));return;}
   renderSpiele(document.getElementById('app'));
   const sh=arr=>[...arr].sort(()=>Math.random()-0.5);
-  if(mode==='mc'||mode==='ar2tr'||mode==='tr2ar'){gQ=sh(vocab).slice(0,10);if(mode==='mc')buildMC(0);}
-  else if(mode==='saetze'){
+
+  if(['mc','ar2tr','tr2ar','hoeren','schnell','plural','wortart'].includes(mode)){
+    gQ=sh(vocab).slice(0,10);
+    if(mode==='mc'||mode==='hoeren'||mode==='paare')buildMC(0);
+    if(mode==='hoeren'){ setTimeout(()=>speakAr(gQ[0].harakat||gQ[0].arabic),400); }
+  } else if(mode==='paare'){
+    gQ=sh(vocab).slice(0,6); buildMC(0);
+  } else if(['saetze','luecke','kontext'].includes(mode)){
     try{
       const wl=sh(vocab).slice(0,6).map(v=>`${v.arabic} (${getTr(v)})`).join(', ');
-      const raw=await callAI(`Create 6 simple translation exercises (max 5 words) using: ${wl}. Alternate Arabic→${LANGS[lang].name} and ${LANGS[lang].name}→Arabic. ONLY JSON: [{"aufgabe":"sentence","dir":"ar2tr or tr2ar","loesung":"translation","hinweis":"hint in ${LANGS[lang].name}"}]`,1200);
+      let prompt='';
+      if(mode==='saetze') prompt=`Create 8 simple translation exercises (max 5 words) using: ${wl}. Alternate Arabic→${LANGS[lang].name} and ${LANGS[lang].name}→Arabic. ONLY JSON: [{"aufgabe":"sentence","dir":"ar2tr or tr2ar","loesung":"translation","hinweis":"hint"}]`;
+      else if(mode==='luecke') prompt=`Create 8 fill-in-the-blank exercises using these Arabic words: ${wl}. Show an Arabic sentence with one word replaced by ___. User must type the missing word. ONLY JSON: [{"aufgabe":"Arabic sentence with ___","loesung":"the missing Arabic word with diacritics","hinweis":"hint: ${LANGS[lang].name} meaning","dir":"luecke"}]`;
+      else if(mode==='kontext') prompt=`Create 8 context exercises: show an Arabic sentence, ask which word from a list fits best. Use words: ${wl}. ONLY JSON: [{"aufgabe":"Arabic sentence with blank","optionen":["word1","word2","word3","word4"],"loesung":"correct word with diacritics","hinweis":"context hint"}]`;
+      const raw=await callAI(prompt,1500);
       const p=pJ(raw);
       if(Array.isArray(p)&&p.length>0){gQ=p;renderSpiele(document.getElementById('app'));}
       else{alert('KI Fehler');gMode=null;renderSpiele(document.getElementById('app'));}
@@ -596,12 +878,17 @@ async function startGame(mode){
 }
 function buildMC(idx){const vocab=getVocab();const c=gQ[idx];const w=[...vocab].sort(()=>Math.random()-0.5).filter(v=>v.id!==c.id).slice(0,3);gMC=[...[c,...w]].sort(()=>Math.random()-0.5);}
 function checkGame(given){
-  const q=gQ[gI];const qTr=getTr(q)||'';let ok=false;
+  const q=gQ[gI]; const qTr=getTr(q)||''; let ok=false;
   if(gMode==='mc')ok=given===q.id;
-  else if(gMode==='ar2tr')ok=String(given).toLowerCase().trim().includes(qTr.toLowerCase().split(',')[0].trim().slice(0,4));
-  else if(gMode==='tr2ar')ok=String(given).trim()===q.arabic||String(given).trim()===(q.harakat||q.arabic);
+  else if(gMode==='hoeren')ok=given===q.id;
+  else if(gMode==='ar2tr'||gMode==='schnell')ok=String(given).toLowerCase().trim().includes(qTr.toLowerCase().split(',')[0].trim().slice(0,4));
+  else if(gMode==='tr2ar')ok=String(given).trim()===q.arabic||String(given).trim()===(q.harakat||q.arabic)||q.arabic.includes(String(given).trim());
+  else if(gMode==='plural'){ const pl=q.plural||''; ok=String(given).trim()===pl||String(given).trim()===(q.pluralHarakat||pl); }
+  else if(gMode==='wortart')ok=String(given).toLowerCase().includes((q.wordType||'').toLowerCase().slice(0,4));
   else if(gMode==='saetze'){const l=q.loesung.toLowerCase();ok=String(given).toLowerCase().trim().length>2&&(l.includes(String(given).toLowerCase().trim().slice(0,4))||String(given).toLowerCase().includes(l.slice(0,4)));}
-  gResult=ok?'correct':'wrong';if(ok){gScore++;addXP(10);}
+  else if(gMode==='luecke')ok=String(given).trim()===q.loesung||q.loesung.includes(String(given).trim().slice(0,4));
+  else if(gMode==='kontext')ok=String(given).trim()===q.loesung||q.loesung.includes(String(given).trim().slice(0,3));
+  gResult=ok?'correct':'wrong'; if(ok){gScore++;addXP(10);}
   renderSpiele(document.getElementById('app'));
 }
 function nextGame(){gI++;gResult=null;gAns='';if(gI>=gQ.length){gDone=true;}else if(gMode==='mc')buildMC(gI);renderSpiele(document.getElementById('app'));}
@@ -618,7 +905,7 @@ function renderKorrektor(app){
       <textarea id="corrIn" placeholder="أكتب نصك هنا..." class="ar" style="font-size:22px;height:120px;resize:none;line-height:1.8"></textarea>
       <button class="gold-btn" style="margin-top:12px" onclick="correctText()" id="corrBtn">Text korrigieren</button>
     </div>
-    ${cResult?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:14px;font-weight:700;color:var(--text)">Ergebnis</div><span style="background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700">Niveau: ${cResult.level}</span></div>
+    ${cResult?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:14px;font-weight:700;color:var(--text)">'+ui('result')+'</div><span style="background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700">'+ui('level')+': ${cResult.level}</span></div>
     <div class="card"><div style="font-size:11px;color:#4ade80;margin-bottom:8px;font-weight:700">KORRIGIERTER TEXT</div><div class="ar" style="font-size:22px;color:var(--text);line-height:1.9">${cResult.corrected}</div></div>
     ${cResult.corrections?.length?`<div class="card"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">Korrekturen</div>${cResult.corrections.map(c=>`<div style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px"><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="ar" style="background:#3b1a1a;color:#ef4444;border-radius:8px;padding:3px 10px;font-size:16px">${c.original}</span><span style="color:var(--text3)">→</span><span class="ar" style="background:#1a3b1a;color:#4ade80;border-radius:8px;padding:3px 10px;font-size:16px">${c.fixed}</span></div><div style="font-size:12px;color:var(--text2)">${c.explanation}</div></div>`).join('')}</div>`:''}`:''}
   </div>`;
@@ -695,9 +982,9 @@ function renderVoiceChat(app){
     </div>
     <div style="background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px 28px;flex-shrink:0">
       <div style="display:flex;gap:8px;align-items:center">
-        <input id="vIn" placeholder="اكتب أو استخدم الميكروفون..." class="ar" style="flex:1;font-size:17px;color:var(--gold)" onkeydown="if(event.key==='Enter'&&this.value.trim())sendVoice(this.value)"/>
-        ${speechOk?`<button onclick="vRec?stopRec():startRec()" id="micBtn" style="background:${vRec?'#ef4444':'#1e3a5f'};border:1px solid ${vRec?'#ef4444':'#3b5f8a'};border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:white;font-size:20px;flex-shrink:0">${vRec?'■':'🎤'}</button>`:''}
-        <button onclick="const v=document.getElementById('vIn').value;if(v.trim())sendVoice(v)" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:#080c14;font-weight:800;flex-shrink:0">→</button>
+        <input id="vIn" placeholder="اكتب أو استخدم الميكروفون..." class="ar" style="flex:1;font-size:17px;color:var(--gold)" onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(v)window._sendV(v)}"/>
+        ${speechOk?`<div onclick="vRec?stopRec():startRec()" style="background:${vRec?'#ef4444':'#1e3a5f'};border:1px solid ${vRec?'#ef4444':'#3b5f8a'};border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:white;font-size:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent">${vRec?'■':'🎤'}</div>`:''}
+        <div onclick="var v=document.getElementById('vIn');if(v&&v.value.trim())window._sendV(v.value)" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:#080c14;font-weight:800;flex-shrink:0;display:flex;align-items:center;font-size:18px;-webkit-tap-highlight-color:transparent">→</div>
       </div>
       ${vRec?`<div style="font-size:11px;color:#ef4444;text-align:center;margin-top:6px;font-weight:600">● Aufnahme läuft...</div>`:''}
     </div>
@@ -722,15 +1009,27 @@ async function startVoice(sceneId){
 }
 
 function startRec(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Mikrofon wird nicht unterstützt');return;}
   const rec=new SR(); rec.lang='ar-SA'; rec.continuous=false; rec.interimResults=false;
-  rec.onresult=e=>{const t=e.results[0][0].transcript;vRec=false;sendVoice(t);};
-  rec.onerror=()=>{vRec=false;renderSprechen(document.getElementById('app'));};
-  rec.onend=()=>{vRec=false;};
+  rec.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    vRec=false;
+    // Show text in input first, then send
+    renderSprechen(document.getElementById('app'));
+    setTimeout(()=>{
+      const inp=document.getElementById('vIn');
+      if(inp) inp.value=t;
+      window._sendV(t);
+    },100);
+  };
+  rec.onerror=e=>{console.log('rec error',e.error);vRec=false;renderSprechen(document.getElementById('app'));};
+  rec.onend=()=>{if(vRec){vRec=false;renderSprechen(document.getElementById('app'));}};
   vRecObj=rec; rec.start(); vRec=true;
   renderSprechen(document.getElementById('app'));
 }
 function stopRec(){if(vRecObj)vRecObj.stop();vRec=false;renderSprechen(document.getElementById('app'));}
+
+window._sendV = function(text){ sendVoice(text); };
 
 async function sendVoice(text){
   if(!text.trim()||vLoad)return;
@@ -787,7 +1086,7 @@ function renderProfil(app){
     <button onclick="addNewProject()" style="background:none;border:2px dashed var(--border);border-radius:14px;padding:14px;width:100%;color:var(--text3);cursor:pointer;font-size:14px;font-weight:600;margin-bottom:20px">+ Neues Projekt</button>
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Sprache</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-      ${Object.entries(LANGS).map(([code,l])=>`<button onclick="lang='${code}';localStorage.setItem('lang','${code}');render()" style="background:${lang===code?'var(--gold)':'var(--bg2)'};color:${lang===code?'#080c14':'var(--text)'};border:1px solid ${lang===code?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px">${l.flag} ${l.name}</button>`).join('')}
+      ${Object.entries(LANGS).map(([code,l])=>`<div onclick="changeLang('${code}')" style="background:${lang===code?'var(--gold)':'var(--bg2)'};color:${lang===code?'#080c14':'var(--text)'};border:1px solid ${lang===code?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center;-webkit-tap-highlight-color:transparent">${l.flag} ${l.name}</div>`).join('')}
     </div>
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Erscheinungsbild</div>
     <div onclick="toggleTheme()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
@@ -807,6 +1106,9 @@ function renderProfil(app){
 function addNewProject(){
   const name=prompt('Projektname:','Thema '+(projects.length+1));
   if(!name)return; projects.push({id:Date.now(),name,vocab:[],verbs:[]}); saveProjects(); render();
+}
+function changeLang(code){
+  lang=code; localStorage.setItem('lang',code); render();
 }
 function toggleTheme(){
   theme=theme==='dark'?'light':'dark'; localStorage.setItem('theme',theme);
