@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#080c14;--bg2:#0d1526;--bg3:#1a2540;--border:#1e2d4a;--text:#f8fafc;--text2:#94a3b8;--text3:#64748b;--gold:#F59E0B;--gold2:#d97706}
-[data-theme="light"]{--bg:#ffffff;--bg2:#ffffff;--bg3:#f5f5f5;--border:#e8e8e8;--text:#111111;--text2:#333333;--text3:#666666;--gold:#c47a00;--gold2:#9a5f00}
+[data-theme="light"]{--bg:#ffffff;--bg2:#f9f9f9;--bg3:#f0f0f0;--border:#e0e0e0;--text:#111111;--text2:#222222;--text3:#444444;--gold:#2a7a2a;--gold2:#1e5c1e}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;max-width:430px;margin:0 auto;min-height:100vh;transition:background 0.3s,color 0.3s}
 .ar{font-family:'Noto Naskh Arabic',serif;direction:rtl;text-align:right}
@@ -42,9 +42,7 @@ document.documentElement.setAttribute('data-theme', theme);
 
 const LANGS = {
   de:{name:'Deutsch',flag:'🇩🇪'},
-  en:{name:'English',flag:'🇬🇧'},
-  ru:{name:'Русский',flag:'🇷🇺'},
-  ur:{name:'اردو',flag:'🇵🇰'}
+  en:{name:'English',flag:'🇬🇧'}
 };
 
 // ── UI TRANSLATIONS ──────────────────────────────────────────────────────────
@@ -190,12 +188,34 @@ function ui(key){ return (UI_TEXT[lang]||UI_TEXT.de)[key]||key; }
 let projects = JSON.parse(localStorage.getItem('projects_v2') || 'null') || [{
   id:0, name:'Thema 1',
   vocab:[
-    {id:1,arabic:'كِتَابٌ',harakat:'كِتَابٌ',translations:{de:'Buch',en:'Book',ru:'Книга',ur:'کتاب'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'كُتُبٌ',pluralHarakat:'كُتُبٌ',exampleArabic:'هَذَا كِتَابٌ جَمِيلٌ',exampleTranslation:{de:'Das ist ein schönes Buch.',en:'This is a beautiful book.',ru:'Это красивая книга.',ur:'یہ ایک خوبصورت کتاب ہے۔'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
-    {id:2,arabic:'بَيْتٌ',harakat:'بَيْتٌ',translations:{de:'Haus',en:'House',ru:'Дом',ur:'گھر'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'بُيُوتٌ',pluralHarakat:'بُيُوتٌ',exampleArabic:'أَنَا فِي الْبَيْتِ',exampleTranslation:{de:'Ich bin zu Hause.',en:'I am at home.',ru:'Я дома.',ur:'میں گھر پر ہوں۔'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
-    {id:3,arabic:'كَبِيرٌ',harakat:'كَبِيرٌ',translations:{de:'groß',en:'big',ru:'большой',ur:'بڑا'},wordType:'Adjektiv',opposite:'صَغِيرٌ',oppHarakat:'صَغِيرٌ',plural:'',pluralHarakat:'',exampleArabic:'الْبَيْتُ كَبِيرٌ',exampleTranslation:{de:'Das Haus ist groß.',en:'The house is big.',ru:'Дом большой.',ur:'گھر بڑا ہے۔'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()}
+    {id:1,arabic:'كِتَابٌ',harakat:'كِتَابٌ',translations:{de:'Buch',en:'Book'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'كُتُبٌ',pluralHarakat:'كُتُبٌ',exampleArabic:'هَذَا كِتَابٌ جَمِيلٌ',exampleTranslation:{de:'Das ist ein schönes Buch.',en:'This is a beautiful book.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:2,arabic:'بَيْتٌ',harakat:'بَيْتٌ',translations:{de:'Haus',en:'House'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'بُيُوتٌ',pluralHarakat:'بُيُوتٌ',exampleArabic:'أَنَا فِي الْبَيْتِ',exampleTranslation:{de:'Ich bin zu Hause.',en:'I am at home.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:3,arabic:'كَبِيرٌ',harakat:'كَبِيرٌ',translations:{de:'groß',en:'big'},wordType:'Adjektiv',opposite:'صَغِيرٌ',oppHarakat:'صَغِيرٌ',plural:'',pluralHarakat:'',exampleArabic:'الْبَيْتُ كَبِيرٌ',exampleTranslation:{de:'Das Haus ist groß.',en:'The house is big.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:4,arabic:'مَاءٌ',harakat:'مَاءٌ',translations:{de:'Wasser',en:'Water'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'مِيَاهٌ',pluralHarakat:'مِيَاهٌ',exampleArabic:'أُرِيدُ مَاءً مِنْ فَضْلِكَ',exampleTranslation:{de:'Ich möchte bitte Wasser.',en:'I want water please.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:5,arabic:'يَوْمٌ',harakat:'يَوْمٌ',translations:{de:'Tag',en:'Day'},wordType:'Nomen',opposite:'لَيْلٌ',oppHarakat:'لَيْلٌ',plural:'أَيَّامٌ',pluralHarakat:'أَيَّامٌ',exampleArabic:'الْيَوْمُ جَمِيلٌ',exampleTranslation:{de:'Der Tag ist schön.',en:'The day is beautiful.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:6,arabic:'وَلَدٌ',harakat:'وَلَدٌ',translations:{de:'Junge / Kind',en:'Boy / Child'},wordType:'Nomen',opposite:'بِنْتٌ',oppHarakat:'بِنْتٌ',plural:'أَوْلَادٌ',pluralHarakat:'أَوْلَادٌ',exampleArabic:'الْوَلَدُ فِي الْمَدْرَسَةِ',exampleTranslation:{de:'Der Junge ist in der Schule.',en:'The boy is at school.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:7,arabic:'بِنْتٌ',harakat:'بِنْتٌ',translations:{de:'Mädchen',en:'Girl'},wordType:'Nomen',opposite:'وَلَدٌ',oppHarakat:'وَلَدٌ',plural:'بَنَاتٌ',pluralHarakat:'بَنَاتٌ',exampleArabic:'الْبِنْتُ تَقْرَأُ كِتَابًا',exampleTranslation:{de:'Das Mädchen liest ein Buch.',en:'The girl is reading a book.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:8,arabic:'مَدْرَسَةٌ',harakat:'مَدْرَسَةٌ',translations:{de:'Schule',en:'School'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'مَدَارِسُ',pluralHarakat:'مَدَارِسُ',exampleArabic:'الْمَدْرَسَةُ كَبِيرَةٌ',exampleTranslation:{de:'Die Schule ist groß.',en:'The school is big.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:9,arabic:'طَعَامٌ',harakat:'طَعَامٌ',translations:{de:'Essen / Speise',en:'Food'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'أَطْعِمَةٌ',pluralHarakat:'أَطْعِمَةٌ',exampleArabic:'الطَّعَامُ لَذِيذٌ',exampleTranslation:{de:'Das Essen ist lecker.',en:'The food is delicious.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:10,arabic:'رَجُلٌ',harakat:'رَجُلٌ',translations:{de:'Mann',en:'Man'},wordType:'Nomen',opposite:'اِمْرَأَةٌ',oppHarakat:'اِمْرَأَةٌ',plural:'رِجَالٌ',pluralHarakat:'رِجَالٌ',exampleArabic:'الرَّجُلُ طَوِيلٌ',exampleTranslation:{de:'Der Mann ist groß.',en:'The man is tall.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:11,arabic:'اِمْرَأَةٌ',harakat:'اِمْرَأَةٌ',translations:{de:'Frau',en:'Woman'},wordType:'Nomen',opposite:'رَجُلٌ',oppHarakat:'رَجُلٌ',plural:'نِسَاءٌ',pluralHarakat:'نِسَاءٌ',exampleArabic:'الْمَرْأَةُ جَمِيلَةٌ',exampleTranslation:{de:'Die Frau ist schön.',en:'The woman is beautiful.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:12,arabic:'شَمْسٌ',harakat:'شَمْسٌ',translations:{de:'Sonne',en:'Sun'},wordType:'Nomen',opposite:'قَمَرٌ',oppHarakat:'قَمَرٌ',plural:'',pluralHarakat:'',exampleArabic:'الشَّمْسُ سَاطِعَةٌ',exampleTranslation:{de:'Die Sonne scheint.',en:'The sun is shining.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:13,arabic:'قَمَرٌ',harakat:'قَمَرٌ',translations:{de:'Mond',en:'Moon'},wordType:'Nomen',opposite:'شَمْسٌ',oppHarakat:'شَمْسٌ',plural:'أَقْمَارٌ',pluralHarakat:'أَقْمَارٌ',exampleArabic:'الْقَمَرُ جَمِيلٌ فِي اللَّيْلِ',exampleTranslation:{de:'Der Mond ist schön in der Nacht.',en:'The moon is beautiful at night.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:14,arabic:'صَغِيرٌ',harakat:'صَغِيرٌ',translations:{de:'klein',en:'small'},wordType:'Adjektiv',opposite:'كَبِيرٌ',oppHarakat:'كَبِيرٌ',plural:'',pluralHarakat:'',exampleArabic:'الْقِطَّةُ صَغِيرَةٌ',exampleTranslation:{de:'Die Katze ist klein.',en:'The cat is small.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:15,arabic:'جَدِيدٌ',harakat:'جَدِيدٌ',translations:{de:'neu',en:'new'},wordType:'Adjektiv',opposite:'قَدِيمٌ',oppHarakat:'قَدِيمٌ',plural:'',pluralHarakat:'',exampleArabic:'هَذَا بَيْتٌ جَدِيدٌ',exampleTranslation:{de:'Das ist ein neues Haus.',en:'This is a new house.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:16,arabic:'قَدِيمٌ',harakat:'قَدِيمٌ',translations:{de:'alt (Sache)',en:'old (thing)'},wordType:'Adjektiv',opposite:'جَدِيدٌ',oppHarakat:'جَدِيدٌ',plural:'',pluralHarakat:'',exampleArabic:'هَذَا كِتَابٌ قَدِيمٌ',exampleTranslation:{de:'Das ist ein altes Buch.',en:'This is an old book.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:17,arabic:'سَيَّارَةٌ',harakat:'سَيَّارَةٌ',translations:{de:'Auto',en:'Car'},wordType:'Nomen',opposite:'',oppHarakat:'',plural:'سَيَّارَاتٌ',pluralHarakat:'سَيَّارَاتٌ',exampleArabic:'السَّيَّارَةُ سَرِيعَةٌ',exampleTranslation:{de:'Das Auto ist schnell.',en:'The car is fast.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:18,arabic:'كَلْبٌ',harakat:'كَلْبٌ',translations:{de:'Hund',en:'Dog'},wordType:'Nomen',opposite:'قِطَّةٌ',oppHarakat:'قِطَّةٌ',plural:'كِلَابٌ',pluralHarakat:'كِلَابٌ',exampleArabic:'الْكَلْبُ أَمَامَ الْبَيْتِ',exampleTranslation:{de:'Der Hund ist vor dem Haus.',en:'The dog is in front of the house.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:19,arabic:'قِطَّةٌ',harakat:'قِطَّةٌ',translations:{de:'Katze',en:'Cat'},wordType:'Nomen',opposite:'كَلْبٌ',oppHarakat:'كَلْبٌ',plural:'قِطَطٌ',pluralHarakat:'قِطَطٌ',exampleArabic:'الْقِطَّةُ نَائِمَةٌ',exampleTranslation:{de:'Die Katze schläft.',en:'The cat is sleeping.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},
+    {id:20,arabic:'صَدِيقٌ',harakat:'صَدِيقٌ',translations:{de:'Freund',en:'Friend'},wordType:'Nomen',opposite:'عَدُوٌّ',oppHarakat:'عَدُوٌّ',plural:'أَصْدِقَاءُ',pluralHarakat:'أَصْدِقَاءُ',exampleArabic:'صَدِيقِي طَيِّبٌ',exampleTranslation:{de:'Mein Freund ist nett.',en:'My friend is kind.'},status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()}
   ],
   verbs:[
-    {id:101,arabic:'ذَهَبَ',translations:{de:'gehen',en:'to go',ru:'идти',ur:'جانا'},konjugation:{vergangenheit:[{p:'هُوَ',a:'ذَهَبَ',d:'er ging'},{p:'هِيَ',a:'ذَهَبَتْ',d:'sie ging'},{p:'هُمَا',a:'ذَهَبَا',d:'beide (m)'},{p:'هُمَا',a:'ذَهَبَتَا',d:'beide (f)'},{p:'هُمْ',a:'ذَهَبُوا',d:'sie (m)'},{p:'هُنَّ',a:'ذَهَبْنَ',d:'sie (f)'},{p:'أَنَا',a:'ذَهَبْتُ',d:'ich'},{p:'نَحْنُ',a:'ذَهَبْنَا',d:'wir'},{p:'أَنْتَ',a:'ذَهَبْتَ',d:'du (m)'},{p:'أَنْتِ',a:'ذَهَبْتِ',d:'du (f)'},{p:'أَنْتُمَا',a:'ذَهَبْتُمَا',d:'ihr (dual)'},{p:'أَنْتُمْ',a:'ذَهَبْتُمْ',d:'ihr (m)'},{p:'أَنْتُنَّ',a:'ذَهَبْتُنَّ',d:'ihr (f)'}],gegenwart:[{p:'هُوَ',a:'يَذْهَبُ',d:'er geht'},{p:'هِيَ',a:'تَذْهَبُ',d:'sie geht'},{p:'هُمَا',a:'يَذْهَبَانِ',d:'beide (m)'},{p:'هُمَا',a:'تَذْهَبَانِ',d:'beide (f)'},{p:'هُمْ',a:'يَذْهَبُونَ',d:'sie (m)'},{p:'هُنَّ',a:'يَذْهَبْنَ',d:'sie (f)'},{p:'أَنَا',a:'أَذْهَبُ',d:'ich'},{p:'نَحْنُ',a:'نَذْهَبُ',d:'wir'},{p:'أَنْتَ',a:'تَذْهَبُ',d:'du (m)'},{p:'أَنْتِ',a:'تَذْهَبِينَ',d:'du (f)'},{p:'أَنْتُمَا',a:'تَذْهَبَانِ',d:'ihr (dual)'},{p:'أَنْتُمْ',a:'تَذْهَبُونَ',d:'ihr (m)'},{p:'أَنْتُنَّ',a:'تَذْهَبْنَ',d:'ihr (f)'}],zukunft:[{p:'هُوَ',a:'سَيَذْهَبُ',d:'er wird'},{p:'هِيَ',a:'سَتَذْهَبُ',d:'sie wird'},{p:'هُمَا',a:'سَيَذْهَبَانِ',d:'beide (m)'},{p:'هُمَا',a:'سَتَذْهَبَانِ',d:'beide (f)'},{p:'هُمْ',a:'سَيَذْهَبُونَ',d:'sie (m)'},{p:'هُنَّ',a:'سَيَذْهَبْنَ',d:'sie (f)'},{p:'أَنَا',a:'سَأَذْهَبُ',d:'ich'},{p:'نَحْنُ',a:'سَنَذْهَبُ',d:'wir'},{p:'أَنْتَ',a:'سَتَذْهَبُ',d:'du (m)'},{p:'أَنْتِ',a:'سَتَذْهَبِينَ',d:'du (f)'},{p:'أَنْتُمَا',a:'سَتَذْهَبَانِ',d:'ihr (dual)'},{p:'أَنْتُمْ',a:'سَتَذْهَبُونَ',d:'ihr (m)'},{p:'أَنْتُنَّ',a:'سَتَذْهَبْنَ',d:'ihr (f)'}],befehl:[{p:'أَنْتَ',a:'اِذْهَبْ',d:'geh! (m)'},{p:'أَنْتِ',a:'اِذْهَبِي',d:'geh! (f)'},{p:'أَنْتُمَا',a:'اِذْهَبَا',d:'geht! (dual)'},{p:'أَنْتُمْ',a:'اِذْهَبُوا',d:'geht! (m)'},{p:'أَنْتُنَّ',a:'اِذْهَبْنَ',d:'geht! (f)'}],beispiele:[{a:'ذَهَبْتُ إِلَى الْمَدْرَسَةِ',d:'Ich ging zur Schule.'},{a:'هُوَ يَذْهَبُ كُلَّ يَوْمٍ',d:'Er geht jeden Tag.'},{a:'سَنَذْهَبُ غَدًا',d:'Wir gehen morgen.'}],merksatz:'Die Wurzel ذ-ه-ب steckt im Wort für Gold (ذَهَب)!'}}
+    {id:101,arabic:'ذَهَبَ',translations:{de:'gehen',en:'to go'},konjugation:{vergangenheit:[{p:'هُوَ',a:'ذَهَبَ',d:'er ging'},{p:'هِيَ',a:'ذَهَبَتْ',d:'sie ging'},{p:'هُمْ',a:'ذَهَبُوا',d:'sie gingen'},{p:'أَنَا',a:'ذَهَبْتُ',d:'ich ging'},{p:'نَحْنُ',a:'ذَهَبْنَا',d:'wir gingen'},{p:'أَنْتَ',a:'ذَهَبْتَ',d:'du gingst (m)'},{p:'أَنْتِ',a:'ذَهَبْتِ',d:'du gingst (f)'}],gegenwart:[{p:'هُوَ',a:'يَذْهَبُ',d:'er geht'},{p:'هِيَ',a:'تَذْهَبُ',d:'sie geht'},{p:'هُمْ',a:'يَذْهَبُونَ',d:'sie gehen'},{p:'أَنَا',a:'أَذْهَبُ',d:'ich gehe'},{p:'نَحْنُ',a:'نَذْهَبُ',d:'wir gehen'},{p:'أَنْتَ',a:'تَذْهَبُ',d:'du gehst (m)'},{p:'أَنْتِ',a:'تَذْهَبِينَ',d:'du gehst (f)'}],zukunft:[{p:'هُوَ',a:'سَيَذْهَبُ',d:'er wird gehen'},{p:'هِيَ',a:'سَتَذْهَبُ',d:'sie wird gehen'},{p:'أَنَا',a:'سَأَذْهَبُ',d:'ich werde gehen'},{p:'نَحْنُ',a:'سَنَذْهَبُ',d:'wir werden gehen'}],befehl:[{p:'أَنْتَ',a:'اِذْهَبْ',d:'geh! (m)'},{p:'أَنْتِ',a:'اِذْهَبِي',d:'geh! (f)'}],beispiele:[{a:'ذَهَبْتُ إِلَى الْمَدْرَسَةِ',d:'Ich ging zur Schule.'},{a:'هُوَ يَذْهَبُ كُلَّ يَوْمٍ',d:'Er geht jeden Tag.'}],merksatz:'Die Wurzel ذ-ه-ب steckt im Wort für Gold (ذَهَب)!'}},
+    {id:102,arabic:'أَكَلَ',translations:{de:'essen',en:'to eat'},konjugation:{vergangenheit:[{p:'هُوَ',a:'أَكَلَ',d:'er aß'},{p:'هِيَ',a:'أَكَلَتْ',d:'sie aß'},{p:'هُمْ',a:'أَكَلُوا',d:'sie aßen'},{p:'أَنَا',a:'أَكَلْتُ',d:'ich aß'},{p:'نَحْنُ',a:'أَكَلْنَا',d:'wir aßen'},{p:'أَنْتَ',a:'أَكَلْتَ',d:'du aßt (m)'},{p:'أَنْتِ',a:'أَكَلْتِ',d:'du aßt (f)'}],gegenwart:[{p:'هُوَ',a:'يَأْكُلُ',d:'er isst'},{p:'هِيَ',a:'تَأْكُلُ',d:'sie isst'},{p:'هُمْ',a:'يَأْكُلُونَ',d:'sie essen'},{p:'أَنَا',a:'آكُلُ',d:'ich esse'},{p:'نَحْنُ',a:'نَأْكُلُ',d:'wir essen'},{p:'أَنْتَ',a:'تَأْكُلُ',d:'du isst (m)'},{p:'أَنْتِ',a:'تَأْكُلِينَ',d:'du isst (f)'}],zukunft:[{p:'هُوَ',a:'سَيَأْكُلُ',d:'er wird essen'},{p:'أَنَا',a:'سَآكُلُ',d:'ich werde essen'},{p:'نَحْنُ',a:'سَنَأْكُلُ',d:'wir werden essen'}],befehl:[{p:'أَنْتَ',a:'كُلْ',d:'iss! (m)'},{p:'أَنْتِ',a:'كُلِي',d:'iss! (f)'}],beispiele:[{a:'أَكَلْتُ الطَّعَامَ',d:'Ich aß das Essen.'},{a:'هُوَ يَأْكُلُ كَثِيرًا',d:'Er isst viel.'}],merksatz:'أ-ك-ل ist die Wurzel für alles Essbare.'}},
+    {id:103,arabic:'شَرِبَ',translations:{de:'trinken',en:'to drink'},konjugation:{vergangenheit:[{p:'هُوَ',a:'شَرِبَ',d:'er trank'},{p:'هِيَ',a:'شَرِبَتْ',d:'sie trank'},{p:'هُمْ',a:'شَرِبُوا',d:'sie tranken'},{p:'أَنَا',a:'شَرِبْتُ',d:'ich trank'},{p:'نَحْنُ',a:'شَرِبْنَا',d:'wir tranken'},{p:'أَنْتَ',a:'شَرِبْتَ',d:'du trankst (m)'},{p:'أَنْتِ',a:'شَرِبْتِ',d:'du trankst (f)'}],gegenwart:[{p:'هُوَ',a:'يَشْرَبُ',d:'er trinkt'},{p:'هِيَ',a:'تَشْرَبُ',d:'sie trinkt'},{p:'هُمْ',a:'يَشْرَبُونَ',d:'sie trinken'},{p:'أَنَا',a:'أَشْرَبُ',d:'ich trinke'},{p:'نَحْنُ',a:'نَشْرَبُ',d:'wir trinken'},{p:'أَنْتَ',a:'تَشْرَبُ',d:'du trinkst (m)'},{p:'أَنْتِ',a:'تَشْرَبِينَ',d:'du trinkst (f)'}],zukunft:[{p:'هُوَ',a:'سَيَشْرَبُ',d:'er wird trinken'},{p:'أَنَا',a:'سَأَشْرَبُ',d:'ich werde trinken'},{p:'نَحْنُ',a:'سَنَشْرَبُ',d:'wir werden trinken'}],befehl:[{p:'أَنْتَ',a:'اِشْرَبْ',d:'trink! (m)'},{p:'أَنْتِ',a:'اِشْرَبِي',d:'trink! (f)'}],beispiele:[{a:'شَرِبْتُ الْمَاءَ',d:'Ich trank das Wasser.'},{a:'هِيَ تَشْرَبُ الشَّايَ',d:'Sie trinkt Tee.'}],merksatz:'ش-ر-ب – denk an شَرَاب (Getränk)!'}},
+    {id:104,arabic:'جَلَسَ',translations:{de:'sitzen / sich setzen',en:'to sit'},konjugation:{vergangenheit:[{p:'هُوَ',a:'جَلَسَ',d:'er saß'},{p:'هِيَ',a:'جَلَسَتْ',d:'sie saß'},{p:'هُمْ',a:'جَلَسُوا',d:'sie saßen'},{p:'أَنَا',a:'جَلَسْتُ',d:'ich saß'},{p:'نَحْنُ',a:'جَلَسْنَا',d:'wir saßen'},{p:'أَنْتَ',a:'جَلَسْتَ',d:'du saßt (m)'},{p:'أَنْتِ',a:'جَلَسْتِ',d:'du saßt (f)'}],gegenwart:[{p:'هُوَ',a:'يَجْلِسُ',d:'er sitzt'},{p:'هِيَ',a:'تَجْلِسُ',d:'sie sitzt'},{p:'هُمْ',a:'يَجْلِسُونَ',d:'sie sitzen'},{p:'أَنَا',a:'أَجْلِسُ',d:'ich sitze'},{p:'نَحْنُ',a:'نَجْلِسُ',d:'wir sitzen'},{p:'أَنْتَ',a:'تَجْلِسُ',d:'du sitzt (m)'},{p:'أَنْتِ',a:'تَجْلِسِينَ',d:'du sitzt (f)'}],zukunft:[{p:'هُوَ',a:'سَيَجْلِسُ',d:'er wird sitzen'},{p:'أَنَا',a:'سَأَجْلِسُ',d:'ich werde sitzen'},{p:'نَحْنُ',a:'سَنَجْلِسُ',d:'wir werden sitzen'}],befehl:[{p:'أَنْتَ',a:'اِجْلِسْ',d:'sitz! (m)'},{p:'أَنْتِ',a:'اِجْلِسِي',d:'sitz! (f)'}],beispiele:[{a:'جَلَسْتُ عَلَى الْكُرْسِيِّ',d:'Ich saß auf dem Stuhl.'},{a:'اِجْلِسْ هُنَا',d:'Sitz hier!'}],merksatz:'ج-ل-س – مَجْلِس ist der Sitzungsraum!'}},
+    {id:105,arabic:'قَرَأَ',translations:{de:'lesen',en:'to read'},konjugation:{vergangenheit:[{p:'هُوَ',a:'قَرَأَ',d:'er las'},{p:'هِيَ',a:'قَرَأَتْ',d:'sie las'},{p:'هُمْ',a:'قَرَؤُوا',d:'sie lasen'},{p:'أَنَا',a:'قَرَأْتُ',d:'ich las'},{p:'نَحْنُ',a:'قَرَأْنَا',d:'wir lasen'},{p:'أَنْتَ',a:'قَرَأْتَ',d:'du last (m)'},{p:'أَنْتِ',a:'قَرَأْتِ',d:'du last (f)'}],gegenwart:[{p:'هُوَ',a:'يَقْرَأُ',d:'er liest'},{p:'هِيَ',a:'تَقْرَأُ',d:'sie liest'},{p:'هُمْ',a:'يَقْرَؤُونَ',d:'sie lesen'},{p:'أَنَا',a:'أَقْرَأُ',d:'ich lese'},{p:'نَحْنُ',a:'نَقْرَأُ',d:'wir lesen'},{p:'أَنْتَ',a:'تَقْرَأُ',d:'du liest (m)'},{p:'أَنْتِ',a:'تَقْرَئِينَ',d:'du liest (f)'}],zukunft:[{p:'هُوَ',a:'سَيَقْرَأُ',d:'er wird lesen'},{p:'أَنَا',a:'سَأَقْرَأُ',d:'ich werde lesen'},{p:'نَحْنُ',a:'سَنَقْرَأُ',d:'wir werden lesen'}],befehl:[{p:'أَنْتَ',a:'اِقْرَأْ',d:'lies! (m)'},{p:'أَنْتِ',a:'اِقْرَئِي',d:'lies! (f)'}],beispiele:[{a:'قَرَأْتُ الْكِتَابَ',d:'Ich las das Buch.'},{a:'هُوَ يَقْرَأُ كُلَّ يَوْمٍ',d:'Er liest jeden Tag.'}],merksatz:'ق-ر-أ – das erste Wort des Qurans war اِقْرَأْ (Lies!)'}},
+    {id:106,arabic:'كَتَبَ',translations:{de:'schreiben',en:'to write'},konjugation:{vergangenheit:[{p:'هُوَ',a:'كَتَبَ',d:'er schrieb'},{p:'هِيَ',a:'كَتَبَتْ',d:'sie schrieb'},{p:'هُمْ',a:'كَتَبُوا',d:'sie schrieben'},{p:'أَنَا',a:'كَتَبْتُ',d:'ich schrieb'},{p:'نَحْنُ',a:'كَتَبْنَا',d:'wir schrieben'},{p:'أَنْتَ',a:'كَتَبْتَ',d:'du schriebst (m)'},{p:'أَنْتِ',a:'كَتَبْتِ',d:'du schriebst (f)'}],gegenwart:[{p:'هُوَ',a:'يَكْتُبُ',d:'er schreibt'},{p:'هِيَ',a:'تَكْتُبُ',d:'sie schreibt'},{p:'هُمْ',a:'يَكْتُبُونَ',d:'sie schreiben'},{p:'أَنَا',a:'أَكْتُبُ',d:'ich schreibe'},{p:'نَحْنُ',a:'نَكْتُبُ',d:'wir schreiben'},{p:'أَنْتَ',a:'تَكْتُبُ',d:'du schreibst (m)'},{p:'أَنْتِ',a:'تَكْتُبِينَ',d:'du schreibst (f)'}],zukunft:[{p:'هُوَ',a:'سَيَكْتُبُ',d:'er wird schreiben'},{p:'أَنَا',a:'سَأَكْتُبُ',d:'ich werde schreiben'},{p:'نَحْنُ',a:'سَنَكْتُبُ',d:'wir werden schreiben'}],befehl:[{p:'أَنْتَ',a:'اُكْتُبْ',d:'schreib! (m)'},{p:'أَنْتِ',a:'اُكْتُبِي',d:'schreib! (f)'}],beispiele:[{a:'كَتَبْتُ رِسَالَةً',d:'Ich schrieb einen Brief.'},{a:'هُوَ يَكْتُبُ بِسُرْعَةٍ',d:'Er schreibt schnell.'}],merksatz:'ك-ت-ب – كِتَاب (Buch) kommt von derselben Wurzel!'}}
   ]
 }];
 let curProject = 0;
@@ -232,10 +252,10 @@ const MOTTOS = [
   {ar:'لَيْسَ الْجَمَالُ بِالثِّيَابِ، بَلِ الْجَمَالُ جَمَالُ الْعِلْمِ',de:'Schönheit liegt nicht in Kleidern, sondern in Wissen.',hint:'Innere Werte zählen mehr.'},
   {ar:'كُلُّ يَوْمٍ لَمْ تَتَعَلَّمْ فِيهِ شَيْئًا هُوَ يَوْمٌ ضَائِعٌ',de:'Jeder Tag, an dem du nichts lernst, ist ein verlorener Tag.',hint:'Tägliches Lernen ist Pflicht.'},
 ];
-// Pick motto based on day of year for true daily rotation
+// Pick random motto on each app start
+const _mottoIdx=Math.floor(Math.random()*1000);
 function getTodayMotto(){
-  const d=new Date(); const dayOfYear=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
-  return MOTTOS[dayOfYear%MOTTOS.length];
+  return MOTTOS[_mottoIdx%MOTTOS.length];
 }
 
 function saveProjects(){ try{localStorage.setItem('projects_v2',JSON.stringify(projects))}catch{} }
@@ -289,8 +309,13 @@ function buildPool(vocab,f){
 // AI
 // ═══════════════════════════════════════════════════════
 async function callAI(prompt,maxTokens=1500){
-  const r=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,maxTokens})});
-  const d=await r.json(); return d.text||'';
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':window._ak||'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+  });
+  const d=await r.json();
+  return (d.content&&d.content[0]&&d.content[0].text)||'';
 }
 function pJ(text){
   try{const c=text.replace(/```json|```/g,'').trim();const a=c.indexOf('[')!==-1&&c.indexOf('[')< (c.indexOf('{')===-1?9999:c.indexOf('{'));const s=a?'[':'{',e=a?']':'}';return JSON.parse(c.slice(c.indexOf(s),c.lastIndexOf(e)+1));}catch{return null;}
@@ -919,112 +944,110 @@ async function correctText(){
 }
 
 // ═══════════════════════════════════════════════════════
-// SPRECHEN
+// SPRECHEN (Chat-only, adaptive)
 // ═══════════════════════════════════════════════════════
-function getSCENES(){return[
-  {id:'frei',ar:'محادثة حرة',de:()=>ui('sceneFree'),desc:()=>ui('sceneFreeDes'),icon:'💬'},
-  {id:'vorstellen',ar:'تقديم النفس',de:()=>ui('sceneIntro'),desc:()=>ui('sceneIntroDes'),icon:'👋'},
-  {id:'einkauf',ar:'في المتجر',de:()=>ui('sceneShop'),desc:()=>ui('sceneShopDes'),icon:'🛍️'},
-  {id:'restaurant',ar:'في المطعم',de:()=>ui('sceneRest'),desc:()=>ui('sceneRestDes'),icon:'🍽️'},
-  {id:'schule',ar:'في المدرسة',de:()=>ui('sceneSchool'),desc:()=>ui('sceneSchoolDes'),icon:'🏫'},
-  {id:'aussprache',ar:'تدريب النطق',de:()=>ui('scenePron'),desc:()=>ui('scenePronDes'),icon:'🎯'},
-];}
-let vScene=null,vMsgs=[],vRec=false,vLoad=false,vRecObj=null;
+let vMsgs=[],vLoad=false,vChatStarted=false;
 
-function renderSprechen(app){
-  if(vScene){ renderVoiceChat(app); return; }
-  app.innerHTML=`<div style="padding:20px 16px 100px">
-    <div style="padding-top:6px;margin-bottom:20px">
-      <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Sprechen</div>
-      <div style="font-size:26px;font-weight:800;color:var(--text)">Sprachchat</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:4px">${ui('speakDesc')}</div>
-    </div>
-    <div style="background:linear-gradient(135deg,#0f1f3d,#1a2a5e);border:1px solid #2d4a8a;border-radius:18px;padding:18px;margin-bottom:20px">
-      <div style="font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:8px">🎤 VOICE TO VOICE</div>
-      <div style="font-size:13px;color:#93c5fd;line-height:1.5">${ui('voiceInfo')}</div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">${ui('chooseScene')}</div>
-    ${getSCENES().map(s=>`<div onclick="startVoice('${s.id}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
-      <div style="display:flex;gap:12px;align-items:center">
-        <div style="font-size:28px">${s.icon}</div>
-        <div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px">${s.de()}</div><div style="font-size:11px;color:var(--text3)">${s.desc()}</div></div>
-      </div>
-      <div style="text-align:right"><div class="ar" style="font-size:14px;color:var(--gold)">${s.ar}</div><div style="color:var(--text3);font-size:18px;margin-top:4px">›</div></div>
-    </div>`).join('')}
-  </div>`;
+function getChatLevel(){
+  const n=getVocab().length;
+  if(n<=5) return {level:1,desc:'Anfänger',info:'Der Bot benutzt nur allereinfachste Wörter und kurze Sätze.'};
+  if(n<=15) return {level:2,desc:'Grundstufe',info:'Der Bot benutzt einfache Sätze mit deinen Vokabeln.'};
+  if(n<=30) return {level:3,desc:'Mittelstufe',info:'Der Bot variiert mehr und stellt Fragen.'};
+  return {level:4,desc:'Fortgeschritten',info:'Der Bot führt natürlichere Gespräche.'};
 }
 
-function renderVoiceChat(app){
-  const speechOk='SpeechRecognition' in window||'webkitSpeechRecognition' in window;
-  app.innerHTML=`<div style="display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;padding-top:3px">
-    <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-      <div>
-        <div style="font-size:11px;color:var(--text3)">SPRACH-CHAT</div>
-        <div style="font-size:16px;font-weight:800;color:var(--text)">${(getSCENES().find(s=>s.id===vScene)||{de:()=>''}).de()}</div>
+function getBotPrompt(){
+  const vocab=getVocab().map(v=>v.arabic+'='+getTr(v)).join(', ');
+  const n=getVocab().length;
+  if(n<=5) return `Du bist ein freundlicher Arabisch-Gesprächspartner für absolute Anfänger. 
+Regeln:
+- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil/Harakat auf JEDEM Wort).
+- Benutze NUR diese Wörter wenn möglich: ${vocab||'مرحبا، كيف، أنت'}
+- Maximal 1 kurzer Satz. Keine komplizierten Strukturen.
+- Wenn der Lernende einen Fehler macht, sage das kurz auf Deutsch in Klammern.`;
+  if(n<=15) return `Du bist ein freundlicher Arabisch-Gesprächspartner für Anfänger.
+Regeln:
+- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil auf JEDEM Wort).
+- Bevorzuge diese bekannten Vokabeln: ${vocab}
+- Maximal 2 kurze Sätze.
+- Bei Fehlern: kurze Korrektur auf Deutsch in Klammern.`;
+  if(n<=30) return `Du bist ein Arabisch-Gesprächspartner für Lernende mit Grundkenntnissen.
+Regeln:
+- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen.
+- Nutze bekannte Vokabeln: ${vocab}
+- 2-3 Sätze, stelle auch mal eine Frage.
+- Bei Fehlern: kurze Korrektur auf Deutsch in Klammern.`;
+  return `Du bist ein Arabisch-Gesprächspartner für fortgeschrittene Lernende.
+Regeln:
+- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen.
+- Bekannte Vokabeln: ${vocab}
+- Natürliche Konversation, 2-4 Sätze.
+- Bei Fehlern: kurze Korrektur auf Deutsch in Klammern.`;
+}
+
+function renderSprechen(app){
+  const lvl=getChatLevel();
+  if(!vChatStarted){
+    app.innerHTML=`<div style="display:flex;flex-direction:column;height:100vh;padding-top:3px">
+      <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;flex-shrink:0">
+        <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Sprechen</div>
+        <div style="font-size:22px;font-weight:800;color:var(--text)">Arabisch-Chat 💬</div>
       </div>
-      <button onclick="vScene=null;vMsgs=[];render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer">← Zurück</button>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:20px">
+        <div style="font-size:60px">🤖</div>
+        <div style="text-align:center">
+          <div style="font-size:18px;font-weight:800;color:var(--gold);margin-bottom:6px">Level ${lvl.level} – ${lvl.desc}</div>
+          <div style="font-size:13px;color:var(--text3);line-height:1.6">${lvl.info}</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 18px;width:100%;text-align:center">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Dein Wortschatz</div>
+          <div style="font-size:28px;font-weight:900;color:var(--gold)">${getVocab().length} Wörter</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Je mehr Vokabeln, desto schwieriger wird der Bot</div>
+        </div>
+        <button onclick="startChat()" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:16px;color:#080c14;font-weight:900;font-size:17px;padding:16px 40px;cursor:pointer;width:100%">Gespräch beginnen →</button>
+      </div>
+    </div>`;
+    return;
+  }
+  app.innerHTML=`<div style="display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;padding-top:3px">
+    <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div>
+        <div style="font-size:11px;color:var(--text3)">ARABISCH-CHAT · Level ${lvl.level}</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text)">🤖 ${lvl.desc}</div>
+      </div>
+      <button onclick="vMsgs=[];vChatStarted=false;renderSprechen(document.getElementById('app'))" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">✕ Neu</button>
     </div>
     <div id="vchat" style="flex:1;overflow-y:auto;padding:16px;background:var(--bg)">
-      ${vMsgs.map(m=>`<div style="display:flex;justify-content:${m.role==='user'?'flex-end':'flex-start'};margin-bottom:12px">
-        <div style="max-width:82%;background:${m.role==='user'?'#1e3a5f':'var(--bg2)'};border:1px solid ${m.role==='user'?'#3b5f8a':'var(--border)'};border-radius:${m.role==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};padding:12px 14px">
-          <div class="ar" style="font-size:19px;color:${m.role==='user'?'#f8fafc':'var(--text)'};line-height:1.9">${m.text}</div>
-          ${m.fb?`<div style="margin-top:8px;padding:8px;background:${m.fb.correct?'#14532d':'#7f1d1d'};border-radius:8px">
-            <div style="font-size:12px;color:${m.fb.correct?'#4ade80':'#fca5a5'};font-weight:700">${m.fb.correct?'✓ Richtig!':'✗ Korrektur'}</div>
-            ${!m.fb.correct&&m.fb.corrected?`<div class="ar" style="font-size:14px;color:#f8fafc;margin-top:4px">${m.fb.corrected}</div>`:''}
-            ${m.fb.tip?`<div style="font-size:11px;color:#94a3b8;margin-top:4px">${m.fb.tip}</div>`:''}
-          </div>`:''}
+      ${vMsgs.map(m=>`<div style="display:flex;justify-content:${m.role==='user'?'flex-end':'flex-start'};margin-bottom:14px">
+        <div style="max-width:85%;background:${m.role==='user'?'#1e3a5f':'var(--bg2)'};border:1px solid ${m.role==='user'?'#3b5f8a':'var(--border)'};border-radius:${m.role==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};padding:13px 16px">
+          <div class="ar" style="font-size:20px;color:${m.role==='user'?'#f8fafc':'var(--text)'};line-height:2">${m.text}</div>
+          ${m.correction?`<div style="margin-top:8px;padding:8px 10px;background:#7f1d1d;border-radius:8px;font-size:12px;color:#fca5a5">${m.correction}</div>`:''}
         </div>
       </div>`).join('')}
-      ${vLoad?`<div style="display:flex;justify-content:flex-start;margin-bottom:10px"><div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:14px 18px"><div style="display:flex;gap:5px">${[0,1,2].map(i=>`<div style="width:8px;height:8px;background:var(--gold);border-radius:50%;opacity:0.7"></div>`).join('')}</div></div></div>`:''}
+      ${vLoad?`<div style="display:flex;justify-content:flex-start;margin-bottom:10px"><div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:14px 18px"><div style="display:flex;gap:5px;align-items:center">${[0,1,2].map((_,i)=>`<div style="width:8px;height:8px;background:var(--gold);border-radius:50%;animation:pulse 1s ${i*0.2}s infinite"></div>`).join('')}</div></div></div>`:''}
     </div>
     <div style="background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px 28px;flex-shrink:0">
       <div style="display:flex;gap:8px;align-items:center">
-        <input id="vIn" placeholder="اكتب أو استخدم الميكروفون..." class="ar" style="flex:1;font-size:17px;color:var(--gold)" onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(v)window._sendV(v)}"/>
-        ${speechOk?`<div onclick="vRec?stopRec():startRec()" style="background:${vRec?'#ef4444':'#1e3a5f'};border:1px solid ${vRec?'#ef4444':'#3b5f8a'};border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:white;font-size:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent">${vRec?'■':'🎤'}</div>`:''}
-        <div onclick="var v=document.getElementById('vIn');if(v&&v.value.trim())window._sendV(v.value)" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;padding:0 16px;height:48px;cursor:pointer;color:#080c14;font-weight:800;flex-shrink:0;display:flex;align-items:center;font-size:18px;-webkit-tap-highlight-color:transparent">→</div>
+        <input id="vIn" placeholder="اكتب بالعربية..." class="ar" style="flex:1;font-size:18px;color:var(--text);padding:12px 14px" onkeydown="if(event.key==='Enter'){var v=this.value.trim();if(v){window._sendV(v)}}"/>
+        <div onclick="var v=document.getElementById('vIn');if(v&&v.value.trim())window._sendV(v.value.trim())" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:12px;padding:0 18px;height:48px;cursor:pointer;color:#080c14;font-weight:900;flex-shrink:0;display:flex;align-items:center;font-size:20px;-webkit-tap-highlight-color:transparent">→</div>
       </div>
-      ${vRec?`<div style="font-size:11px;color:#ef4444;text-align:center;margin-top:6px;font-weight:600">${ui('listening')}</div>`:''}
+      <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px">Schreib auf Arabisch – der Bot korrigiert dich</div>
     </div>
   </div>`;
-  setTimeout(()=>{const c=document.getElementById('vchat');if(c)c.scrollTop=c.scrollHeight;},100);
+  setTimeout(()=>{const c=document.getElementById('vchat');if(c)c.scrollTop=c.scrollHeight;},80);
 }
 
-async function startVoice(sceneId){
-  vScene=sceneId; vMsgs=[]; vLoad=true;
+async function startChat(){
+  vChatStarted=true; vMsgs=[]; vLoad=true;
   renderSprechen(document.getElementById('app'));
-  const s=getSCENES().find(x=>x.id===sceneId);
-  const prompt=sceneId==='frei'
-    ?`أنت شريك محادثة عربي. أجب باللغة العربية مع الشكل الكامل فقط. جمل بسيطة. ابدأ بتحية.`
-    :`أنت في سيناريو: "${s.de()}". أجب باللغة العربية مع الشكل الكامل. ابدأ في دورك بجملتين بسيطتين.`;
   try{
-    const raw=await callAI(prompt,200);
+    const raw=await callAI(getBotPrompt()+'\n\nBegrüße den Lernenden kurz auf Arabisch und stell eine einfache Frage.',150);
     vMsgs=[{role:'ai',text:raw.trim()}];
     speakAr(raw.trim());
-  }catch{vMsgs=[{role:'ai',text:'مرحباً! كيف حالك؟'}];}
+  }catch{vMsgs=[{role:'ai',text:'مَرْحَبًا! كَيْفَ حَالُكَ؟'}];}
   vLoad=false;
   renderSprechen(document.getElementById('app'));
 }
-
-function startRec(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Mikrofon wird nicht unterstützt');return;}
-  const rec=new SR(); rec.lang='ar-SA'; rec.continuous=false; rec.interimResults=false;
-  rec.onresult=e=>{
-    const t=e.results[0][0].transcript;
-    vRec=false;
-    // Show text in input first, then send
-    renderSprechen(document.getElementById('app'));
-    setTimeout(()=>{
-      const inp=document.getElementById('vIn');
-      if(inp) inp.value=t;
-      window._sendV(t);
-    },100);
-  };
-  rec.onerror=e=>{console.log('rec error',e.error);vRec=false;renderSprechen(document.getElementById('app'));};
-  rec.onend=()=>{if(vRec){vRec=false;renderSprechen(document.getElementById('app'));}};
-  vRecObj=rec; rec.start(); vRec=true;
-  renderSprechen(document.getElementById('app'));
-}
-function stopRec(){if(vRecObj)vRecObj.stop();vRec=false;renderSprechen(document.getElementById('app'));}
 
 window._sendV = function(text){ sendVoice(text); };
 
@@ -1034,16 +1057,16 @@ async function sendVoice(text){
   vMsgs.push({role:'user',text:text.trim()});
   vLoad=true; renderSprechen(document.getElementById('app'));
   try{
-    const [fbRaw,replyRaw]=await Promise.all([
-      callAI(`Analyze Arabic learner sentence: "${text.trim()}". ONLY JSON: {"correct":true,"corrected":"with full diacritics or same","tip":"tip in German or empty"}`,300),
-      callAI(`Conversation (${vScene}):\n${vMsgs.map(m=>`${m.role==='user'?'Lernender':'KI'}: ${m.text}`).join('\n')}\nReply in Arabic with full diacritics. Max 2 short sentences.`,200)
-    ]);
-    const fb=pJ(fbRaw);
-    if(fb)vMsgs[vMsgs.length-1].fb=fb;
-    const reply=replyRaw.trim();
-    vMsgs.push({role:'ai',text:reply});
-    speakAr(reply);
-  }catch{vMsgs.push({role:'ai',text:'أعد المحاولة.'});}
+    const history=vMsgs.map(m=>`${m.role==='user'?'Lernender':'Bot'}: ${m.text}`).join('\n');
+    const replyRaw=await callAI(getBotPrompt()+`\n\nGesprächsverlauf:\n${history}\n\nAntworte jetzt. Falls der Lernende einen Fehler gemacht hat, korrigiere kurz auf Deutsch in Klammern am Ende.`,200);
+    const text2=replyRaw.trim();
+    // Extract correction in () if present
+    const corrMatch=text2.match(/\(([^)]+)\)\s*$/);
+    const correction=corrMatch?corrMatch[1]:null;
+    const arabicOnly=correction?text2.replace(/\s*\([^)]+\)\s*$/,'').trim():text2;
+    vMsgs.push({role:'ai',text:arabicOnly,correction});
+    speakAr(arabicOnly);
+  }catch{vMsgs.push({role:'ai',text:'أَعِدِ الْمُحَاوَلَةَ.'});}
   vLoad=false; renderSprechen(document.getElementById('app'));
 }
 
@@ -1132,10 +1155,23 @@ function renderStats(app){
   </div>`;
 }
 // BOOT
+window._ak = localStorage.getItem('ak') || '';
+function checkApiKey(){
+  if(window._ak){ render(); return; }
+  document.getElementById('navbar').innerHTML='';
+  document.getElementById('app').innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px">
+    <div style="font-size:60px;margin-bottom:20px">🔑</div>
+    <div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;text-align:center">API Key eingeben</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:24px;text-align:center;line-height:1.6">Du brauchst einen Anthropic API Key.<br>Hol ihn kostenlos auf console.anthropic.com</div>
+    <input id="akIn" type="password" placeholder="sk-ant-..." style="width:100%;margin-bottom:12px;font-size:14px" />
+    <button onclick="var v=document.getElementById('akIn').value.trim();if(v.startsWith('sk-')){window._ak=v;localStorage.setItem('ak',v);render();}else{alert('Ungültiger Key – muss mit sk-ant- beginnen')}" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;color:#080c14;font-weight:900;font-size:16px;padding:16px 0;width:100%;cursor:pointer">Speichern & Starten</button>
+    <div style="font-size:11px;color:var(--text3);margin-top:16px;text-align:center">Der Key wird nur lokal auf deinem Gerät gespeichert.</div>
+  </div>`;
+}
 try {
-  render();
+  checkApiKey();
 } catch(e) {
-  document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;font-size:14px">Fehler: ' + e.message + '<br><br>' + e.stack + '</div>';
+  document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;font-size:14px">Fehler: ' + e.message + '</div>';
 }
 </script>
 </body>
