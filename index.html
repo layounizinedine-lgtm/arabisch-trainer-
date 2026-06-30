@@ -565,7 +565,18 @@ async function callAI(prompt,maxTokens=1500){
   return (d.content&&d.content[0]&&d.content[0].text)||'';
 }
 function pJ(text){
-  try{const c=text.replace(/```json|```/g,'').trim();const a=c.indexOf('[')!==-1&&c.indexOf('[')< (c.indexOf('{')===-1?9999:c.indexOf('{'));const s=a?'[':'{',e=a?']':'}';return JSON.parse(c.slice(c.indexOf(s),c.lastIndexOf(e)+1));}catch{return null;}
+  const c=text.replace(/```json|```/g,'').trim();
+  // Determine intended type by first non-whitespace character
+  const firstChar=c.trim()[0];
+  const tryParse=(s,e)=>{
+    const start=c.indexOf(s), end=c.lastIndexOf(e);
+    if(start===-1||end===-1||end<=start) return null;
+    try{ return JSON.parse(c.slice(start,end+1)); }catch(e){ return null; }
+  };
+  if(firstChar==='['){
+    return tryParse('[',']') || tryParse('{','}');
+  }
+  return tryParse('{','}') || tryParse('[',']');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1005,7 +1016,12 @@ function showVerbDetail(id){
   function renderMehrContent(){
     const mehrLoading=window._mehrLoading;
     const mehrData=window._mehrData;
+    const mehrError=window._mehrError;
     if(mehrLoading) return `<div style="text-align:center;padding:40px;color:var(--text3)">KI lädt Kontext-Bedeutungen...</div>`;
+    if(mehrError) return `<div style="text-align:center;padding:40px">
+      <div style="font-size:13px;color:#fca5a5;margin-bottom:16px">${mehrError}</div>
+      <button onclick="window._mehrError=null;loadMehr()" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);border:none;border-radius:12px;padding:14px 24px;color:white;font-weight:700;font-size:14px;cursor:pointer">Nochmal versuchen</button>
+    </div>`;
     if(!mehrData) return `<div style="text-align:center;padding:40px">
       <div style="font-size:14px;color:var(--text3);margin-bottom:16px">Entdecke alle Bedeutungen und Kontexte von <span class="ar" style="color:var(--gold);font-size:18px">${verb.arabic}</span></div>
       <button onclick="loadMehr()" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);border:none;border-radius:12px;padding:14px 24px;color:white;font-weight:700;font-size:14px;cursor:pointer">Kontext laden</button>
@@ -1030,12 +1046,12 @@ function showVerbDetail(id){
     window._mehrLoading=true;
     if(window._draw)window._draw();
     try{
-      const raw=await callAI(`For the Arabic verb "${verb.arabic}" (${getTr(verb)}): Give ALL meanings in different contexts and related words from the same root. ONLY JSON:
-{"bedeutungen":[{"kontext":"Context label e.g. 'Im übertragenen Sinne'","arabisch":"example with diacritics","deutsch":"German meaning","beispiel":"example sentence with diacritics"}],"verwandte":[{"arabisch":"related word with diacritics","deutsch":"meaning","wortart":"Nomen/Adjektiv/etc"}]}`,1000);
+      const raw=await callAI(`For the Arabic verb "${verb.arabic}" (${getTr(verb)}): Give ALL meanings in different contexts and related words from the same root. Respond with ONLY a single JSON object, no other text, in exactly this format:
+{"bedeutungen":[{"kontext":"Context label in German e.g. Im uebertragenen Sinne","arabisch":"example phrase with full diacritics","deutsch":"German meaning","beispiel":"example sentence with full diacritics"}],"verwandte":[{"arabisch":"related word with full diacritics","deutsch":"German meaning","wortart":"Nomen or Adjektiv etc"}]}`,1200);
       const p=pJ(raw);
-      if(p){ window._mehrData=p; window._mehrLoading=false; if(window._draw)window._draw(); }
-      else { window._mehrLoading=false; if(window._draw)window._draw(); }
-    }catch(e){ window._mehrLoading=false; if(window._draw)window._draw(); }
+      if(p && (p.bedeutungen || p.verwandte)){ window._mehrData=p; window._mehrLoading=false; if(window._draw)window._draw(); }
+      else { window._mehrLoading=false; window._mehrError='Konnte Antwort nicht lesen. Versuch es nochmal.'; if(window._draw)window._draw(); }
+    }catch(e){ window._mehrLoading=false; window._mehrError='Fehler: '+e.message; if(window._draw)window._draw(); }
   }
 
   function showMehr(){ window._vt='mehr'; draw(); if(!window._mehrData&&!window._mehrLoading) loadMehr(); }
