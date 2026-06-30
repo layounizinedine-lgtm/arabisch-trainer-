@@ -1228,31 +1228,27 @@ function getChatLevel(){
 function getBotPrompt(){
   const vocab=getVocabUpToHere().map(v=>v.arabic+'='+getTr(v)).join(', ');
   const n=getVocabUpToHere().length;
-  const noHarakatNote = `\nWICHTIG: Der Lernende schreibt oft OHNE Harakat (Vokalisierung/Tashkil), z.B. "مرحبا" statt "مَرْحَبًا". Das ist VÖLLIG NORMAL und KEIN Fehler. Verstehe und interpretiere seine Nachricht trotzdem korrekt, egal ob mit oder ohne Harakat geschrieben. Korrigiere NIEMALS das Fehlen von Harakat als Fehler.`;
-  if(n<=5) return `Du bist ein freundlicher Arabisch-Gesprächspartner für absolute Anfänger. 
+  const noHarakatNote = `\nWICHTIG: Der Lernende schreibt oft OHNE Harakat (Vokalisierung/Tashkil), z.B. "مرحبا" statt "مَرْحَبًا". Das ist VÖLLIG NORMAL und KEIN Fehler. Verstehe seine Nachricht trotzdem korrekt. Korrigiere NIEMALS das Fehlen von Harakat als Fehler.`;
+  const wordExplainNote = `\nNEUE WÖRTER ERKLÄREN: Der Lernende kennt bisher diese Wörter: ${vocab||'noch keine'}. Du darfst gerne auch andere natürliche, alltägliche Wörter benutzen (das macht das Gespräch lebendig!). Aber: für JEDES Wort in deiner Antwort, das NICHT in der obigen Liste steht (außer Pronomen, Partikeln wie وَ/فِي/مِنْ/إِلَى, und absoluten Grundwörtern wie مَرْحَبًا/نَعَمْ/لَا/كَيْفَ), gib am Ende ein JSON-Array mit Erklärungen mit. Format ganz am Ende der Antwort (nach der Korrektur-Klammer falls vorhanden):
+[[NEUWORT:عربي:bedeutung auf Deutsch]]
+Ein Tag pro neuem Wort, jedes auf eigener Zeile. Wenn keine neuen Wörter benutzt wurden, lass das komplett weg.`;
+  const corrFormat = `\nKorrektur-Format: Wenn der Lernende einen ECHTEN Fehler macht (falsches Wort, falsche Grammatik, NICHT fehlende Harakat), schreibe deine arabische Antwort normal, und füge danach in runden Klammern auf Deutsch eine SEHR KURZE Korrektur hinzu, z.B. "(Tipp: es heißt أَنَا أَيْضًا nicht أَنَا إِيضًا)". Maximal 10 Wörter in der Klammer. Wenn kein Fehler vorliegt, KEINE Klammer hinzufügen.`;
+  if(n<=5) return `Du bist ein freundlicher Arabisch-Gesprächspartner für absolute Anfänger.
 Regeln:
-- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil/Harakat auf JEDEM Wort).
-- Benutze NUR diese Wörter wenn möglich: ${vocab||'مرحبا، كيف، أنت'}
-- Maximal 1 kurzer Satz. Keine komplizierten Strukturen.
-- Wenn der Lernende einen ECHTEN Fehler macht (falsches Wort, falsche Grammatik), sage das kurz auf Deutsch in Klammern.${noHarakatNote}`;
+- Antworte IMMER auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil auf JEDEM Wort).
+- Maximal 1 kurzer, natürlicher Satz.${corrFormat}${wordExplainNote}${noHarakatNote}`;
   if(n<=15) return `Du bist ein freundlicher Arabisch-Gesprächspartner für Anfänger.
 Regeln:
-- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil auf JEDEM Wort).
-- Bevorzuge diese bekannten Vokabeln: ${vocab}
-- Maximal 2 kurze Sätze.
-- Bei ECHTEN Fehlern (falsches Wort, falsche Grammatik): kurze Korrektur auf Deutsch in Klammern.${noHarakatNote}`;
+- Antworte IMMER auf Arabisch mit vollständigen Vokalisierungszeichen.
+- Maximal 1-2 kurze, natürliche Sätze.${corrFormat}${wordExplainNote}${noHarakatNote}`;
   if(n<=30) return `Du bist ein Arabisch-Gesprächspartner für Lernende mit Grundkenntnissen.
 Regeln:
-- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen.
-- Nutze bekannte Vokabeln: ${vocab}
-- 2-3 Sätze, stelle auch mal eine Frage.
-- Bei ECHTEN Fehlern (falsches Wort, falsche Grammatik): kurze Korrektur auf Deutsch in Klammern.${noHarakatNote}`;
+- Antworte IMMER auf Arabisch mit vollständigen Vokalisierungszeichen.
+- 2 natürliche Sätze, stelle auch mal eine Frage.${corrFormat}${wordExplainNote}${noHarakatNote}`;
   return `Du bist ein Arabisch-Gesprächspartner für fortgeschrittene Lernende.
 Regeln:
-- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen.
-- Bekannte Vokabeln: ${vocab}
-- Natürliche Konversation, 2-4 Sätze.
-- Bei ECHTEN Fehlern (falsches Wort, falsche Grammatik): kurze Korrektur auf Deutsch in Klammern.${noHarakatNote}`;
+- Antworte IMMER auf Arabisch mit vollständigen Vokalisierungszeichen.
+- Natürliche Konversation, 2-3 Sätze.${corrFormat}${wordExplainNote}${noHarakatNote}`;
 }
 
 function renderSprechen(app){
@@ -1292,6 +1288,13 @@ function renderSprechen(app){
         <div style="max-width:85%;background:${m.role==='user'?'#1e3a5f':'var(--bg2)'};border:1px solid ${m.role==='user'?'#3b5f8a':'var(--border)'};border-radius:${m.role==='user'?'18px 18px 4px 18px':'18px 18px 18px 4px'};padding:13px 16px">
           <div class="ar" style="font-size:20px;color:${m.role==='user'?'#f8fafc':'var(--text)'};line-height:2">${m.text}</div>
           ${m.correction?`<div style="margin-top:8px;padding:8px 10px;background:#7f1d1d;border-radius:8px;font-size:12px;color:#fca5a5">${m.correction}</div>`:''}
+          ${m.newWords&&m.newWords.length?`<div style="margin-top:8px;padding:10px 12px;background:#1a2f1a;border:1px solid #2d5a2d;border-radius:10px">
+            <div style="font-size:10px;font-weight:700;color:#4ade80;margin-bottom:6px;letter-spacing:0.5px">NEUE WÖRTER</div>
+            ${m.newWords.map(w=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">
+              <span style="font-size:12px;color:#a3e7c4">${w.de}</span>
+              <span class="ar" style="font-size:16px;color:#4ade80;font-weight:700">${w.ar}</span>
+            </div>`).join('')}
+          </div>`:''}
         </div>
       </div>`).join('')}
       ${vLoad?`<div style="display:flex;justify-content:flex-start;margin-bottom:10px"><div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:14px 18px"><div style="display:flex;gap:5px;align-items:center">${[0,1,2].map((_,i)=>`<div style="width:8px;height:8px;background:var(--gold);border-radius:50%;animation:pulse 1s ${i*0.2}s infinite"></div>`).join('')}</div></div></div>`:''}
@@ -1311,9 +1314,12 @@ async function startChat(){
   vChatStarted=true; vMsgs=[]; vLoad=true;
   renderSprechen(document.getElementById('app'));
   try{
-    const raw=await callAI(getBotPrompt()+'\n\nBegrüße den Lernenden kurz auf Arabisch und stell eine einfache Frage.',150);
-    vMsgs=[{role:'ai',text:raw.trim()}];
-    speakAr(raw.trim());
+    const raw=await callAI(getBotPrompt()+'\n\nBegrüße den Lernenden kurz auf Arabisch und stell eine einfache Frage.',200);
+    let text2=raw.trim();
+    const newWords=[];
+    text2=text2.replace(/\[\[NEUWORT:([^:]+):([^\]]+)\]\]/g,(m,ar,de)=>{newWords.push({ar:ar.trim(),de:de.trim()});return '';}).trim();
+    vMsgs=[{role:'ai',text:text2,newWords}];
+    speakAr(text2);
   }catch{vMsgs=[{role:'ai',text:'مَرْحَبًا! كَيْفَ حَالُكَ؟'}];}
   vLoad=false;
   renderSprechen(document.getElementById('app'));
@@ -1328,13 +1334,16 @@ async function sendVoice(text){
   vLoad=true; renderSprechen(document.getElementById('app'));
   try{
     const history=vMsgs.map(m=>`${m.role==='user'?'Lernender':'Bot'}: ${m.text}`).join('\n');
-    const replyRaw=await callAI(getBotPrompt()+`\n\nGesprächsverlauf:\n${history}\n\nAntworte jetzt. Falls der Lernende einen Fehler gemacht hat, korrigiere kurz auf Deutsch in Klammern am Ende.`,200);
-    const text2=replyRaw.trim();
+    const replyRaw=await callAI(getBotPrompt()+`\n\nGesprächsverlauf:\n${history}\n\nAntworte jetzt.`,300);
+    let text2=replyRaw.trim();
+    // Extract new word explanation tags [[NEUWORT:arabic:meaning]]
+    const newWords=[];
+    text2=text2.replace(/\[\[NEUWORT:([^:]+):([^\]]+)\]\]/g,(m,ar,de)=>{newWords.push({ar:ar.trim(),de:de.trim()});return '';}).trim();
     // Extract correction in () if present
     const corrMatch=text2.match(/\(([^)]+)\)\s*$/);
     const correction=corrMatch?corrMatch[1]:null;
     const arabicOnly=correction?text2.replace(/\s*\([^)]+\)\s*$/,'').trim():text2;
-    vMsgs.push({role:'ai',text:arabicOnly,correction});
+    vMsgs.push({role:'ai',text:arabicOnly,correction,newWords});
     speakAr(arabicOnly);
   }catch{vMsgs.push({role:'ai',text:'أَعِدِ الْمُحَاوَلَةَ.'});}
   vLoad=false; renderSprechen(document.getElementById('app'));
