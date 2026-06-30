@@ -960,7 +960,7 @@ function showVerbDetail(id){
     <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
       <div><div style="font-size:11px;color:var(--text3)">VERB</div><div class="ar" style="font-size:26px;color:var(--gold);font-weight:700">${verb.arabic}</div><div style="font-size:13px;color:var(--text2)">${getTr(verb)}</div></div>
       <div style="display:flex;gap:8px;align-items:center">
-        <div onclick="window._vt='mehr';showVerbDetail(window._verbDetailId)" style="background:${vt==='mehr'?'#a78bfa':'var(--bg3)'};border:none;color:${vt==='mehr'?'white':'var(--text2)'};border-radius:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-weight:700">···</div>
+        <div onclick="try{window._vt='mehr';showVerbDetail(window._verbDetailId);}catch(e){alert('Fehler: '+e.message)}" style="background:${vt==='mehr'?'#a78bfa':'var(--bg3)'};border:none;color:${vt==='mehr'?'white':'var(--text2)'};border-radius:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-weight:700">···</div>
         <div onclick="document.getElementById('verbModal').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:16px">✕</div>
       </div>
     </div>
