@@ -562,7 +562,9 @@ async function callAI(prompt,maxTokens=1500){
     body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
   });
   const d=await r.json();
-  return (d.content&&d.content[0]&&d.content[0].text)||'';
+  if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+  if(d.content&&d.content[0]&&d.content[0].text) return d.content[0].text;
+  throw new Error('Unerwartete API-Antwort: '+JSON.stringify(d).slice(0,200));
 }
 function pJ(text){
   const c=text.replace(/```json|```/g,'').trim();
@@ -1050,7 +1052,7 @@ function showVerbDetail(id){
 {"bedeutungen":[{"kontext":"Context label in German e.g. Im uebertragenen Sinne","arabisch":"example phrase with full diacritics","deutsch":"German meaning","beispiel":"example sentence with full diacritics"}],"verwandte":[{"arabisch":"related word with full diacritics","deutsch":"German meaning","wortart":"Nomen or Adjektiv etc"}]}`,1200);
       const p=pJ(raw);
       if(p && (p.bedeutungen || p.verwandte)){ window._mehrData=p; window._mehrLoading=false; if(window._draw)window._draw(); }
-      else { window._mehrLoading=false; window._mehrError='Konnte Antwort nicht lesen. Versuch es nochmal.'; if(window._draw)window._draw(); }
+      else { window._mehrLoading=false; window._mehrError='Antwort: '+raw.slice(0,300); if(window._draw)window._draw(); }
     }catch(e){ window._mehrLoading=false; window._mehrError='Fehler: '+e.message; if(window._draw)window._draw(); }
   }
 
