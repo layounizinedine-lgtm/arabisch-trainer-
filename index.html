@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#080c14;--bg2:#0d1526;--bg3:#1a2540;--border:#1e2d4a;--text:#f8fafc;--text2:#94a3b8;--text3:#64748b;--gold:#F59E0B;--gold2:#d97706}
-[data-theme="light"]{--bg:#ffffff;--bg2:#f9f9f9;--bg3:#f0f0f0;--border:#e0e0e0;--text:#111111;--text2:#222222;--text3:#444444;--gold:#2a7a2a;--gold2:#1e5c1e}
+[data-theme="light"]{--bg:#ffffff;--bg2:#f9f9f9;--bg3:#f0f0f0;--border:#e0e0e0;--text:#111111;--text2:#222222;--text3:#444444;--gold:#c9a227;--gold2:#a3811f}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;width:100%;margin:0 auto;min-height:100vh;transition:background 0.3s,color 0.3s}
 .ar{font-family:'Noto Naskh Arabic',serif;direction:rtl;text-align:right}
@@ -507,6 +507,7 @@ function getTodayMotto(){
 function saveProjects(){ try{localStorage.setItem('projects_v2',JSON.stringify(projects))}catch{} }
 function getP(){ return projects[curProject]||projects[0]; }
 function getVocab(){ return getP().vocab||[]; }
+function getVocabUpToHere(){ return projects.slice(0,curProject+1).flatMap(p=>p.vocab||[]); }
 function getVerbs(){ return getP().verbs||[]; }
 function setVocab(v){ projects[curProject].vocab=v; saveProjects(); }
 function setVerbs(v){ projects[curProject].verbs=v; saveProjects(); }
@@ -1217,7 +1218,7 @@ async function correctText(){
 let vMsgs=[],vLoad=false,vChatStarted=false;
 
 function getChatLevel(){
-  const n=getVocab().length;
+  const n=getVocabUpToHere().length;
   if(n<=5) return {level:1,desc:'Anfänger',info:'Der Bot benutzt nur allereinfachste Wörter und kurze Sätze.'};
   if(n<=15) return {level:2,desc:'Grundstufe',info:'Der Bot benutzt einfache Sätze mit deinen Vokabeln.'};
   if(n<=30) return {level:3,desc:'Mittelstufe',info:'Der Bot variiert mehr und stellt Fragen.'};
@@ -1225,32 +1226,33 @@ function getChatLevel(){
 }
 
 function getBotPrompt(){
-  const vocab=getVocab().map(v=>v.arabic+'='+getTr(v)).join(', ');
-  const n=getVocab().length;
+  const vocab=getVocabUpToHere().map(v=>v.arabic+'='+getTr(v)).join(', ');
+  const n=getVocabUpToHere().length;
+  const noHarakatNote = `\nWICHTIG: Der Lernende schreibt oft OHNE Harakat (Vokalisierung/Tashkil), z.B. "مرحبا" statt "مَرْحَبًا". Das ist VÖLLIG NORMAL und KEIN Fehler. Verstehe und interpretiere seine Nachricht trotzdem korrekt, egal ob mit oder ohne Harakat geschrieben. Korrigiere NIEMALS das Fehlen von Harakat als Fehler.`;
   if(n<=5) return `Du bist ein freundlicher Arabisch-Gesprächspartner für absolute Anfänger. 
 Regeln:
-- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil/Harakat auf JEDEM Wort).
+- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil/Harakat auf JEDEM Wort).
 - Benutze NUR diese Wörter wenn möglich: ${vocab||'مرحبا، كيف، أنت'}
 - Maximal 1 kurzer Satz. Keine komplizierten Strukturen.
-- Wenn der Lernende einen Fehler macht, sage das kurz auf Deutsch in Klammern.`;
+- Wenn der Lernende einen ECHTEN Fehler macht (falsches Wort, falsche Grammatik), sage das kurz auf Deutsch in Klammern.${noHarakatNote}`;
   if(n<=15) return `Du bist ein freundlicher Arabisch-Gesprächspartner für Anfänger.
 Regeln:
-- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil auf JEDEM Wort).
+- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen (Tashkil auf JEDEM Wort).
 - Bevorzuge diese bekannten Vokabeln: ${vocab}
 - Maximal 2 kurze Sätze.
-- Bei Fehlern: kurze Korrektur auf Deutsch in Klammern.`;
+- Bei ECHTEN Fehlern (falsches Wort, falsche Grammatik): kurze Korrektur auf Deutsch in Klammern.${noHarakatNote}`;
   if(n<=30) return `Du bist ein Arabisch-Gesprächspartner für Lernende mit Grundkenntnissen.
 Regeln:
-- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen.
+- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen.
 - Nutze bekannte Vokabeln: ${vocab}
 - 2-3 Sätze, stelle auch mal eine Frage.
-- Bei Fehlern: kurze Korrektur auf Deutsch in Klammern.`;
+- Bei ECHTEN Fehlern (falsches Wort, falsche Grammatik): kurze Korrektur auf Deutsch in Klammern.${noHarakatNote}`;
   return `Du bist ein Arabisch-Gesprächspartner für fortgeschrittene Lernende.
 Regeln:
-- Antworte NUR auf Arabisch mit vollständigen Vokalisierungszeichen.
+- Antworte selbst IMMER auf Arabisch mit vollständigen Vokalisierungszeichen.
 - Bekannte Vokabeln: ${vocab}
 - Natürliche Konversation, 2-4 Sätze.
-- Bei Fehlern: kurze Korrektur auf Deutsch in Klammern.`;
+- Bei ECHTEN Fehlern (falsches Wort, falsche Grammatik): kurze Korrektur auf Deutsch in Klammern.${noHarakatNote}`;
 }
 
 function renderSprechen(app){
@@ -1269,7 +1271,7 @@ function renderSprechen(app){
         </div>
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 18px;width:100%;text-align:center">
           <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Dein Wortschatz</div>
-          <div style="font-size:28px;font-weight:900;color:var(--gold)">${getVocab().length} Wörter</div>
+          <div style="font-size:28px;font-weight:900;color:var(--gold)">${getVocabUpToHere().length} Wörter</div>
           <div style="font-size:11px;color:var(--text3);margin-top:4px">Je mehr Vokabeln, desto schwieriger wird der Bot</div>
         </div>
         <button onclick="startChat()" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:16px;color:#080c14;font-weight:900;font-size:17px;padding:16px 40px;cursor:pointer;width:100%">Gespräch beginnen →</button>
