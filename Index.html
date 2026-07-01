@@ -534,7 +534,18 @@ function updateStreak(){
   streak.lastDate=today; streak.longest=Math.max(streak.longest,streak.days); streak.todayXP=0;
   try{localStorage.setItem('streak_v4',JSON.stringify(streak))}catch{}
 }
-function addXP(n){ streak.todayXP=(streak.todayXP||0)+n; streak.totalXP=(streak.totalXP||0)+n; try{localStorage.setItem('streak_v4',JSON.stringify(streak))}catch{} }
+function addXP(n){
+  streak.todayXP=(streak.todayXP||0)+n;
+  streak.totalXP=(streak.totalXP||0)+n;
+  try{localStorage.setItem('streak_v4',JSON.stringify(streak))}catch{}
+  // Track daily review count for heatmap
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    const h=JSON.parse(localStorage.getItem('reviewHistory')||'{}');
+    h[today]=(h[today]||0)+1;
+    localStorage.setItem('reviewHistory',JSON.stringify(h));
+  }catch{}
+}
 updateStreak();
 
 // ═══════════════════════════════════════════════════════
@@ -679,8 +690,12 @@ function renderTutorial(app){
     // Each tab is 25% wide. Tab center = (target * 25 + 12.5)% of screen width.
     // Tooltip width = 250px. Position tooltip so arrow (at its center) points at tab center.
     const tabCenterPct=(s.target*25+12.5);
-    const tipStyle=`position:absolute;bottom:${navH+20}px;left:calc(${tabCenterPct}% - 125px);width:250px;background:#0f172a;border:2px solid #c9a227;border-radius:16px;padding:18px 16px 16px;pointer-events:all`;
-    const arrowOffset='calc(50% - 11px)';
+    // Clamp: for last tab (Profil) anchor to right edge instead
+    const tipStyle=s.target===3
+      ? `position:absolute;bottom:${navH+20}px;right:4px;width:250px;background:#0f172a;border:2px solid #c9a227;border-radius:16px;padding:18px 16px 16px;pointer-events:all`
+      : `position:absolute;bottom:${navH+20}px;left:calc(${tabCenterPct}% - 125px);width:250px;background:#0f172a;border:2px solid #c9a227;border-radius:16px;padding:18px 16px 16px;pointer-events:all`;
+    // Arrow points to tab center from tooltip
+    const arrowOffset=s.target===3?'calc(100% - 45px)':'calc(50% - 11px)';
     ov.innerHTML=`
       <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);pointer-events:all"></div>
       <div style="position:absolute;bottom:0;left:${tabLeft}%;width:${tabW}%;height:${navH}px;outline:3px solid #c9a227;outline-offset:-2px;border-radius:12px 12px 0 0;background:rgba(201,162,39,0.15);pointer-events:none"></div>
@@ -1556,23 +1571,144 @@ function toggleTheme(){
   document.documentElement.setAttribute('data-theme',theme); render();
 }
 function renderStats(app){
-  const vocab=getVocab();
+  const vocab=projects.flatMap(p=>p.vocab||[]);
   const gelernt=vocab.filter(v=>v.status==='gelernt').length;
   const lernend=vocab.filter(v=>v.status==='lernend').length;
   const neu=vocab.filter(v=>v.status==='neu').length;
   const total=vocab.length;
+  const due=vocab.filter(isDue).length;
+
+  // Build heatmap data — last 12 weeks (84 days)
+  const today=new Date(); today.setHours(0,0,0,0);
+  const history=JSON.parse(localStorage.getItem('reviewHistory')||'{}');
+  const heatDays=[];
+  for(let i=83;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const key=d.toISOString().slice(0,10);
+    heatDays.push({date:key,count:history[key]||0});
+  }
+  const maxCount=Math.max(1,...heatDays.map(d=>d.count));
+
+  function heatColor(c){
+    if(c===0) return 'var(--bg3)';
+    const pct=c/maxCount;
+    if(pct<0.25) return '#854d0e';
+    if(pct<0.5) return '#a16207';
+    if(pct<0.75) return '#ca8a04';
+    return '#c9a227';
+  }
+
+  // Future due — next 30 days
+  const futureDue=[];
+  for(let i=1;i<=30;i++){
+    const d=new Date(today); d.setDate(d.getDate()+i);
+    const ts=d.getTime();
+    const count=vocab.filter(v=>v.nextReview&&v.nextReview<=ts+86400000&&v.nextReview>ts-86400000).length;
+    futureDue.push(count);
+  }
+  const maxFuture=Math.max(1,...futureDue);
+
+  // Card count bar
+  const totalW=total||1;
+  const gPct=Math.round(gelernt/totalW*100);
+  const lPct=Math.round(lernend/totalW*100);
+  const nPct=100-gPct-lPct;
+
   app.innerHTML=`<div style="padding:20px 16px 100px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Statistiken</div></div>
-    <div style="background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:18px;padding:20px;margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
-        <div><div style="font-size:30px;font-weight:900;color:var(--gold)">${streak.days}</div><div style="font-size:10px;color:#78716c">Streak</div></div>
-        <div><div style="font-size:30px;font-weight:900;color:var(--gold)">${streak.longest}</div><div style="font-size:10px;color:#78716c">Rekord</div></div>
-        <div><div style="font-size:30px;font-weight:900;color:var(--gold)">${streak.totalXP||0}</div><div style="font-size:10px;color:#78716c">XP</div></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
+      <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+      <div style="font-size:20px;font-weight:800;color:var(--text)">Statistiken</div>
+    </div>
+
+    <!-- Streak & XP -->
+    <div style="background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:18px;padding:18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:#92400e;letter-spacing:1px;margin-bottom:12px">HEUTE</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">
+        <div><div style="font-size:26px;font-weight:900;color:var(--gold)">${streak.days}</div><div style="font-size:9px;color:#78716c;margin-top:2px">Streak</div></div>
+        <div><div style="font-size:26px;font-weight:900;color:var(--gold)">${streak.longest}</div><div style="font-size:9px;color:#78716c;margin-top:2px">Rekord</div></div>
+        <div><div style="font-size:26px;font-weight:900;color:#60a5fa">${due}</div><div style="font-size:9px;color:#78716c;margin-top:2px">Fällig</div></div>
+        <div><div style="font-size:26px;font-weight:900;color:#a3e635">${streak.totalXP||0}</div><div style="font-size:9px;color:#78716c;margin-top:2px">XP</div></div>
       </div>
     </div>
-    <div class="card">${total===0?`<div style="color:var(--text3);text-align:center;padding:20px">${ui('noVocab')}</div>`:
-      [[ui('learned'),gelernt,'#a3e635'],[(ui('learning')||'Lernend'),lernend,'#60a5fa'],['Neu',neu,'var(--text3)']].map(([l,v,c])=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--text2)">${l}</span><span style="color:${c};font-weight:700">${v}</span></div><div style="background:var(--bg3);border-radius:4px;height:8px"><div style="width:${total?Math.round(v/total*100):0}%;background:${c};height:8px;border-radius:4px"></div></div></div>`).join('')
-    }</div>
+
+    <!-- Card Counts -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:12px">KARTEN</div>
+      <div style="display:flex;height:10px;border-radius:6px;overflow:hidden;margin-bottom:14px">
+        <div style="width:${gPct}%;background:#a3e635"></div>
+        <div style="width:${lPct}%;background:#60a5fa"></div>
+        <div style="width:${nPct}%;background:var(--bg3)"></div>
+      </div>
+      ${[['Gelernt',gelernt,'#a3e635'],['Lernend',lernend,'#60a5fa'],['Neu',neu,'var(--text3)'],['Gesamt',total,'var(--gold)']].map(([l,v,c])=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:2px;background:${c}"></div><span style="font-size:13px;color:var(--text2)">${l}</span></div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <span style="font-size:13px;font-weight:700;color:${c}">${v}</span>
+            <span style="font-size:11px;color:var(--text3);width:36px;text-align:right">${total?Math.round(v/total*100):0}%</span>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Heatmap -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:12px">AKTIVITÄT (12 WOCHEN)</div>
+      <div style="display:flex;gap:3px">
+        <div style="display:flex;flex-direction:column;justify-content:space-around;padding-bottom:2px;margin-right:2px">
+          ${['Mo','Mi','Fr'].map(d=>`<div style="font-size:9px;color:var(--text3);height:12px;line-height:12px">${d}</div>`).join('')}
+        </div>
+        <div style="display:flex;gap:3px;flex:1">
+          ${Array.from({length:12},(_,week)=>`<div style="display:flex;flex-direction:column;gap:3px;flex:1">
+            ${heatDays.slice(week*7,week*7+7).map((d,di)=>`<div title="${d.date}: ${d.count} Reviews" style="width:100%;height:12px;border-radius:2px;background:${heatColor(d.count)}"></div>`).join('')}
+          </div>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;margin-top:10px;justify-content:flex-end">
+        <span style="font-size:10px;color:var(--text3)">Wenig</span>
+        ${['var(--bg3)','#854d0e','#a16207','#ca8a04','#c9a227'].map(c=>`<div style="width:10px;height:10px;border-radius:2px;background:${c}"></div>`).join('')}
+        <span style="font-size:10px;color:var(--text3)">Viel</span>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--gold)">${Object.values(history).reduce((a,b)=>a+b,0)}</div><div style="font-size:10px;color:var(--text3)">Gesamt</div></div>
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--gold)">${heatDays.filter(d=>d.count>0).length}</div><div style="font-size:10px;color:var(--text3)">Lerntage</div></div>
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--gold)">${streak.days}</div><div style="font-size:10px;color:var(--text3)">Streak</div></div>
+      </div>
+    </div>
+
+    <!-- Future Due -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:12px">FÄLLIG IN DEN NÄCHSTEN 30 TAGEN</div>
+      <div style="display:flex;align-items:flex-end;gap:2px;height:80px">
+        ${futureDue.map((v,i)=>`<div style="flex:1;background:${i===0?'var(--gold)':'#1e3a5f'};border-radius:2px 2px 0 0;height:${Math.round(v/maxFuture*100)}%;min-height:${v>0?2:0}px" title="Tag ${i+1}: ${v}"></div>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="font-size:10px;color:var(--text3)">Morgen</span>
+        <span style="font-size:10px;color:var(--text3)">+30 Tage</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--gold)">${futureDue[0]||0}</div><div style="font-size:10px;color:var(--text3)">Morgen</div></div>
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--gold)">${futureDue.slice(0,7).reduce((a,b)=>a+b,0)}</div><div style="font-size:10px;color:var(--text3)">7 Tage</div></div>
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--gold)">${futureDue.reduce((a,b)=>a+b,0)}</div><div style="font-size:10px;color:var(--text3)">30 Tage</div></div>
+      </div>
+    </div>
+
+    <!-- Themen Übersicht -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:12px">THEMEN</div>
+      ${projects.map(p=>{
+        const g=p.vocab.filter(v=>v.status==='gelernt').length;
+        const t=p.vocab.length;
+        const pct=t?Math.round(g/t*100):0;
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:var(--text)">${p.name}</span>
+            <span style="font-size:12px;color:var(--gold);font-weight:700">${g}/${t} · ${pct}%</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:4px;height:6px">
+            <div style="width:${pct}%;background:linear-gradient(90deg,var(--gold),var(--gold2));height:6px;border-radius:4px"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
   </div>`;
 }
 // BOOT
