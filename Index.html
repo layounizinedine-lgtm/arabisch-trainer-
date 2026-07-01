@@ -741,70 +741,72 @@ function getQUICK(){return[
 function renderHome(app){
   const vocab=getVocab();
   const due=vocab.filter(isDue).length;
-  const gelernt=vocab.filter(v=>v.status==='gelernt').length;
-  const total=vocab.length;
-  const xpGoal=100;
-  const xpPct=Math.min(((streak.todayXP||0)/xpGoal)*100,100);
   const motto=getTodayMotto();
-  const words=ui('vocab')||'Wörter';
-  const days=lang==='de'?'TAGE':lang==='en'?'DAYS':lang==='ru'?'ДНИ':'دن';
+  const xpToday=streak.todayXP||0;
+  const xpPct=Math.min((xpToday/100)*100,100);
 
   app.innerHTML=`<div style="padding:20px 16px 100px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-top:6px">
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-top:6px">
       <div>
-        <div style="font-size:13px;color:var(--text3);font-weight:500">مرحباً بك</div>
-        <div style="font-size:26px;font-weight:800;color:var(--text);line-height:1.2">${ui('welcome')}</div>
-        <div style="font-size:13px;color:var(--text3);margin-top:4px">${getP().name} · ${total} ${words}</div>
+        <div style="font-size:13px;color:var(--text3)">مرحباً بك</div>
+        <div style="font-size:24px;font-weight:800;color:var(--text)">مركز اللغة</div>
       </div>
-      <div style="text-align:center;background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:14px;padding:10px 14px;cursor:pointer" onclick="goTab('profil')">
-        <div style="font-size:22px">🔥</div>
-        <div style="font-size:18px;font-weight:900;color:var(--gold);line-height:1">${streak.days}</div>
-        <div style="font-size:9px;color:#78716c;letter-spacing:1px">${days}</div>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
-      <div class="card" style="padding:14px;text-align:center">
-        <div style="font-size:22px;font-weight:900;color:#ef4444">${due}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${ui('due')}</div>
-      </div>
-      <div class="card" style="padding:14px;text-align:center">
-        <div style="font-size:22px;font-weight:900;color:#a3e635">${gelernt}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${ui('learned')}</div>
-      </div>
-      <div class="card" style="padding:14px;text-align:center">
-        <div style="font-size:22px;font-weight:900;color:var(--gold)">${streak.totalXP||0}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${ui('xpTotal')}</div>
+      <div onclick="goTab('profil')" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:14px;padding:10px 14px;cursor:pointer">
+        <div style="font-size:20px">🔥</div>
+        <div>
+          <div style="font-size:20px;font-weight:900;color:var(--gold);line-height:1">${streak.days}</div>
+          <div style="font-size:9px;color:#78716c;letter-spacing:1px">${lang==='de'?'TAGE':'DAYS'}</div>
+        </div>
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:700;color:var(--text)">${ui('dailyGoal')}</div>
-        <div style="font-size:12px;color:var(--text3)">${streak.todayXP||0} / ${xpGoal} XP</div>
-      </div>
-      <div style="background:var(--bg3);border-radius:6px;height:8px">
-        <div style="width:${xpPct}%;background:linear-gradient(90deg,var(--gold),#a3e635);height:8px;border-radius:6px;transition:width 0.6s ease"></div>
-      </div>
+    <!-- Hauptaktion -->
+    <div style="background:linear-gradient(135deg,#1a1200,#2a1f00);border:2px solid var(--gold);border-radius:22px;padding:24px;margin-bottom:14px">
+      <div style="font-size:12px;color:#92400e;font-weight:700;letter-spacing:1px;margin-bottom:6px">HEUTE ZU LERNEN</div>
+      <div style="font-size:48px;font-weight:900;color:${due>0?'#ef4444':'#a3e635'};line-height:1;margin-bottom:4px">${due}</div>
+      <div style="font-size:14px;color:var(--text3);margin-bottom:20px">${due===0?'Alles erledigt für heute!':due===1?'Karte fällig':'Karten fällig'}</div>
+      <button onclick="tab='lernen';subView='karten';render()" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;padding:16px;color:#080c14;font-weight:900;font-size:17px;cursor:pointer">${due>0?'Jetzt lernen →':'Neue Karten lernen →'}</button>
       <div style="margin-top:12px">
-        <button class="gold-btn" onclick="goTab('lernen')" style="font-size:14px;padding:12px 0">${ui('continueBtn')}</button>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px">
+          <span>Tagesziel</span><span>${xpToday} / 100 XP</span>
+        </div>
+        <div style="background:var(--bg3);border-radius:6px;height:6px">
+          <div style="width:${xpPct}%;background:linear-gradient(90deg,var(--gold),#a3e635);height:6px;border-radius:6px"></div>
+        </div>
       </div>
     </div>
 
-    <div style="background:linear-gradient(135deg,#0f1f3d,#1a2a5e);border:1px solid #2d4a8a;border-radius:18px;padding:20px;margin-bottom:16px">
-      <div style="font-size:10px;color:#60a5fa;letter-spacing:2px;font-weight:700;margin-bottom:12px">${ui('quoteTitle')}</div>
-      <div class="ar" style="font-size:28px;color:#f8fafc;font-weight:700;line-height:1.8;margin-bottom:10px">${motto.ar}</div>
-      <div style="font-size:14px;color:#93c5fd;font-weight:600;margin-bottom:6px">${motto.tr?motto.tr[lang]||motto.tr.de:motto.de}</div>
-      <div style="font-size:12px;color:#64748b">${motto.hint?((typeof motto.hint==='object')?motto.hint[lang]||motto.hint.de:motto.hint):''}</div>
+    <!-- Themen -->
+    <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:10px">THEMEN</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+      ${projects.map((p,i)=>{
+        const g=p.vocab.filter(v=>v.status==='gelernt').length;
+        const t=p.vocab.length;
+        const pct=t?Math.round(g/t*100):0;
+        const isActive=i===curProject;
+        return `<div onclick="curProject=${i};saveProjects();tab='lernen';subView='vokabeln';render()" style="background:${isActive?'linear-gradient(135deg,#1a1200,#2a1f00)':'var(--bg2)'};border:1.5px solid ${isActive?'var(--gold)':'var(--border)'};border-radius:16px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:${isActive?'var(--gold)':'var(--text)'}">${p.name}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${t} Vokabeln · ${g} gelernt</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px;font-weight:800;color:${isActive?'var(--gold)':'var(--text2)'}">${pct}%</div>
+            <div style="width:60px;background:var(--bg3);border-radius:4px;height:4px;margin-top:4px">
+              <div style="width:${pct}%;background:${isActive?'var(--gold)':'#60a5fa'};height:4px;border-radius:4px"></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
     </div>
 
-    <div style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">${ui('quickAccess')}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-      ${getQUICK().map((q,i)=>`<div class="quick-card" onclick="(${q.action.toString()})()">
-        <div style="font-size:26px">${q.icon}</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text)">${q.title}</div>
-        <div style="font-size:11px;color:var(--text3);line-height:1.4">${q.desc}</div>
-      </div>`).join('')}
+    <!-- Spruch -->
+    <div style="background:linear-gradient(135deg,#0f1f3d,#1a2a5e);border:1px solid #2d4a8a;border-radius:18px;padding:18px">
+      <div style="font-size:10px;color:#60a5fa;letter-spacing:2px;font-weight:700;margin-bottom:10px">${ui('quoteTitle')}</div>
+      <div class="ar" style="font-size:24px;color:#f8fafc;font-weight:700;line-height:1.8;margin-bottom:8px">${motto.ar}</div>
+      <div style="font-size:13px;color:#93c5fd;font-weight:600;margin-bottom:4px">${motto.de}</div>
+      ${motto.hint?`<div style="font-size:11px;color:#64748b">${motto.hint}</div>`:''}
     </div>
 
   </div>`;
@@ -819,6 +821,7 @@ function renderLernen(app){
   if(subView==='spiele') { renderSpiele(app); return; }
   if(subView==='korrektor') { renderKorrektor(app); return; }
   if(subView==='karten') { renderKarten(app); return; }
+  if(subView==='diktat') { renderDiktat(app); return; }
   // Default: Lern-Übersicht
   const vocab=getVocab();
   const due=vocab.filter(isDue).length;
@@ -1251,6 +1254,13 @@ function renderSpiele(app){
         </div>
         <div style="color:${g.color};font-size:20px;flex-shrink:0;margin-left:8px">›</div>
       </div>`).join('')}
+      <div onclick="subView='diktat';window._diktatState=null;render()" style="background:linear-gradient(135deg,#1a1200,#2a1f00);border:2px solid var(--gold);border-radius:16px;padding:16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="font-size:24px">🎙️</div>
+          <div><div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:2px">Diktat</div><div style="font-size:11px;color:var(--text3)">Sätze hören und auf Arabisch schreiben</div></div>
+        </div>
+        <div style="color:var(--gold);font-size:20px;flex-shrink:0;margin-left:8px">›</div>
+      </div>
     </div>`; return;
   }
   if(gDone){
@@ -1570,6 +1580,189 @@ function toggleTheme(){
   theme=theme==='dark'?'light':'dark'; localStorage.setItem('theme',theme);
   document.documentElement.setAttribute('data-theme',theme); render();
 }
+function renderDiktat(app){
+  const state=window._diktatState;
+
+  // ── PHASE 0: Loading screen while KI generates sentences ──
+  if(!state){
+    app.innerHTML=`<div style="padding:20px 16px 100px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
+        <button onclick="subView='spiele';render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+        <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Diktat</div></div>
+      </div>
+      <div style="text-align:center;padding:60px 20px;color:var(--text3)">
+        <div style="font-size:32px;margin-bottom:16px">🎙️</div>
+        <div style="font-size:14px;margin-bottom:8px">KI erstellt Diktat-Sätze...</div>
+        <div style="font-size:12px;color:var(--text3)">Nur Wörter aus deinen gelernten Themen</div>
+      </div>
+    </div>`;
+    // Build vocab list - limit to max 60 words to avoid token overflow
+    const allVocab=getVocabUpToHere();
+    const shuffled=[...allVocab].sort(()=>Math.random()-0.5).slice(0,60);
+    const vocabList=shuffled.map(v=>v.arabic+' ('+getTr(v)+')').join('، ');
+    const prompt=`Du bist ein Arabisch-Lehrer. Erstelle genau 4 kurze Diktat-Sätze auf Arabisch mit vollständigen Harakat (Tashkil auf JEDEM Wort).
+
+WICHTIGE REGELN:
+- Benutze NUR Wörter aus dieser Liste: ${vocabList}
+- Erlaubt zusätzlich: أَنَا هُوَ هِيَ نَحْنُ وَ فِي مِنْ إِلَى عَلَى مَعَ هَذَا هَذِهِ لَا
+- Jeder Satz: 4-6 Wörter, einfache Grammatik
+- Antworte NUR mit JSON-Array ohne weitere Texte:
+["جملة١", "جملة٢", "جملة٣", "جملة٤"]`;
+
+    callAI(prompt, 500).then(raw=>{
+      try{
+        const cleaned=raw.replace(/```json|```/g,'').trim();
+        const start=cleaned.indexOf('['), end=cleaned.lastIndexOf(']');
+        const sentences=JSON.parse(cleaned.slice(start,end+1));
+        if(!Array.isArray(sentences)||sentences.length<3) throw new Error('invalid');
+        window._diktatState={
+          sentences: sentences.slice(0,4),
+          answers: new Array(sentences.length).fill(''),
+          currentIdx: 0,
+          playsLeft: 2, // 2 plays total per sentence (first auto + 1 replay)
+          phase: 'dictate', // dictate | results
+          results: null,
+          loading: false
+        };
+        renderDiktat(document.getElementById('app'));
+        // Auto-play first sentence
+        setTimeout(()=>diktatSpeak(window._diktatState.sentences[0], window._diktatState),600);
+      }catch(e){
+        app.innerHTML=`<div style="padding:40px 16px;text-align:center">
+          <div style="color:#ef4444;margin-bottom:16px">Fehler beim Erstellen des Diktats.</div>
+          <button onclick="window._diktatState=null;subView='diktat';render()" style="background:var(--gold);border:none;border-radius:12px;padding:12px 24px;color:#080c14;font-weight:700;cursor:pointer">Nochmal versuchen</button>
+        </div>`;
+      }
+    }).catch(()=>{
+      app.innerHTML=`<div style="padding:40px 16px;text-align:center">
+        <div style="color:#ef4444;margin-bottom:16px">Verbindungsfehler.</div>
+        <button onclick="window._diktatState=null;subView='diktat';render()" style="background:var(--gold);border:none;border-radius:12px;padding:12px 24px;color:#080c14;font-weight:700;cursor:pointer">Nochmal versuchen</button>
+      </div>`;
+    });
+    return;
+  }
+
+  // ── PHASE: Results ──
+  if(state.phase==='results'){
+    const res=state.results||[];
+    app.innerHTML=`<div style="padding:20px 16px 100px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
+        <button onclick="subView='spiele';render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+        <div><div style="font-size:11px;color:var(--text3)">DIKTAT</div><div style="font-size:20px;font-weight:800;color:var(--text)">Ergebnis</div></div>
+      </div>
+      ${state.loading?`<div style="text-align:center;padding:40px;color:var(--text3)">KI korrigiert...</div>`:`
+      ${res.map((r,i)=>`
+        <div style="background:var(--bg2);border:1.5px solid ${r.korrekt?'#a3e635':'#ef4444'};border-radius:16px;padding:16px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:11px;font-weight:700;color:var(--text3)">SATZ ${i+1}</span>
+            <span style="font-size:12px;font-weight:700;color:${r.korrekt?'#a3e635':'#ef4444'}">${r.korrekt?'✓ Richtig':'✗ Fehler'}</span>
+          </div>
+          <div class="ar" style="font-size:16px;color:var(--text3);margin-bottom:4px;line-height:1.8">Deine Antwort: ${state.answers[i]||'—'}</div>
+          <div class="ar" style="font-size:16px;color:var(--gold);margin-bottom:8px;line-height:1.8">Richtig: ${state.sentences[i]}</div>
+          ${r.feedback?`<div style="font-size:12px;color:#94a3b8;line-height:1.6;padding-top:8px;border-top:1px solid var(--border)">${r.feedback}</div>`:''}
+        </div>`).join('')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+        <button onclick="window._diktatState=null;subView='diktat';render()" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;padding:14px;color:#080c14;font-weight:800;font-size:14px;cursor:pointer">Neues Diktat</button>
+        <button onclick="subView='spiele';render()" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;color:var(--text);font-weight:700;font-size:14px;cursor:pointer">Zurück</button>
+      </div>`}
+    </div>`;
+    return;
+  }
+
+  // ── PHASE: Dictate (Satz für Satz) ──
+  const idx=state.currentIdx;
+  const total=state.sentences.length;
+  const pct=Math.round((idx/total)*100);
+
+  app.innerHTML=`<div style="padding:20px 16px 100px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
+      <button onclick="subView='spiele';render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text3)">DIKTAT · SATZ ${idx+1} VON ${total}</div>
+        <div style="background:var(--bg3);border-radius:4px;height:4px;margin-top:6px">
+          <div style="width:${pct}%;background:var(--gold);height:4px;border-radius:4px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio area -->
+    <div style="background:linear-gradient(135deg,#1a1200,#2a1f00);border:2px solid var(--gold);border-radius:22px;padding:32px 24px;margin-bottom:20px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🎙️</div>
+      <div style="font-size:16px;font-weight:700;color:var(--gold);margin-bottom:8px">Höre den Satz</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:24px">Noch ${state.playsLeft} ${state.playsLeft===1?'Wiederholung':'Wiederholungen'} möglich</div>
+      <button id="replayBtn" onclick="window._diktatReplay()" style="background:${state.playsLeft>0?'var(--gold)':'var(--bg3)'};border:none;border-radius:14px;padding:14px 32px;color:${state.playsLeft>0?'#080c14':'var(--text3)'};font-weight:800;font-size:15px;cursor:${state.playsLeft>0?'pointer':'default'}">${state.playsLeft>0?'Nochmal hören':'Kein Replay mehr'}</button>
+    </div>
+
+    <!-- Write answer -->
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">Schreibe den Satz auf Arabisch:</div>
+    <textarea id="diktatInput" dir="rtl" placeholder="اكتب هنا بالعربية..." style="width:100%;min-height:80px;font-size:20px;font-family:inherit;background:var(--bg2);border:1.5px solid var(--border);border-radius:14px;padding:14px;color:var(--text);line-height:1.8;resize:none;box-sizing:border-box">${state.answers[idx]||''}</textarea>
+
+    <!-- Next / Submit -->
+    <div style="margin-top:16px">
+      ${idx<total-1
+        ? `<button onclick="window._diktatNext()" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;padding:16px;color:#080c14;font-weight:900;font-size:16px;cursor:pointer">Weiter →</button>`
+        : `<button onclick="window._diktatSubmit()" style="width:100%;background:linear-gradient(135deg,#a3e635,#65a30d);border:none;border-radius:14px;padding:16px;color:#080c14;font-weight:900;font-size:16px;cursor:pointer">Abschicken & Korrigieren ✓</button>`
+      }
+    </div>
+  </div>`;
+
+  // Bind functions
+  window._diktatReplay=function(){
+    if(state.playsLeft<=0) return;
+    state.playsLeft--;
+    diktatSpeak(state.sentences[idx], state);
+    renderDiktat(document.getElementById('app'));
+    // Keep focus on textarea
+    setTimeout(()=>{const t=document.getElementById('diktatInput');if(t)t.focus();},100);
+  };
+
+  window._diktatNext=function(){
+    const input=document.getElementById('diktatInput');
+    state.answers[idx]=input?input.value.trim():'';
+    state.currentIdx++;
+    state.playsLeft=2;
+    renderDiktat(document.getElementById('app'));
+    // Auto-play next sentence
+    setTimeout(()=>diktatSpeak(state.sentences[state.currentIdx], state),600);
+  };
+
+  window._diktatSubmit=async function(){
+    const input=document.getElementById('diktatInput');
+    state.answers[idx]=input?input.value.trim():'';
+    state.phase='results';
+    state.loading=true;
+    renderDiktat(document.getElementById('app'));
+
+    // Build correction prompt
+    const pairs=state.sentences.map((s,i)=>`Satz ${i+1}:\nOriginal: ${s}\nAntwort des Lernenden: ${state.answers[i]||'(keine Antwort)'}`).join('\n\n');
+    const prompt=`Du bist ein Arabisch-Lehrer. Korrigiere dieses Diktat. Für jeden Satz: War die Antwort korrekt (ignoriere fehlende Harakat, akzeptiere sinngemäß gleiche Schreibweise)? Gib kurzes Feedback auf Deutsch.
+
+${pairs}
+
+Antworte NUR mit JSON-Array:
+[{"korrekt":true,"feedback":""},{"korrekt":false,"feedback":"Kurze Erklärung des Fehlers"}]`;
+
+    try{
+      const raw=await callAI(prompt,600);
+      const cleaned=raw.replace(/```json|```/g,'').trim();
+      const start=cleaned.indexOf('['), end=cleaned.lastIndexOf(']');
+      state.results=JSON.parse(cleaned.slice(start,end+1));
+    }catch{
+      state.results=state.sentences.map((_,i)=>({korrekt:false,feedback:'Korrektur konnte nicht geladen werden.'}));
+    }
+    state.loading=false;
+    renderDiktat(document.getElementById('app'));
+  };
+}
+
+function diktatSpeak(text, state){
+  if(!text) return;
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang='ar-SA'; utt.rate=0.8; utt.pitch=1;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utt);
+}
+
 function renderStats(app){
   const vocab=projects.flatMap(p=>p.vocab||[]);
   const gelernt=vocab.filter(v=>v.status==='gelernt').length;
@@ -1614,6 +1807,21 @@ function renderStats(app){
   const lPct=Math.round(lernend/totalW*100);
   const nPct=100-gPct-lPct;
 
+  // Build themen HTML outside template literal to avoid nested backtick issues
+  const themenHTML=projects.map(p=>{
+    const g=p.vocab.filter(v=>v.status==='gelernt').length;
+    const t=p.vocab.length;
+    const pct=t?Math.round(g/t*100):0;
+    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--text)">'+p.name+'</span><span style="font-size:12px;color:var(--gold);font-weight:700">'+g+'/'+t+' · '+pct+'%</span></div><div style="background:var(--bg3);border-radius:4px;height:6px"><div style="width:'+pct+'%;background:linear-gradient(90deg,var(--gold),var(--gold2));height:6px;border-radius:4px"></div></div></div>';
+  }).join('');
+  const heatHTML=Array.from({length:12},(_,week)=>{
+    const cells=heatDays.slice(week*7,week*7+7).map(d=>'<div title="'+d.date+': '+d.count+' Reviews" style="width:100%;height:12px;border-radius:2px;background:'+heatColor(d.count)+'"></div>').join('');
+    return '<div style="display:flex;flex-direction:column;gap:3px;flex:1">'+cells+'</div>';
+  }).join('');
+  const legendHTML=['var(--bg3)','#854d0e','#a16207','#ca8a04','#c9a227'].map(c=>'<div style="width:10px;height:10px;border-radius:2px;background:'+c+'"></div>').join('');
+  const futureDueHTML=futureDue.map((v,i)=>'<div style="flex:1;background:'+(i===0?'var(--gold)':'#1e3a5f')+';border-radius:2px 2px 0 0;height:'+Math.round(v/maxFuture*100)+'%;min-height:'+(v>0?2:0)+'px" title="Tag '+(i+1)+': '+v+'"></div>').join('');
+  const cardCountHTML=[['Gelernt',gelernt,'#a3e635'],['Lernend',lernend,'#60a5fa'],['Neu',neu,'var(--text3)'],['Gesamt',total,'var(--gold)']].map(([l,v,c])=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:2px;background:'+c+'"></div><span style="font-size:13px;color:var(--text2)">'+l+'</span></div><div style="display:flex;gap:12px;align-items:center"><span style="font-size:13px;font-weight:700;color:'+c+'">'+v+'</span><span style="font-size:11px;color:var(--text3);width:36px;text-align:right">'+(total?Math.round(v/total*100):0)+'%</span></div></div>').join('');
+
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
       <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
@@ -1639,14 +1847,7 @@ function renderStats(app){
         <div style="width:${lPct}%;background:#60a5fa"></div>
         <div style="width:${nPct}%;background:var(--bg3)"></div>
       </div>
-      ${[['Gelernt',gelernt,'#a3e635'],['Lernend',lernend,'#60a5fa'],['Neu',neu,'var(--text3)'],['Gesamt',total,'var(--gold)']].map(([l,v,c])=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:2px;background:${c}"></div><span style="font-size:13px;color:var(--text2)">${l}</span></div>
-          <div style="display:flex;gap:12px;align-items:center">
-            <span style="font-size:13px;font-weight:700;color:${c}">${v}</span>
-            <span style="font-size:11px;color:var(--text3);width:36px;text-align:right">${total?Math.round(v/total*100):0}%</span>
-          </div>
-        </div>`).join('')}
+      ${cardCountHTML}
     </div>
 
     <!-- Heatmap -->
@@ -1657,14 +1858,12 @@ function renderStats(app){
           ${['Mo','Mi','Fr'].map(d=>`<div style="font-size:9px;color:var(--text3);height:12px;line-height:12px">${d}</div>`).join('')}
         </div>
         <div style="display:flex;gap:3px;flex:1">
-          ${Array.from({length:12},(_,week)=>`<div style="display:flex;flex-direction:column;gap:3px;flex:1">
-            ${heatDays.slice(week*7,week*7+7).map((d,di)=>`<div title="${d.date}: ${d.count} Reviews" style="width:100%;height:12px;border-radius:2px;background:${heatColor(d.count)}"></div>`).join('')}
-          </div>`).join('')}
+          ${heatHTML}
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:5px;margin-top:10px;justify-content:flex-end">
         <span style="font-size:10px;color:var(--text3)">Wenig</span>
-        ${['var(--bg3)','#854d0e','#a16207','#ca8a04','#c9a227'].map(c=>`<div style="width:10px;height:10px;border-radius:2px;background:${c}"></div>`).join('')}
+        ${legendHTML}
         <span style="font-size:10px;color:var(--text3)">Viel</span>
       </div>
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
@@ -1678,7 +1877,7 @@ function renderStats(app){
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:12px">FÄLLIG IN DEN NÄCHSTEN 30 TAGEN</div>
       <div style="display:flex;align-items:flex-end;gap:2px;height:80px">
-        ${futureDue.map((v,i)=>`<div style="flex:1;background:${i===0?'var(--gold)':'#1e3a5f'};border-radius:2px 2px 0 0;height:${Math.round(v/maxFuture*100)}%;min-height:${v>0?2:0}px" title="Tag ${i+1}: ${v}"></div>`).join('')}
+        ${futureDueHTML}
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:6px">
         <span style="font-size:10px;color:var(--text3)">Morgen</span>
@@ -1694,20 +1893,7 @@ function renderStats(app){
     <!-- Themen Übersicht -->
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px">
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:12px">THEMEN</div>
-      ${projects.map(p=>{
-        const g=p.vocab.filter(v=>v.status==='gelernt').length;
-        const t=p.vocab.length;
-        const pct=t?Math.round(g/t*100):0;
-        return `<div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:12px;color:var(--text)">${p.name}</span>
-            <span style="font-size:12px;color:var(--gold);font-weight:700">${g}/${t} · ${pct}%</span>
-          </div>
-          <div style="background:var(--bg3);border-radius:4px;height:6px">
-            <div style="width:${pct}%;background:linear-gradient(90deg,var(--gold),var(--gold2));height:6px;border-radius:4px"></div>
-          </div>
-        </div>`;
-      }).join('')}
+      ${themenHTML}
     </div>
   </div>`;
 }
