@@ -602,7 +602,7 @@ function render(){
     ${t.id==='lernen'&&due>0?`<div style="position:absolute;top:0;right:22%;background:#ef4444;color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center">${due}</div>`:''}
   </button>`).join('');
 
-  if(!localStorage.getItem('tutorialDone')){nav.style.display='none';renderTutorial(app);return;}
+  if(!localStorage.getItem('tutorialDone')){renderTutorial(app);return;}
   nav.style.display='flex';
   if(tab==='home') renderHome(app);
   else if(tab==='lernen') renderLernen(app);
@@ -610,63 +610,114 @@ function render(){
   else renderProfil(app);
 }
 
-function completeTutorial(){localStorage.setItem('tutorialDone','1');render();}
+function completeTutorial(){localStorage.setItem('tutorialDone','1');const nav=document.getElementById('navbar');if(nav)nav.style.display='flex';render();}
 window.completeTutorial=completeTutorial;
-window.resetTutorial=function(){localStorage.removeItem('tutorialDone');render();};
+window.resetTutorial=function(){localStorage.removeItem('tutorialDone');localStorage.removeItem('tutorialStep');render();};
+
+const TUTORIAL_STEPS=[
+  {
+    target:'home',
+    title:'Willkommen bei مركز اللغة',
+    desc:'Deine App zum echten Arabisch lernen — mit Harakat, KI-Gesprächen und vollständigen Konjugationen.',
+    arrow:'none',
+    pos:'center'
+  },
+  {
+    target:'lernen',
+    title:'Vokabeln & Verben',
+    desc:'Hier lernst du neue Wörter, übst Konjugationen und spielst Lernspiele.',
+    arrow:'bottom',
+    pos:'bottom-left'
+  },
+  {
+    target:'sprechen',
+    title:'KI-Gesprächspartner',
+    desc:'Führe echte Arabisch-Gespräche. Der Bot erklärt neue Wörter automatisch.',
+    arrow:'bottom',
+    pos:'bottom-center'
+  },
+  {
+    target:'profil',
+    title:'Dein Profil & Einstellungen',
+    desc:'Streak, Statistiken, Thema wechseln und Sprache einstellen.',
+    arrow:'bottom',
+    pos:'bottom-right'
+  },
+  {
+    target:'home',
+    title:'Los geht\'s!',
+    desc:'Du bist bereit. Starte mit Thema 1 und lerne täglich ein paar Minuten — das reicht.',
+    arrow:'none',
+    pos:'center'
+  }
+];
 
 function renderTutorial(app){
-  const pages=[
-    {
-      ar:'مَرْحَبًا',
-      title:'Willkommen bei مركز اللغة',
-      desc:'Deine App zum Arabisch lernen. Lass uns kurz zeigen, was dich erwartet.',
-      icon:'🌙'
-    },
-    {
-      ar:'الْمُفْرَدَاتُ',
-      title:'Vokabeln & Verben',
-      desc:'Im LERNEN-Tab findest du alle Vokabeln und Verben mit Harakat, Konjugationstabellen, Beispielsätzen und Kontext-Infos.',
-      icon:'📚'
-    },
-    {
-      ar:'الْأَلْعَابُ',
-      title:'Spielerisch üben',
-      desc:'Multiple Choice, Lückentexte, Aussprache-Spiele und mehr — das Spaced-Repetition-System merkt sich was du noch nicht kannst.',
-      icon:'🎮'
-    },
-    {
-      ar:'الصَّدِيقُ',
-      title:'KI-Gesprächspartner',
-      desc:'Im SPRECHEN-Tab kannst du echte Arabisch-Gespräche führen. Der Bot kennt deine gelernten Wörter und erklärt neue automatisch.',
-      icon:'💬'
-    },
-    {
-      ar:'جَاهِزٌ؟',
-      title:'Bereit zum Lernen!',
-      desc:'Du brauchst einen Anthropic API-Key für die KI-Funktionen. Den bekommst du kostenlos auf platform.anthropic.com.',
-      icon:'✨'
-    }
-  ];
-  const page=parseInt(localStorage.getItem('tutorialPage')||'0');
-  const p=pages[page];
-  const isLast=page===pages.length-1;
-  app.innerHTML=`
-  <div style="min-height:100vh;display:flex;flex-direction:column;background:var(--bg);padding:40px 24px 40px">
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;max-width:400px;margin:0 auto;width:100%">
-      <div style="font-size:64px;margin-bottom:16px">${p.icon}</div>
-      <div class="ar" style="font-size:42px;color:var(--gold);font-weight:700;margin-bottom:20px;line-height:1.4">${p.ar}</div>
-      <div style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:12px">${p.title}</div>
-      <div style="font-size:15px;color:var(--text2);line-height:1.7">${p.desc}</div>
-    </div>
-    <div style="display:flex;justify-content:center;gap:8px;margin:24px 0">
-      ${pages.map((_,i)=>`<div style="width:${i===page?'24px':'8px'};height:8px;border-radius:4px;background:${i===page?'var(--gold)':'var(--bg3)'};transition:all 0.3s"></div>`).join('')}
-    </div>
-    <div style="display:flex;gap:12px;max-width:400px;margin:0 auto;width:100%">
-      ${page>0?`<button onclick="localStorage.setItem('tutorialPage','${page-1}');renderTutorial(document.getElementById('app'))" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;color:var(--text);font-weight:700;font-size:15px;cursor:pointer">Zurück</button>`:'<div style="flex:1"></div>'}
-      <button onclick="${isLast?'localStorage.removeItem(\'tutorialPage\');completeTutorial()':'localStorage.setItem(\'tutorialPage\',\''+(page+1)+'\');renderTutorial(document.getElementById(\'app\'))'}" style="flex:2;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:16px;padding:16px;color:#080c14;font-weight:900;font-size:16px;cursor:pointer">${isLast?'Los geht\'s →':'Weiter →'}</button>
-    </div>
-    ${page===0?`<div style="text-align:center;margin-top:16px"><button onclick="localStorage.removeItem('tutorialPage');completeTutorial()" style="background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;text-decoration:underline">Überspringen</button></div>`:''}
-  </div>`;
+  // Remove existing overlay if present
+  const existing=document.getElementById('tutorialOverlay');
+  if(existing)existing.remove();
+
+  const step=parseInt(localStorage.getItem('tutorialStep')||'0');
+  const s=TUTORIAL_STEPS[step];
+  const isLast=step===TUTORIAL_STEPS.length-1;
+  const isFirst=step===0;
+
+  // Show the actual app underneath
+  const nav=document.getElementById('navbar');
+  if(nav)nav.style.display='flex';
+  if(tab==='home') renderHome(app);
+  else if(tab==='lernen') renderLernen(app);
+  else if(tab==='sprechen') renderSprechen(app);
+  else renderProfil(app);
+
+  // Build overlay on top
+  const ov=document.createElement('div');
+  ov.id='tutorialOverlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:500;pointer-events:none';
+
+  // Dark overlay with spotlight hole for bottom nav targets
+  const TABS_ORDER=['home','lernen','sprechen','profil'];
+  const tabIdx=TABS_ORDER.indexOf(s.target);
+  let spotlightHTML='';
+  let tooltipStyle='';
+  let arrowHTML='';
+
+  if(s.pos==='center'){
+    // Full dark overlay, centered card
+    spotlightHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75)"></div>`;
+    tooltipStyle=`position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:85%;max-width:340px`;
+  } else {
+    // Spotlight on nav tab
+    const tabW=100/4;
+    const tabLeft=tabIdx*tabW;
+    spotlightHTML=`
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.75)"></div>
+      <div style="position:absolute;bottom:0;left:${tabLeft}%;width:${tabW}%;height:68px;background:transparent;box-shadow:0 0 0 9999px rgba(0,0,0,0.75);border-radius:12px 12px 0 0;pointer-events:none"></div>`;
+    const tipLeft=tabIdx===0?'5%':tabIdx===3?'auto':'50%';
+    const tipRight=tabIdx===3?'5%':'auto';
+    const tipTransform=tabIdx===1||tabIdx===2?'translateX(-50%)':'none';
+    tooltipStyle=`position:absolute;bottom:82px;left:${tipLeft};right:${tipRight};transform:${tipTransform};width:260px`;
+    arrowHTML=`<div style="position:absolute;bottom:-10px;left:${tabIdx===0?'24px':tabIdx===3?'auto':'50%'};right:${tabIdx===3?'24px':'auto'};transform:${tabIdx===1||tabIdx===2?'translateX(-50%)':'none'};width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:10px solid var(--bg2)"></div>`;
+  }
+
+  ov.innerHTML=`
+    ${spotlightHTML}
+    <div style="${tooltipStyle};background:var(--bg2);border:1px solid var(--gold);border-radius:20px;padding:22px;pointer-events:all;position:absolute">
+      <div style="font-size:18px;font-weight:800;color:var(--gold);margin-bottom:8px">${s.title}</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:18px">${s.desc}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:6px">
+          ${TUTORIAL_STEPS.map((_,i)=>`<div style="width:${i===step?'20px':'6px'};height:6px;border-radius:3px;background:${i===step?'var(--gold)':'var(--bg3)'}"></div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px">
+          ${!isFirst?`<button onclick="localStorage.setItem('tutorialStep','${step-1}');renderTutorial(document.getElementById('app'))" style="background:var(--bg3);border:none;border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;pointer-events:all">Zurück</button>`:''}
+          <button onclick="${isLast?'localStorage.removeItem(\'tutorialStep\');completeTutorial()':'localStorage.setItem(\'tutorialStep\',\''+(step+1)+'\');renderTutorial(document.getElementById(\'app\'))'}" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;padding:8px 18px;color:#080c14;font-weight:800;font-size:13px;cursor:pointer;pointer-events:all">${isLast?'Fertig ✓':'Weiter →'}</button>
+        </div>
+      </div>
+      ${arrowHTML}
+    </div>`;
+
+  document.body.appendChild(ov);
 }
 
 // ═══════════════════════════════════════════════════════
