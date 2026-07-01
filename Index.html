@@ -497,6 +497,11 @@ const MOTTOS = [
   {ar:'الْعَالِمُ بِلَا عَمَلٍ كَالشَّجَرَةِ بِلَا ثَمَرٍ',de:'Ein Gelehrter ohne Praxis ist wie ein Baum ohne Früchte.',hint:'Übe das Gelernte täglich – sprich Arabisch!'},
   {ar:'كُنْ طَالِبَ عِلْمٍ حَتَّى تَمُوتَ',de:'Sei ein Sucher des Wissens bis zu deinem Tod.',hint:'Arabisch ist eine lebenslange Reise.'},
   {ar:'مَنْ أَخْلَصَ النِّيَّةَ أَعَانَهُ اللهُ',de:'Wen die Absicht aufrichtig ist, dem hilft Gott.',hint:'Lerne Arabisch mit aufrichtiger Niyyah.'},
+  {ar:'أَصْحَابُ الْعَرَبِيَّةِ جِنُّ الْإِنْسِ، يُبْصِرُونَ مَا لَا يُبْصِرُ غَيْرُهُمْ',de:'Ash-Shāfiʿī sagte: Die Kenner der arabischen Sprache sind wie die Jinn der Menschen — sie sehen, was andere nicht sehen.',hint:'Manāqib ash-Shāfiʿī 2/53'},
+  {ar:'يَا بَنِيَّ قَيِّدُوا الْعِلْمَ بِالْكِتَابِ',de:'Anas ibn Mālik sagte zu seinen Söhnen: Bindet das Wissen durch das Schreiben fest.',hint:'Jāmiʿ Bayān al-ʿIlm 1/316'},
+  {ar:'اشْتَرِ الْقِرْطَاسَ وَاكْتُبِ الْحَدِيثَ، فَإِنَّ الْعِلْمَ يَبْقَى وَالدَّنَانِيرُ تَذْهَبُ',de:'Sulaymān ibn al-Mubārak schrieb seinem Sohn: Kaufe Papier und schreibe den Hadith auf — denn das Wissen bleibt bestehen, während die Dīnār vergehen.',hint:'Jāmiʿ Bayān al-ʿIlm 1/249'},
+  {ar:'اللَّهُمَّ بَارِكْ لِأُمَّتِي فِي بُكُورِهَا — فِي طَلَبِ الْعِلْمِ',de:'Ibn ʿUmar wurde nach der Duʿā des Propheten ﷺ gefragt: „O Allah, segne meiner Umma ihren frühen Beginn" — er antwortete: Das ist das Streben nach Wissen.',hint:'al-Jāmiʿ li-Akhlāq ar-Rāwī 1/150'},
+  {ar:'كُلُّ عِلْمٍ نَفِيسٍ جَلِيلٍ مِفْتَاحُهُ بَذْلُ الْمَجْهُودِ',de:'Jedes kostbare und gewaltige Wissen — sein Schlüssel ist das Aufbringen größter Anstrengung.',hint:''},
 ];
 // Pick random motto on each app start
 const _mottoIdx=Math.floor(Math.random()*1000);
@@ -609,115 +614,102 @@ function render(){
   else if(tab==='sprechen') renderSprechen(app);
   else renderProfil(app);
 }
+function goTab(t){
+  if(!localStorage.getItem('tutorialDone')) return;
+  tab=t; subView=null; render();
+}
 
-function completeTutorial(){localStorage.setItem('tutorialDone','1');const nav=document.getElementById('navbar');if(nav)nav.style.display='flex';render();}
+function completeTutorial(){
+  localStorage.setItem('tutorialDone','1');
+  localStorage.removeItem('tutorialStep');
+  const ov=document.getElementById('tutorialOverlay');
+  if(ov)ov.remove();
+  const nav=document.getElementById('navbar');
+  if(nav)nav.style.display='flex';
+  tab='home'; subView=null;
+  render();
+}
 window.completeTutorial=completeTutorial;
-window.resetTutorial=function(){localStorage.removeItem('tutorialDone');localStorage.removeItem('tutorialStep');render();};
+window.resetTutorial=function(){localStorage.removeItem('tutorialDone');localStorage.removeItem('tutorialStep');const ov=document.getElementById('tutorialOverlay');if(ov)ov.remove();render();};
 
 const TUTORIAL_STEPS=[
-  {
-    target:'home',
-    title:'Willkommen bei مركز اللغة',
-    desc:'Deine App zum echten Arabisch lernen — mit Harakat, KI-Gesprächen und vollständigen Konjugationen.',
-    arrow:'none',
-    pos:'center'
-  },
-  {
-    target:'lernen',
-    title:'Vokabeln & Verben',
-    desc:'Hier lernst du neue Wörter, übst Konjugationen und spielst Lernspiele.',
-    arrow:'bottom',
-    pos:'bottom-left'
-  },
-  {
-    target:'sprechen',
-    title:'KI-Gesprächspartner',
-    desc:'Führe echte Arabisch-Gespräche. Der Bot erklärt neue Wörter automatisch.',
-    arrow:'bottom',
-    pos:'bottom-center'
-  },
-  {
-    target:'profil',
-    title:'Dein Profil & Einstellungen',
-    desc:'Streak, Statistiken, Thema wechseln und Sprache einstellen.',
-    arrow:'bottom',
-    pos:'bottom-right'
-  },
-  {
-    target:'home',
-    title:'Los geht\'s!',
-    desc:'Du bist bereit. Starte mit Thema 1 und lerne täglich ein paar Minuten — das reicht.',
-    arrow:'none',
-    pos:'center'
-  }
+  {target:null, title:'Willkommen bei مركز اللغة', desc:'Deine App zum echten Arabisch lernen — strukturiert, mit KI und vollständigen Konjugationen. Lass uns kurz zeigen, wo was ist.', ar:'أَهْلًا وَسَهْلًا'},
+  {target:1, title:'Vokabeln & Spiele', desc:'Hier lernst du neue Wörter, übst Konjugationstabellen und spielst Lernspiele mit Spaced Repetition.', ar:'الْمُفْرَدَاتُ'},
+  {target:2, title:'KI-Gesprächspartner', desc:'Führe echte Arabisch-Gespräche mit KI. Der Bot kennt deine gelernten Wörter und erklärt neue automatisch.', ar:'الصَّدِيقُ'},
+  {target:3, title:'Profil & Einstellungen', desc:'Dein Streak, Statistiken, Thema wechseln und Sprache einstellen — alles hier.', ar:'الْمَلَفُّ'},
+  {target:null, title:'Bereit!', desc:'Starte mit Thema 1 und lerne täglich 5 Minuten. Das Spaced-Repetition-System merkt sich was du brauchst.', ar:'جَاهِزٌ!'}
 ];
 
 function renderTutorial(app){
-  // Remove existing overlay if present
   const existing=document.getElementById('tutorialOverlay');
   if(existing)existing.remove();
-
   const step=parseInt(localStorage.getItem('tutorialStep')||'0');
   const s=TUTORIAL_STEPS[step];
   const isLast=step===TUTORIAL_STEPS.length-1;
   const isFirst=step===0;
-
-  // Show the actual app underneath
   const nav=document.getElementById('navbar');
   if(nav)nav.style.display='flex';
   if(tab==='home') renderHome(app);
   else if(tab==='lernen') renderLernen(app);
   else if(tab==='sprechen') renderSprechen(app);
   else renderProfil(app);
-
-  // Build overlay on top
   const ov=document.createElement('div');
   ov.id='tutorialOverlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;pointer-events:none';
-
-  // Dark overlay with spotlight hole for bottom nav targets
-  const TABS_ORDER=['home','lernen','sprechen','profil'];
-  const tabIdx=TABS_ORDER.indexOf(s.target);
-  let spotlightHTML='';
-  let tooltipStyle='';
-  let arrowHTML='';
-
-  if(s.pos==='center'){
-    // Full dark overlay, centered card
-    spotlightHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75)"></div>`;
-    tooltipStyle=`position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:85%;max-width:340px`;
+  ov.style.cssText='position:fixed;inset:0;z-index:999;pointer-events:none';
+  const dots=TUTORIAL_STEPS.map((_,i)=>`<div style="width:${i===step?'20px':'6px'};height:6px;border-radius:3px;background:${i===step?'#c9a227':'#334155'}"></div>`).join('');
+  if(s.target===null){
+    ov.innerHTML=`
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5)"></div>
+      <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88%;max-width:360px;background:#0f172a;border:2px solid #c9a227;border-radius:22px;padding:28px 24px;pointer-events:all">
+        <div class="ar" style="font-size:36px;color:#c9a227;font-weight:700;text-align:center;margin-bottom:12px">${s.ar}</div>
+        <div style="font-size:20px;font-weight:800;color:#f1f5f9;margin-bottom:10px">${s.title}</div>
+        <div style="font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:20px">${s.desc}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="display:flex;gap:5px">${dots}</div>
+          <div style="display:flex;gap:8px">
+            ${!isFirst?'<button id="tutPrev" style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:8px 16px;color:#94a3b8;font-size:13px;cursor:pointer;pointer-events:all">Zurück</button>':''}
+            <button id="tutNext" style="background:linear-gradient(135deg,#c9a227,#a3811f);border:none;border-radius:10px;padding:8px 20px;color:#080c14;font-weight:800;font-size:14px;cursor:pointer;pointer-events:all">${isLast?'Fertig ✓':'Weiter →'}</button>
+          </div>
+        </div>
+      </div>`;
   } else {
-    // Spotlight on nav tab
-    const tabW=100/4;
-    const tabLeft=tabIdx*tabW;
-    spotlightHTML=`
-      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.75)"></div>
-      <div style="position:absolute;bottom:0;left:${tabLeft}%;width:${tabW}%;height:68px;background:transparent;box-shadow:0 0 0 9999px rgba(0,0,0,0.75);border-radius:12px 12px 0 0;pointer-events:none"></div>`;
-    const tipLeft=tabIdx===0?'5%':tabIdx===3?'auto':'50%';
-    const tipRight=tabIdx===3?'5%':'auto';
-    const tipTransform=tabIdx===1||tabIdx===2?'translateX(-50%)':'none';
-    tooltipStyle=`position:absolute;bottom:82px;left:${tipLeft};right:${tipRight};transform:${tipTransform};width:260px`;
-    arrowHTML=`<div style="position:absolute;bottom:-10px;left:${tabIdx===0?'24px':tabIdx===3?'auto':'50%'};right:${tabIdx===3?'24px':'auto'};transform:${tabIdx===1||tabIdx===2?'translateX(-50%)':'none'};width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:10px solid var(--bg2)"></div>`;
+    const tabW=25;
+    const tabLeft=s.target*tabW;
+    const navH=68;
+    const tipLeft=s.target===1?'5%':s.target===3?'auto':'50%';
+    const tipRight=s.target===3?'5%':'auto';
+    const tipTransform=s.target===2?'translateX(-50%)':'none';
+    const arrowLeft=s.target===1?'20px':s.target===3?'auto':'50%';
+    const arrowRight=s.target===3?'20px':'auto';
+    const arrowTransform=s.target===2?'translateX(-50%)':'none';
+    ov.innerHTML=`
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);pointer-events:all"></div>
+      <div style="position:absolute;bottom:0;left:${tabLeft}%;width:${tabW}%;height:${navH}px;outline:3px solid #c9a227;outline-offset:-2px;border-radius:12px 12px 0 0;background:rgba(201,162,39,0.15);pointer-events:none"></div>
+      <div style="position:absolute;bottom:${navH+20}px;left:${tipLeft};right:${tipRight};transform:${tipTransform};width:250px;background:#0f172a;border:2px solid #c9a227;border-radius:16px;padding:18px 16px 16px;pointer-events:all">
+        <div class="ar" style="font-size:20px;color:#c9a227;font-weight:700;margin-bottom:6px">${s.ar}</div>
+        <div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:6px">${s.title}</div>
+        <div style="font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:14px">${s.desc}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="display:flex;gap:4px">${dots}</div>
+          <div style="display:flex;gap:6px">
+            ${!isFirst?'<button id="tutPrev" style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:8px 14px;color:#94a3b8;font-size:12px;cursor:pointer;pointer-events:all">Zurück</button>':''}
+            <button id="tutNext" style="background:linear-gradient(135deg,#c9a227,#a3811f);border:none;border-radius:10px;padding:8px 16px;color:#080c14;font-weight:800;font-size:13px;cursor:pointer;pointer-events:all">${isLast?'Fertig ✓':'Weiter →'}</button>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:-11px;left:${arrowLeft};right:${arrowRight};transform:${arrowTransform};width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:11px solid #c9a227"></div>
+      </div>`;
   }
-
-  ov.innerHTML=`
-    ${spotlightHTML}
-    <div style="${tooltipStyle};background:var(--bg2);border:1px solid var(--gold);border-radius:20px;padding:22px;pointer-events:all;position:absolute">
-      <div style="font-size:18px;font-weight:800;color:var(--gold);margin-bottom:8px">${s.title}</div>
-      <div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:18px">${s.desc}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="display:flex;gap:6px">
-          ${TUTORIAL_STEPS.map((_,i)=>`<div style="width:${i===step?'20px':'6px'};height:6px;border-radius:3px;background:${i===step?'var(--gold)':'var(--bg3)'}"></div>`).join('')}
-        </div>
-        <div style="display:flex;gap:8px">
-          ${!isFirst?`<button onclick="localStorage.setItem('tutorialStep','${step-1}');renderTutorial(document.getElementById('app'))" style="background:var(--bg3);border:none;border-radius:10px;padding:8px 14px;color:var(--text2);font-size:13px;cursor:pointer;pointer-events:all">Zurück</button>`:''}
-          <button onclick="${isLast?'localStorage.removeItem(\'tutorialStep\');completeTutorial()':'localStorage.setItem(\'tutorialStep\',\''+(step+1)+'\');renderTutorial(document.getElementById(\'app\'))'}" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;padding:8px 18px;color:#080c14;font-weight:800;font-size:13px;cursor:pointer;pointer-events:all">${isLast?'Fertig ✓':'Weiter →'}</button>
-        </div>
-      </div>
-      ${arrowHTML}
-    </div>`;
-
   document.body.appendChild(ov);
+  const nextBtn=document.getElementById('tutNext');
+  const prevBtn=document.getElementById('tutPrev');
+  if(nextBtn) nextBtn.addEventListener('click',()=>{
+    if(isLast){completeTutorial();}
+    else{localStorage.setItem('tutorialStep',String(step+1));renderTutorial(document.getElementById('app'));}
+  });
+  if(prevBtn) prevBtn.addEventListener('click',()=>{
+    localStorage.setItem('tutorialStep',String(step-1));
+    renderTutorial(document.getElementById('app'));
+  });
 }
 
 // ═══════════════════════════════════════════════════════
