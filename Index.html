@@ -12,10 +12,20 @@
 :root{--bg:#080c14;--bg2:#0d1526;--bg3:#1a2540;--border:#1e2d4a;--text:#f8fafc;--text2:#94a3b8;--text3:#64748b;--gold:#F59E0B;--gold2:#d97706}
 [data-theme="light"]{--bg:#ffffff;--bg2:#f9f9f9;--bg3:#f0f0f0;--border:#e0e0e0;--text:#111111;--text2:#222222;--text3:#444444;--gold:#c9a227;--gold2:#a3811f}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;width:100%;margin:0 auto;min-height:100vh;transition:background 0.3s,color 0.3s}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;width:100%;margin:0 auto;min-height:100vh;transition:background 0.3s,color 0.3s;font-size:14px}
 .ar{font-family:'Noto Naskh Arabic',serif;direction:rtl;text-align:right}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:10px}
-.gold-btn{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;color:#080c14;font-weight:800;font-size:15px;padding:14px 0;width:100%;cursor:pointer;font-family:'Inter',sans-serif}
+/* ── DESIGN SYSTEM ──
+   Karten: 16px Padding, 16px Radius
+   Buttons: .gold-btn (Primary) & .sec-btn (Secondary), 14px Radius
+   Typografie: 14px Standard, 12px Sekundär, 11px Labels */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px}
+.gold-btn{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;color:#080c14;font-weight:800;font-size:14px;padding:14px 0;width:100%;cursor:pointer;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
+.gold-btn:active{opacity:0.85}
+.sec-btn{background:var(--bg3);border:1px solid var(--border);border-radius:14px;color:var(--text);font-weight:700;font-size:14px;padding:14px 0;width:100%;cursor:pointer;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
+.sec-btn:active{opacity:0.85}
+.label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.txt{font-size:14px;color:var(--text)}
+.txt2{font-size:12px;color:var(--text3)}
 input,textarea,select{background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:12px 14px;font-size:14px;width:100%;box-sizing:border-box;font-family:'Inter',sans-serif;outline:none}
 #app{padding-bottom:90px;min-height:100vh}
 #topbar{height:3px;background:linear-gradient(90deg,#F59E0B,#d97706,#92400e,#F59E0B);position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;width:100%;z-index:99}
@@ -471,6 +481,49 @@ let projects = JSON.parse(localStorage.getItem('projects_v2') || 'null') || [{id
   ]}];
 let curProject = 0;
 
+// ═══════════════════════════════════════════════════════
+// ICON SYSTEM — Lucide-style SVG outline icons (statt Emojis)
+// ═══════════════════════════════════════════════════════
+const ICON_PATHS = {
+  home: '<path d="M3 9.5 12 3l9 6.5"/><path d="M5 9v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9"/>',
+  book: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v16H6.5A2.5 2.5 0 0 0 4 20.5V4.5Z"/><path d="M4 20.5V19a2 2 0 0 1 2-2h14"/>',
+  mic: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+  search: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  trophy: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5h3a2 2 0 0 1-2 4h-1"/><path d="M7 5H4a2 2 0 0 0 2 4h1"/>',
+  bookOpen: '<path d="M2 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2Z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7Z"/>',
+  pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  volume: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/>',
+  sparkles: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2 2M16.4 16.4l2 2M5.6 18.4l2-2M16.4 7.6l2-2"/><circle cx="12" cy="12" r="3"/>',
+  message: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/>',
+  chart: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  ear: '<path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 0 0 4"/>',
+  link: '<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/>',
+  zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  hash: '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
+  tag: '<path d="M12.6 2H4a2 2 0 0 0-2 2v8.6a2 2 0 0 0 .6 1.4l9 9a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8l-9-9A2 2 0 0 0 12.6 2Z"/><circle cx="7.5" cy="7.5" r="1"/>',
+  puzzle: '<path d="M19.4 14.5a2 2 0 0 1 0-3.4 2 2 0 0 0-1-3.7h-2.2a2 2 0 0 1-1.8-1.1 2 2 0 0 0-3.5 0 2 2 0 0 1-1.8 1.1H6.9a2 2 0 0 0-1 3.7 2 2 0 0 1 0 3.4 2 2 0 0 0 1 3.7h2.2a2 2 0 0 1 1.8 1.1 2 2 0 0 0 3.5 0 2 2 0 0 1 1.8-1.1h2.2a2 2 0 0 0 1-3.7Z"/>',
+  key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+  rotate: '<path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/>',
+  arrowLeft: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  chevronRight: '<polyline points="9 18 15 12 9 6"/>',
+  play: '<polygon points="5 3 19 12 5 21 5 3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>',
+};
+function icon(name, size, color, strokeWidth){
+  size=size||20; color=color||'currentColor'; strokeWidth=strokeWidth||2;
+  const p=ICON_PATHS[name]||'';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">${p}</svg>`;
+}
+
+
 const MOTTOS = [
   {ar:'مَنْ جَدَّ وَجَدَ',de:'Wer sich anstrengt, der findet.',hint:'Das klassische Sprichwort der Tulab – Anstrengung führt zum Ziel.'},
   {ar:'الْعِلْمُ نُورٌ وَالْجَهْلُ ظَلَامٌ',de:'Wissen ist Licht, Unwissenheit ist Dunkelheit.',hint:'Jede Vokabel, die du lernst, ist ein Lichtstrahl.'},
@@ -606,13 +659,13 @@ function render(){
   const due=getVocab().filter(isDue).length;
 
   const TABS=[
-    {id:'home',icon:'🏠',label:ui('home')||'Home'},
-    {id:'lernen',icon:'📚',label:ui('learn')||'Lernen'},
-    {id:'sprechen',icon:'🎤',label:ui('speak')||'Sprechen'},
-    {id:'profil',icon:'👤',label:ui('profile')||'Profil'},
+    {id:'home',icon:'home',label:ui('home')||'Home'},
+    {id:'lernen',icon:'book',label:ui('learn')||'Lernen'},
+    {id:'sprechen',icon:'mic',label:ui('speak')||'Sprechen'},
+    {id:'profil',icon:'user',label:ui('profile')||'Profil'},
   ];
   nav.innerHTML=TABS.map(t=>`<button onclick="goTab('${t.id}')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0;position:relative">
-    <span style="font-size:20px">${t.icon}</span>
+    <span>${icon(t.icon,22,tab===t.id?'var(--gold)':'var(--text3)',2)}</span>
     <span style="font-size:9px;font-weight:700;color:${tab===t.id?'var(--gold)':'var(--text3)'}">${t.label.toUpperCase()}</span>
     ${tab===t.id?'<div style="width:20px;height:2px;background:var(--gold);border-radius:2px"></div>':''}
     ${t.id==='lernen'&&due>0?`<div style="position:absolute;top:0;right:22%;background:#ef4444;color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center">${due}</div>`:''}
@@ -754,7 +807,7 @@ function renderHome(app){
         <div style="font-size:24px;font-weight:800;color:var(--text)">مركز اللغة</div>
       </div>
       <div onclick="goTab('profil')" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:14px;padding:10px 14px;cursor:pointer">
-        <div style="font-size:20px">🔥</div>
+        <div>${icon('flame',20,'var(--gold)',2)}</div>
         <div>
           <div style="font-size:20px;font-weight:900;color:var(--gold);line-height:1">${streak.days}</div>
           <div style="font-size:9px;color:#78716c;letter-spacing:1px">${lang==='de'?'TAGE':'DAYS'}</div>
@@ -889,12 +942,12 @@ function vocabCard(v){
       <div style="flex:1">
         <div style="font-size:11px;color:var(--text3)">${v.wordType||''}</div>
         <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:2px">${tr}</div>
-        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">مفرد</div><div class="ar" style="font-size:28px;color:var(--gold);font-weight:700">${v.harakat||v.arabic}</div></div>
+        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;align-items:flex-end">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">مفرد</div><div style="display:flex;align-items:center;gap:8px"><div class="ar" style="font-size:28px;color:var(--gold);font-weight:700">${v.harakat||v.arabic}</div><button onclick="speakAr('${(v.harakat||v.arabic).replace(/'/g,"\\'")}');event.stopPropagation()" style="background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',15,'var(--gold)',2)}</button></div></div>
           ${v.plural&&v.plural!=='-'?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">جمع</div><div class="ar" style="font-size:28px;color:#a78bfa;font-weight:700">${v.pluralHarakat||v.plural}</div></div>`:''}
           ${isAdj&&v.opposite&&v.opposite!==''?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">ضد</div><div class="ar" style="font-size:28px;color:#60a5fa;font-weight:700">${v.oppHarakat||v.opposite}</div></div>`:''}
         </div>
-        ${v.exampleArabic?`<div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:10px"><div class="ar" style="font-size:16px;color:var(--text);line-height:1.9">${v.exampleArabic}</div><div style="font-size:11px;color:var(--text3);margin-top:3px">${exTr}</div></div>`:''}
+        ${v.exampleArabic?`<div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:10px"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div class="ar" style="font-size:16px;color:var(--text);line-height:1.9;flex:1">${v.exampleArabic}</div><button onclick="speakAr('${(v.exampleArabic||'').replace(/'/g,"\\'")}');event.stopPropagation()" style="background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',13,'var(--text2)',2)}</button></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${exTr}</div></div>`:''}
         <button onclick="showVocabMehr(${v.id})" style="margin-top:10px;background:none;border:1px solid #3b2d6e;border-radius:10px;padding:8px 14px;color:#a78bfa;font-size:12px;font-weight:700;cursor:pointer;width:100%">Kontext & Mehr anzeigen</button>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
@@ -1002,7 +1055,7 @@ function renderKarten(app){
 function showCard(app){
   const fb=['fällig','alle','neu','lernend','gelernt'].map(f=>`<button onclick="lFilter='${f}';renderKarten(document.getElementById('app'))" style="background:${lFilter===f?'var(--gold)':'var(--bg3)'};border:1px solid ${lFilter===f?'var(--gold)':'var(--border)'};color:${lFilter===f?'#080c14':'var(--text2)'};border-radius:10px;padding:6px 10px;font-weight:700;font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`).join('');
   if(lD){
-    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Session abgeschlossen! 🏆</div></div>
+    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;color:var(--text)">Session abgeschlossen ${icon('trophy',20,'var(--gold)',2)}</div></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">${[['Perfekt','p','#a3e635'],['Gut','g','#F59E0B'],['Schlecht','s','#ef4444']].map(([l,k,c])=>`<div class="card" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:${c}">${lS[k]}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`).join('')}</div>
     ${lS.s>0?`<div style="background:#1a1000;border:1px solid #92400e;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--gold)">${ui('badCards')||'Schlechte Karten kommen öfter wieder.'}</div>`:''}
     <button class="gold-btn" onclick="renderKarten(document.getElementById('app'))">${ui('playAgain')}</button></div>`; return;
@@ -1107,7 +1160,7 @@ function showVerbDetail(id){
     m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:150;display:flex;flex-direction:column;overflow:hidden';
     m.innerHTML=`
     <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-      <div><div style="font-size:11px;color:var(--text3)">VERB</div><div class="ar" style="font-size:26px;color:var(--gold);font-weight:700">${verb.arabic}</div><div style="font-size:13px;color:var(--text2)">${getTr(verb)}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">VERB</div><div style="display:flex;align-items:center;gap:10px"><div class="ar" style="font-size:26px;color:var(--gold);font-weight:700">${verb.arabic}</div><button onclick="speakAr('${verb.arabic.replace(/'/g,"\\'")}')" style="background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center">${icon('volume',16,'var(--gold)',2)}</button></div><div style="font-size:13px;color:var(--text2)">${getTr(verb)}</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         <div onclick="window._vt='mehr';showVerbDetail(window._verbDetailId)" style="background:${vt==='mehr'?'#a78bfa':'var(--bg3)'};border:none;color:${vt==='mehr'?'white':'var(--text2)'};border-radius:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-weight:700">···</div>
         <div onclick="document.getElementById('verbModal').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:16px">✕</div>
@@ -1235,28 +1288,28 @@ function renderSpiele(app){
         <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">${ui('games')}</div></div>
       </div>
       ${[
-        {mode:'mc',title:'Multiple Choice',desc:'Arabisch sehen → Bedeutung wählen',color:'#60a5fa',icon:'🎯'},
-        {mode:'ar2tr',title:`Arabisch → ${LANGS[lang].name}`,desc:'Arabisches Wort übersetzen',color:'#a3e635',icon:'📝'},
-        {mode:'tr2ar',title:`${LANGS[lang].name} → Arabisch`,desc:'Wort auf Arabisch eintippen',color:'#F59E0B',icon:'✍️'},
-        {mode:'hoeren',title:'Hören & Erkennen',desc:'Wort wird vorgelesen – welches ist es?',color:'#f472b6',icon:'👂'},
-        {mode:'luecke',title:'Lückentext',desc:'Fehlende Wörter im Satz ergänzen',color:'#34d399',icon:'📖'},
-        {mode:'paare',title:'Paare finden',desc:'Arabisch und Übersetzung zusammenführen',color:'#fb923c',icon:'🔗'},
-        {mode:'saetze',title:'Sätze übersetzen',desc:'KI generiert Sätze mit Vokabeln',color:'#c084fc',icon:'💬'},
-        {mode:'schnell',title:'Schnellantwort',desc:'So schnell wie möglich antworten',color:'#f87171',icon:'⚡'},
-        {mode:'plural',title:'Plural-Trainer',desc:'Mehrzahl des arabischen Worts nennen',color:'#38bdf8',icon:'🔢'},
-        {mode:'wortart',title:'Wortart erkennen',desc:'Nomen, Verb oder Adjektiv?',color:'#a3e635',icon:'🏷️'},
-        {mode:'kontext',title:'Im Kontext',desc:'KI zeigt Satz – welches Wort passt?',color:'#fbbf24',icon:'🧩'},
-        {mode:'harakat',title:'Harakat einsetzen',desc:'Setze die Vokalisierung richtig ein',color:'#f472b6',icon:'✨'},
+        {mode:'mc',title:'Multiple Choice',desc:'Arabisch sehen → Bedeutung wählen',color:'#60a5fa',icon:'target'},
+        {mode:'ar2tr',title:`Arabisch → ${LANGS[lang].name}`,desc:'Arabisches Wort übersetzen',color:'#a3e635',icon:'pencil'},
+        {mode:'tr2ar',title:`${LANGS[lang].name} → Arabisch`,desc:'Wort auf Arabisch eintippen',color:'#F59E0B',icon:'pencil'},
+        {mode:'hoeren',title:'Hören & Erkennen',desc:'Wort wird vorgelesen – welches ist es?',color:'#f472b6',icon:'ear'},
+        {mode:'luecke',title:'Lückentext',desc:'Fehlende Wörter im Satz ergänzen',color:'#34d399',icon:'bookOpen'},
+        {mode:'paare',title:'Paare finden',desc:'Arabisch und Übersetzung zusammenführen',color:'#fb923c',icon:'link'},
+        {mode:'saetze',title:'Sätze übersetzen',desc:'KI generiert Sätze mit Vokabeln',color:'#c084fc',icon:'message'},
+        {mode:'schnell',title:'Schnellantwort',desc:'So schnell wie möglich antworten',color:'#f87171',icon:'zap'},
+        {mode:'plural',title:'Plural-Trainer',desc:'Mehrzahl des arabischen Worts nennen',color:'#38bdf8',icon:'hash'},
+        {mode:'wortart',title:'Wortart erkennen',desc:'Nomen, Verb oder Adjektiv?',color:'#a3e635',icon:'tag'},
+        {mode:'kontext',title:'Im Kontext',desc:'KI zeigt Satz – welches Wort passt?',color:'#fbbf24',icon:'puzzle'},
+        {mode:'harakat',title:'Harakat einsetzen',desc:'Setze die Vokalisierung richtig ein',color:'#f472b6',icon:'sparkles'},
       ].map(g=>`<div onclick="startGame('${g.mode}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
         <div style="display:flex;gap:12px;align-items:center">
-          <div style="font-size:24px">${g.icon}</div>
+          <div>${icon(g.icon,22,g.color,2)}</div>
           <div><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${g.title}</div><div style="font-size:11px;color:var(--text3)">${g.desc}</div></div>
         </div>
         <div style="color:${g.color};font-size:20px;flex-shrink:0;margin-left:8px">›</div>
       </div>`).join('')}
       <div onclick="subView='diktat';window._diktatState=null;render()" style="background:linear-gradient(135deg,#1a1200,#2a1f00);border:2px solid var(--gold);border-radius:16px;padding:16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
         <div style="display:flex;gap:12px;align-items:center">
-          <div style="font-size:24px">🎙️</div>
+          <div>${icon('mic',24,'var(--gold)',2)}</div>
           <div><div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:2px">Diktat</div><div style="font-size:11px;color:var(--text3)">Sätze hören und auf Arabisch schreiben</div></div>
         </div>
         <div style="color:var(--gold);font-size:20px;flex-shrink:0;margin-left:8px">›</div>
@@ -1287,13 +1340,14 @@ function renderSpiele(app){
       ${gMode==='wortart'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Was für eine Wortart ist das?</div><div class="ar" style="font-size:48px;color:var(--gold);font-weight:700;margin-bottom:8px">${q.harakat||q.arabic}</div><div style="font-size:14px;color:var(--text2)">${getTr(q)}</div>`:''}
       ${gMode==='schnell'?`<div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:14px">SCHNELL!</div><div class="ar" style="font-size:48px;color:var(--gold);font-weight:700">${q.harakat||q.arabic}</div>`:''}
       ${gMode==='saetze'||gMode==='luecke'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">${gMode==='luecke'?'Ergänze das fehlende Wort:':q.dir==='ar2tr'?'Übersetze:':'Übersetze ins Arabische:'}</div><div class="${(gMode==='saetze'&&q.dir==='ar2tr')||gMode==='luecke'?'ar':''}" style="font-size:${(gMode==='saetze'&&q.dir==='ar2tr')||gMode==='luecke'?'22':'18'}px;color:var(--text);font-weight:600;line-height:1.6">${q.aufgabe}</div>${q.hinweis?`<div style="font-size:11px;color:var(--text3);margin-top:8px">Tipp: ${q.hinweis}</div>`:''}`:''}
-      ${gMode==='kontext'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">Welches Wort passt?</div><div class="ar" style="font-size:20px;color:var(--text);font-weight:600;line-height:1.8;margin-bottom:10px">${q.aufgabe}</div>`:''}      ${gResult?`<div style="margin-top:14px;padding:10px 16px;background:${gResult==='correct'?'#14532d':'#7f1d1d'};border-radius:10px;width:100%"><div style="font-size:13px;font-weight:700;color:${gResult==='correct'?'#4ade80':'#fca5a5'}">${gResult==='correct'?'Richtig!':'Falsch'}</div>${gResult==='wrong'?`<div style="font-size:12px;color:#94a3b8;margin-top:4px">Richtig: ${gMode==='tr2ar'?`<span class="ar">${q.harakat||q.arabic}</span>`:gMode==='saetze'?q.loesung:qTr}</div>`:''}</div>`:''}
+      ${gMode==='kontext'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">Welches Wort passt?</div><div class="ar" style="font-size:20px;color:var(--text);font-weight:600;line-height:1.8;margin-bottom:10px">${q.aufgabe}</div>`:''}
+      ${gMode==='harakat'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">Setze die Harakat richtig ein</div><div class="ar" style="font-size:26px;color:var(--text);font-weight:600;line-height:1.8;margin-bottom:10px">${q.aufgabe}</div><div style="font-size:12px;color:var(--text3);margin-bottom:10px">${q.hinweis}</div>`:''}      ${gResult?`<div style="margin-top:14px;padding:10px 16px;background:${gResult==='correct'?'#14532d':'#7f1d1d'};border-radius:10px;width:100%"><div style="font-size:13px;font-weight:700;color:${gResult==='correct'?'#4ade80':'#fca5a5'}">${gResult==='correct'?'Richtig!':'Falsch'}</div>${gResult==='wrong'?`<div style="font-size:12px;color:#94a3b8;margin-top:4px">Richtig: ${gMode==='tr2ar'?`<span class="ar">${q.harakat||q.arabic}</span>`:gMode==='saetze'?q.loesung:qTr}</div>`:''}</div>`:''}
     </div>
     ${gMode==='mc'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${gMC.map(opt=>`<div onclick="checkGame(${opt.id})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div style="font-size:13px;color:var(--text);font-weight:600">${getTr(opt)}</div></div>`).join('')}</div>`:''} 
     ${gMode==='hoeren'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${gMC.map(opt=>`<div onclick="checkGame(${opt.id})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div class="ar" style="font-size:18px;color:var(--gold);font-weight:700">${opt.harakat||opt.arabic}</div></div>`).join('')}</div>`:''}
     ${gMode==='wortart'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${['Nomen','Verb','Adjektiv','Partikel'].map(w=>`<div onclick="checkGame('${w}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 8px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div style="font-size:13px;color:var(--text);font-weight:600">${w}</div></div>`).join('')}</div>`:''}
-    ${gMode==='kontext'&&!gResult&&q.optionen?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${q.optionen.map(opt=>`<div onclick="checkGame('${opt}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div class="ar" style="font-size:18px;color:var(--gold);font-weight:700">${opt}</div></div>`).join('')}</div>`:''}
-    ${!['mc','hoeren','wortart','kontext'].includes(gMode)&&!gResult?`<div><input id="gAns" value="${gAns}" onchange="gAns=this.value" onkeydown="if(event.key==='Enter'){var a=this.value;if(a.trim())checkGame(a)}" placeholder="${gMode==='tr2ar'||gMode==='luecke'?'اكتب هنا...':'Antwort eingeben...'}" class="${gMode==='tr2ar'||gMode==='luecke'?'ar':''}" style="font-size:${gMode==='tr2ar'||gMode==='luecke'?'22':'15'}px;margin-bottom:10px;color:${gMode==='tr2ar'||gMode==='luecke'?'var(--gold)':'var(--text)'}" autofocus/><button class="gold-btn" onclick="var a=document.getElementById('gAns').value;if(a.trim())checkGame(a)">Prüfen</button></div>`:''}
+    ${(gMode==='kontext'||gMode==='harakat')&&!gResult&&q.optionen?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${q.optionen.map(opt=>`<div onclick="checkGame('${opt}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div class="ar" style="font-size:18px;color:var(--gold);font-weight:700">${opt}</div></div>`).join('')}</div>`:''}
+    ${!['mc','hoeren','wortart','kontext','harakat'].includes(gMode)&&!gResult?`<div><input id="gAns" value="${gAns}" onchange="gAns=this.value" onkeydown="if(event.key==='Enter'){var a=this.value;if(a.trim())checkGame(a)}" placeholder="${gMode==='tr2ar'||gMode==='luecke'?'اكتب هنا...':'Antwort eingeben...'}" class="${gMode==='tr2ar'||gMode==='luecke'?'ar':''}" style="font-size:${gMode==='tr2ar'||gMode==='luecke'?'22':'15'}px;margin-bottom:10px;color:${gMode==='tr2ar'||gMode==='luecke'?'var(--gold)':'var(--text)'}" autofocus/><button class="gold-btn" onclick="var a=document.getElementById('gAns').value;if(a.trim())checkGame(a)">Prüfen</button></div>`:''}
     ${gResult?`<button class="gold-btn" style="margin-top:12px" onclick="nextGame()">${gI+1>=gQ.length?'Ergebnis sehen':'Weiter →'}</button>`:''}`
 }
 
@@ -1308,6 +1362,15 @@ async function startGame(mode){
     gQ=sh(vocab).slice(0,10);
     if(mode==='mc'||mode==='hoeren'||mode==='paare')buildMC(0);
     if(mode==='hoeren'){ setTimeout(()=>speakAr(gQ[0].harakat||gQ[0].arabic),400); }
+  } else if(mode==='harakat'){
+    // Local game: show word without harakat, pick correct vocalized version from 4 options
+    const withH=vocab.filter(v=>(v.harakat||v.arabic)&&stripH(v.harakat||v.arabic)!==(v.harakat||v.arabic));
+    if(withH.length<4){alert('Zu wenige Vokabeln mit Harakat!');gMode=null;renderSpiele(document.getElementById('app'));return;}
+    gQ=sh(withH).slice(0,10).map(v=>{
+      const correct=v.harakat||v.arabic;
+      const others=sh(withH.filter(x=>x.id!==v.id)).slice(0,3).map(x=>x.harakat||x.arabic);
+      return {aufgabe:stripH(correct),optionen:sh([correct,...others]),loesung:correct,hinweis:getTr(v),dir:'harakat'};
+    });
   } else if(mode==='paare'){
     gQ=sh(vocab).slice(0,6); buildMC(0);
   } else if(['saetze','luecke','kontext'].includes(mode)){
@@ -1359,7 +1422,7 @@ function renderKorrektor(app){
       <textarea id="corrIn" placeholder="أكتب نصك هنا..." class="ar" style="font-size:22px;height:120px;resize:none;line-height:1.8"></textarea>
       <button class="gold-btn" style="margin-top:12px" onclick="correctText()" id="corrBtn">${ui('correctBtn')}</button>
     </div>
-    ${cResult?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:14px;font-weight:700;color:var(--text)">'+ui('result')+'</div><span style="background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700">'+ui('level')+': ${cResult.level}</span></div>
+    ${cResult?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:14px;font-weight:700;color:var(--text)">${ui('result')||'Ergebnis'}</div><span style="background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700">${ui('level')||'Niveau'}: ${cResult.level}</span></div>
     <div class="card"><div style="font-size:11px;color:#4ade80;margin-bottom:8px;font-weight:700">KORRIGIERTER TEXT</div><div class="ar" style="font-size:22px;color:var(--text);line-height:1.9">${cResult.corrected}</div></div>
     ${cResult.corrections&&cResult.corrections.length?`<div class="card"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px">${ui('corrections')}</div>${cResult.corrections.map(c=>`<div style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px"><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="ar" style="background:#3b1a1a;color:#ef4444;border-radius:8px;padding:3px 10px;font-size:16px">${c.original}</span><span style="color:var(--text3)">→</span><span class="ar" style="background:#1a3b1a;color:#4ade80;border-radius:8px;padding:3px 10px;font-size:16px">${c.fixed}</span></div><div style="font-size:12px;color:var(--text2)">${c.explanation}</div></div>`).join('')}</div>`:''}`:''}
   </div>`;
@@ -1591,7 +1654,7 @@ function renderDiktat(app){
         <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Diktat</div></div>
       </div>
       <div style="text-align:center;padding:60px 20px;color:var(--text3)">
-        <div style="font-size:32px;margin-bottom:16px">🎙️</div>
+        <div style="margin-bottom:16px">${icon('mic',32,'var(--gold)',2)}</div>
         <div style="font-size:14px;margin-bottom:8px">KI erstellt Diktat-Sätze...</div>
         <div style="font-size:12px;color:var(--text3)">Nur Wörter aus deinen gelernten Themen</div>
       </div>
@@ -1687,7 +1750,7 @@ WICHTIGE REGELN:
 
     <!-- Audio area -->
     <div style="background:linear-gradient(135deg,#1a1200,#2a1f00);border:2px solid var(--gold);border-radius:22px;padding:32px 24px;margin-bottom:20px;text-align:center">
-      <div style="font-size:48px;margin-bottom:16px">🎙️</div>
+      <div style="margin-bottom:16px">${icon('mic',48,'var(--gold)',1.5)}</div>
       <div style="font-size:16px;font-weight:700;color:var(--gold);margin-bottom:8px">Höre den Satz</div>
       <div style="font-size:13px;color:var(--text3);margin-bottom:24px">Noch ${state.playsLeft} ${state.playsLeft===1?'Wiederholung':'Wiederholungen'} möglich</div>
       <button id="replayBtn" onclick="window._diktatReplay()" style="background:${state.playsLeft>0?'var(--gold)':'var(--bg3)'};border:none;border-radius:14px;padding:14px 32px;color:${state.playsLeft>0?'#080c14':'var(--text3)'};font-weight:800;font-size:15px;cursor:${state.playsLeft>0?'pointer':'default'}">${state.playsLeft>0?'Nochmal hören':'Kein Replay mehr'}</button>
@@ -1903,7 +1966,7 @@ function checkApiKey(){
   if(window._ak){ render(); return; }
   document.getElementById('navbar').innerHTML='';
   document.getElementById('app').innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px">
-    <div style="font-size:60px;margin-bottom:20px">🔑</div>
+    <div style="margin-bottom:20px">${icon('key',52,'var(--gold)',1.5)}</div>
     <div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;text-align:center">API Key eingeben</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:24px;text-align:center;line-height:1.6">Du brauchst einen Anthropic API Key.<br>Hol ihn kostenlos auf console.anthropic.com</div>
     <input id="akIn" type="password" placeholder="sk-ant-..." style="width:100%;margin-bottom:12px;font-size:14px" />
