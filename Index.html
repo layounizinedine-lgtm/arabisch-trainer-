@@ -624,7 +624,24 @@ function buildPool(vocab,f){
 // ═══════════════════════════════════════════════════════
 // AI
 // ═══════════════════════════════════════════════════════
+// URL deiner Vercel Backend-Funktion. Nach dem Deployment hier eintragen, z.B.:
+// 'https://dein-projekt.vercel.app/api/chat'
+const BACKEND_URL = window._backendUrl || localStorage.getItem('backendUrl') || '';
+
 async function callAI(prompt,maxTokens=1500){
+  // Wenn ein Backend konfiguriert ist, läuft alles sicher darüber (kein API-Key im Browser)
+  if(BACKEND_URL){
+    const r=await fetch(BACKEND_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt,maxTokens})
+    });
+    const d=await r.json();
+    if(d.error) throw new Error(d.error);
+    if(d.text) return d.text;
+    throw new Error('Unerwartete Backend-Antwort: '+JSON.stringify(d).slice(0,200));
+  }
+  // Fallback: direkter Aufruf mit im Browser gespeichertem Key (unsicher, nur für Entwicklung/Tests)
   const r=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':window._ak||'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
@@ -1325,6 +1342,85 @@ function renderSpiele(app){
     </div>`; return;
   }
   if(!gQ.length){app.innerHTML=`<div style="padding:60px 16px;text-align:center"><div style="color:var(--text3)">Aufgaben werden erstellt...</div></div>`;return;}
+
+  // ── PAARE (matching pairs) — eigenes Rendering ──
+  if(gMode==='paare'){
+    const ps=window._paareState;
+    if(!ps){app.innerHTML=`<div style="padding:60px 16px;text-align:center"><div style="color:var(--text3)">Lädt...</div></div>`;return;}
+    const leftItems=ps.leftOrder.map(id=>ps.pairs.find(p=>p.id===id));
+    const rightItems=ps.rightOrder.map(id=>ps.pairs.find(p=>p.id===id));
+    app.innerHTML=`<div style="padding:20px 16px 100px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;margin-bottom:14px">
+        <button onclick="gMode=null;window._paareState=null;renderSpiele(document.getElementById('app'))" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px">← Zurück</button>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">${ps.matchedCount} / ${ps.pairs.length} Paare</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:4px;height:4px;margin-bottom:18px"><div style="width:${(ps.matchedCount/ps.pairs.length)*100}%;background:var(--gold);height:4px;border-radius:4px;transition:width 0.4s"></div></div>
+      <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:16px">Tippe auf ein arabisches Wort, dann auf die passende Übersetzung</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${leftItems.map(p=>{
+            if(!p) return '';
+            const isMatched=p.matched;
+            const isSelected=ps.selectedLeft===p.id;
+            const isWrong=ps.wrongFlash==='left-'+p.id;
+            return `<div onclick="${isMatched?'':`window._paareClickLeft(${p.id})`}" style="background:${isMatched?'#14532d':isWrong?'#7f1d1d':isSelected?'var(--gold)':'var(--bg2)'};border:1.5px solid ${isMatched?'#22c55e':isWrong?'#ef4444':isSelected?'var(--gold)':'var(--border)'};border-radius:14px;padding:16px 10px;cursor:${isMatched?'default':'pointer'};text-align:center;opacity:${isMatched?'0.5':'1'};-webkit-tap-highlight-color:transparent;transition:all 0.2s">
+              <div class="ar" style="font-size:20px;color:${isSelected&&!isMatched?'#080c14':isMatched?'#4ade80':'var(--gold)'};font-weight:700">${p.ar}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${rightItems.map(p=>{
+            if(!p) return '';
+            const isMatched=p.matched;
+            const isSelected=ps.selectedRight===p.id;
+            const isWrong=ps.wrongFlash==='right-'+p.id;
+            return `<div onclick="${isMatched?'':`window._paareClickRight(${p.id})`}" style="background:${isMatched?'#14532d':isWrong?'#7f1d1d':isSelected?'var(--gold)':'var(--bg2)'};border:1.5px solid ${isMatched?'#22c55e':isWrong?'#ef4444':isSelected?'var(--gold)':'var(--border)'};border-radius:14px;padding:16px 10px;cursor:${isMatched?'default':'pointer'};text-align:center;opacity:${isMatched?'0.5':'1'};-webkit-tap-highlight-color:transparent;transition:all 0.2s">
+              <div style="font-size:13px;color:${isSelected&&!isMatched?'#080c14':isMatched?'#4ade80':'var(--text)'};font-weight:600">${p.tr}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+      ${ps.matchedCount>=ps.pairs.length?`<div style="margin-top:20px;text-align:center"><div style="font-size:18px;font-weight:800;color:#a3e635;margin-bottom:12px">Alle Paare gefunden! 🎉</div><button class="gold-btn" onclick="startGame('paare')">Nochmal</button></div>`:''}
+    </div>`;
+
+    window._paareClickLeft=function(id){
+      const ps=window._paareState;
+      if(ps.pairs.find(p=>p.id===id).matched) return;
+      ps.selectedLeft=id;
+      if(ps.selectedRight!==null) window._paareTryMatch();
+      else renderSpiele(document.getElementById('app'));
+    };
+    window._paareClickRight=function(id){
+      const ps=window._paareState;
+      if(ps.pairs.find(p=>p.id===id).matched) return;
+      ps.selectedRight=id;
+      if(ps.selectedLeft!==null) window._paareTryMatch();
+      else renderSpiele(document.getElementById('app'));
+    };
+    window._paareTryMatch=function(){
+      const ps=window._paareState;
+      if(ps.selectedLeft===ps.selectedRight){
+        // Correct match
+        const p=ps.pairs.find(x=>x.id===ps.selectedLeft);
+        p.matched=true;
+        ps.matchedCount++;
+        ps.selectedLeft=null; ps.selectedRight=null;
+        addXP(10);
+        renderSpiele(document.getElementById('app'));
+      } else {
+        // Wrong match - flash red then reset
+        ps.wrongFlash='left-'+ps.selectedLeft;
+        const wrongRight='right-'+ps.selectedRight;
+        renderSpiele(document.getElementById('app'));
+        setTimeout(()=>{
+          ps.selectedLeft=null; ps.selectedRight=null; ps.wrongFlash=null;
+          renderSpiele(document.getElementById('app'));
+        },600);
+      }
+    };
+    return;
+  }
+
   const q=gQ[gI];
   const qTr=getTr(q)||'';
   app.innerHTML=`<div style="padding:20px 16px 100px">
@@ -1358,10 +1454,14 @@ async function startGame(mode){
   renderSpiele(document.getElementById('app'));
   const sh=arr=>[...arr].sort(()=>Math.random()-0.5);
 
-  if(['mc','ar2tr','tr2ar','hoeren','schnell','plural','wortart'].includes(mode)){
+  if(['mc','ar2tr','tr2ar','hoeren','schnell','wortart'].includes(mode)){
     gQ=sh(vocab).slice(0,10);
-    if(mode==='mc'||mode==='hoeren'||mode==='paare')buildMC(0);
+    if(mode==='mc'||mode==='hoeren')buildMC(0);
     if(mode==='hoeren'){ setTimeout(()=>speakAr(gQ[0].harakat||gQ[0].arabic),400); }
+  } else if(mode==='plural'){
+    const withPlural=vocab.filter(v=>v.plural&&v.plural!=='-'&&v.plural.trim()!=='');
+    if(withPlural.length<4){alert('Zu wenige Vokabeln mit Plural!');gMode=null;renderSpiele(document.getElementById('app'));return;}
+    gQ=sh(withPlural).slice(0,10);
   } else if(mode==='harakat'){
     // Local game: show word without harakat, pick correct vocalized version from 4 options
     const withH=vocab.filter(v=>(v.harakat||v.arabic)&&stripH(v.harakat||v.arabic)!==(v.harakat||v.arabic));
@@ -1372,7 +1472,17 @@ async function startGame(mode){
       return {aufgabe:stripH(correct),optionen:sh([correct,...others]),loesung:correct,hinweis:getTr(v),dir:'harakat'};
     });
   } else if(mode==='paare'){
-    gQ=sh(vocab).slice(0,6); buildMC(0);
+    const sel=sh(vocab).slice(0,6);
+    window._paareState={
+      pairs: sel.map(v=>({id:v.id,ar:v.harakat||v.arabic,tr:getTr(v),matched:false})),
+      leftOrder: sh(sel.map(v=>v.id)),
+      rightOrder: sh(sel.map(v=>v.id)),
+      selectedLeft: null,
+      selectedRight: null,
+      wrongFlash: null,
+      matchedCount: 0
+    };
+    gQ=sel; // for progress tracking compat
   } else if(['saetze','luecke','kontext'].includes(mode)){
     try{
       const wl=sh(vocab).slice(0,6).map(v=>`${v.arabic} (${getTr(v)})`).join(', ');
@@ -1397,18 +1507,37 @@ function checkGame(given){
   const g=String(given).trim(); const gS=stripH(g); // gS = without harakat
   if(gMode==='mc')ok=given===q.id;
   else if(gMode==='hoeren')ok=given===q.id;
-  else if(gMode==='ar2tr'||gMode==='schnell')ok=g.toLowerCase().includes(qTr.toLowerCase().split(',')[0].trim().slice(0,4));
+  else if(gMode==='ar2tr'||gMode==='schnell'){
+    const translations=qTr.toLowerCase().split(',').map(t=>t.trim());
+    ok=translations.some(t=>t.length>2&&(g.toLowerCase()===t||g.toLowerCase().includes(t)||t.includes(g.toLowerCase())));
+  }
   else if(gMode==='tr2ar'){const a=stripH(q.arabic);ok=gS===a||gS===stripH(q.harakat||q.arabic)||a.includes(gS);}
   else if(gMode==='plural'){const pl=stripH(q.plural||'');ok=gS===pl||gS===stripH(q.pluralHarakat||q.plural||'');}
-  else if(gMode==='wortart')ok=g.toLowerCase().includes((q.wordType||'').toLowerCase().slice(0,4));
-  else if(gMode==='saetze'){const l=q.loesung.toLowerCase();ok=g.toLowerCase().length>2&&(l.includes(g.toLowerCase().slice(0,4))||g.toLowerCase().includes(l.slice(0,4)));}
-  else if(gMode==='luecke'){const sol=stripH(q.loesung||'');ok=gS===sol||sol.startsWith(gS.slice(0,4));}
-  else if(gMode==='kontext'){const sol=stripH(q.loesung||'');ok=gS===sol||sol.startsWith(gS.slice(0,3));}
+  else if(gMode==='wortart'){
+    const wt=(q.wordType||'').toLowerCase();
+    const gL=g.toLowerCase();
+    ok=(gL==='nomen'&&wt.includes('nomen'))||(gL==='verb'&&wt.includes('verb'))||(gL==='adjektiv'&&wt.includes('adj'))||(gL==='partikel'&&(wt.includes('partikel')||wt.includes('präposition')||wt.includes('adverb')));
+  }
+  else if(gMode==='saetze'){
+    const l=(q.loesung||'').toLowerCase().trim();
+    const gL=g.toLowerCase();
+    ok=gL.length>2&&(gL===l||l.includes(gL)||gL.includes(l)||stripH(gL)===stripH(l));
+  }
+  else if(gMode==='luecke'){const sol=stripH(q.loesung||'');ok=gS===sol||(gS.length>=3&&sol.startsWith(gS))||(sol.length>=3&&gS.startsWith(sol));}
+  else if(gMode==='kontext'){const sol=stripH(q.loesung||'');ok=gS===sol;}
   else if(gMode==='harakat'){ok=g===q.loesung;} // exact match needed for harakat game
   gResult=ok?'correct':'wrong'; if(ok){gScore++;addXP(10);}
   renderSpiele(document.getElementById('app'));
 }
-function nextGame(){gI++;gResult=null;gAns='';if(gI>=gQ.length){gDone=true;}else if(gMode==='mc')buildMC(gI);renderSpiele(document.getElementById('app'));}
+function nextGame(){
+  gI++;gResult=null;gAns='';
+  if(gI>=gQ.length){gDone=true;}
+  else{
+    if(gMode==='mc'||gMode==='hoeren')buildMC(gI);
+    if(gMode==='hoeren'){ setTimeout(()=>speakAr(gQ[gI].harakat||gQ[gI].arabic),400); }
+  }
+  renderSpiele(document.getElementById('app'));
+}
 
 // ── KORREKTOR ─────────────────────────────────────────────────────────────────
 let cResult=null;
@@ -1455,9 +1584,11 @@ function getBotPrompt(){
   const vocab=getVocabUpToHere().map(v=>v.arabic+'='+getTr(v)).join(', ');
   const n=getVocabUpToHere().length;
   const noHarakatNote = `\nWICHTIG: Der Lernende schreibt oft OHNE Harakat (Vokalisierung/Tashkil), z.B. "مرحبا" statt "مَرْحَبًا". Das ist VÖLLIG NORMAL und KEIN Fehler. Verstehe seine Nachricht trotzdem korrekt. Korrigiere NIEMALS das Fehlen von Harakat als Fehler.`;
-  const wordExplainNote = `\nNEUE WÖRTER ERKLÄREN: Der Lernende kennt bisher diese Wörter: ${vocab||'noch keine'}. Du darfst gerne auch andere natürliche, alltägliche Wörter benutzen (das macht das Gespräch lebendig!). Aber: für JEDES Wort in deiner Antwort, das NICHT in der obigen Liste steht (außer Pronomen, Partikeln wie وَ/فِي/مِنْ/إِلَى, und absoluten Grundwörtern wie مَرْحَبًا/نَعَمْ/لَا/كَيْفَ), gib am Ende ein JSON-Array mit Erklärungen mit. Format ganz am Ende der Antwort (nach der Korrektur-Klammer falls vorhanden):
+  const wordExplainNote = `\nWORTSCHATZ-REGEL (SEHR WICHTIG): Der Lernende kennt bisher NUR diese Wörter: ${vocab||'noch keine'}.
+Du MUSST dich bei deiner arabischen Antwort auf diese Wortliste beschränken. Erlaubt sind zusätzlich NUR: Personalpronomen (أَنَا، أَنْتَ، أَنْتِ، هُوَ، هِيَ، نَحْنُ، هُمْ)، Partikeln (وَ، فِي، مِنْ، إِلَى، عَلَى، مَعَ، لَا، مَا)، Grundwörter (مَرْحَبًا، نَعَمْ، لَا، كَيْفَ، أَيْنَ، شُكْرًا، حَسَنًا، جَيِّدٌ، هَذَا، هَذِهِ).
+Wenn du unbedingt EIN neues, wichtiges Wort einführen möchtest (max. 1 pro Antwort), dann NUR wenn du es sofort mit einem Tag erklärst:
 [[NEUWORT:عربي:bedeutung auf Deutsch]]
-Ein Tag pro neuem Wort, jedes auf eigener Zeile. Wenn keine neuen Wörter benutzt wurden, lass das komplett weg.`;
+Das Tag kommt ganz am Ende deiner Antwort, auf eigener Zeile. Bevorzuge es aber, komplett bei bekannten Wörtern zu bleiben, statt neue einzuführen. Benutze NIEMALS ein Wort außerhalb der Liste ohne diesen Tag.`;
   const corrFormat = `\nKorrektur-Format: Wenn der Lernende einen ECHTEN Fehler macht (falsches Wort, falsche Grammatik, NICHT fehlende Harakat), schreibe deine arabische Antwort normal, und füge danach in runden Klammern auf Deutsch eine SEHR KURZE Korrektur hinzu, z.B. "(Tipp: es heißt أَنَا أَيْضًا nicht أَنَا إِيضًا)". Maximal 10 Wörter in der Klammer. Wenn kein Fehler vorliegt, KEINE Klammer hinzufügen.`;
   if(n<=5) return `Du bist ein freundlicher Arabisch-Gesprächspartner für absolute Anfänger.
 Regeln:
@@ -1521,6 +1652,10 @@ function renderSprechen(app){
               <span class="ar" style="font-size:16px;color:#4ade80;font-weight:700">${w.ar}</span>
             </div>`).join('')}
           </div>`:''}
+          ${m.unknownWords&&m.unknownWords.length?`<div style="margin-top:8px;padding:10px 12px;background:#2a2410;border:1px solid #92400e;border-radius:10px">
+            <div style="font-size:10px;font-weight:700;color:#F59E0B;margin-bottom:6px;letter-spacing:0.5px">⚠ UNBEKANNTE WÖRTER (nicht in deiner Liste)</div>
+            <div class="ar" style="font-size:14px;color:#fbbf24;line-height:1.6">${m.unknownWords.join('، ')}</div>
+          </div>`:''}
         </div>
       </div>`).join('')}
       ${vLoad?`<div style="display:flex;justify-content:flex-start;margin-bottom:10px"><div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:14px 18px"><div style="display:flex;gap:5px;align-items:center">${[0,1,2].map((_,i)=>`<div style="width:8px;height:8px;background:var(--gold);border-radius:50%;animation:pulse 1s ${i*0.2}s infinite"></div>`).join('')}</div></div></div>`:''}
@@ -1569,10 +1704,33 @@ async function sendVoice(text){
     const corrMatch=text2.match(/\(([^)]+)\)\s*$/);
     const correction=corrMatch?corrMatch[1]:null;
     const arabicOnly=correction?text2.replace(/\s*\([^)]+\)\s*$/,'').trim():text2;
-    vMsgs.push({role:'ai',text:arabicOnly,correction,newWords});
+    // Safety net: check for unknown words that weren't tagged by the AI
+    const unknownWords=findUnknownWords(arabicOnly, newWords);
+    vMsgs.push({role:'ai',text:arabicOnly,correction,newWords,unknownWords});
     speakAr(arabicOnly);
   }catch{vMsgs.push({role:'ai',text:'أَعِدِ الْمُحَاوَلَةَ.'});}
   vLoad=false; renderSprechen(document.getElementById('app'));
+}
+
+// Safety net: find Arabic words in bot reply that aren't in known vocab and weren't tagged
+const ALLOWED_BASE_WORDS=['أنا','أنت','أنتِ','هو','هي','نحن','هم','و','في','من','إلى','على','مع','لا','ما','مرحبا','نعم','لا','كيف','أين','شكرا','حسنا','جيد','هذا','هذه','هل','ماذا','متى','لماذا','كم','أنتما','أنتن','هما','هن'];
+function findUnknownWords(text, taggedNewWords){
+  const known=new Set(getVocabUpToHere().map(v=>stripH(v.arabic)));
+  const taggedSet=new Set(taggedNewWords.map(w=>stripH(w.ar)));
+  const allowedSet=new Set(ALLOWED_BASE_WORDS.map(w=>stripH(w)));
+  // Split text into Arabic words, strip punctuation
+  const words=text.match(/[\u0600-\u06FF]+/g)||[];
+  const unknown=[];
+  const seen=new Set();
+  for(const w of words){
+    const stripped=stripH(w);
+    if(stripped.length<2) continue;
+    if(known.has(stripped)||taggedSet.has(stripped)||allowedSet.has(stripped)) continue;
+    if(seen.has(stripped)) continue;
+    seen.add(stripped);
+    unknown.push(w);
+  }
+  return unknown;
 }
 
 function speakAr(text){
@@ -1627,6 +1785,13 @@ function renderProfil(app){
     <div onclick="window.resetTutorial()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:14px;font-weight:600;color:var(--text)">Tutorial erneut anzeigen</div>
       <div style="color:var(--text3);font-size:18px">›</div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">Backend-URL (sicherer Modus)</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Trage hier deine Vercel-Backend-URL ein, damit dein API-Key nicht mehr im Browser gespeichert werden muss.</div>
+      <input id="backendUrlInput" value="${localStorage.getItem('backendUrl')||''}" placeholder="https://dein-projekt.vercel.app/api/chat" style="font-size:13px;margin-bottom:8px"/>
+      <button class="gold-btn" onclick="const v=document.getElementById('backendUrlInput').value.trim();if(v){localStorage.setItem('backendUrl',v);alert('Backend-URL gespeichert! App wird neu geladen.');location.reload();}else{localStorage.removeItem('backendUrl');alert('Backend-URL entfernt — App nutzt wieder den lokalen API-Key.');location.reload();}">Speichern</button>
+      ${localStorage.getItem('backendUrl')?`<div style="font-size:11px;color:#a3e635;margin-top:8px">✓ Backend aktiv — API-Key ist sicher</div>`:`<div style="font-size:11px;color:#F59E0B;margin-top:8px">⚠ Kein Backend konfiguriert — API-Key liegt im Browser</div>`}
     </div>
     <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der ${ui('language')}</div>
   </div>`;
