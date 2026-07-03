@@ -1499,7 +1499,7 @@ async function startGame(mode){
   renderSpiele(document.getElementById('app'));
 }
 // Strip Arabic diacritics for comparison
-function stripH(s){return String(s).replace(/[ً-ٰٟ]/g,'').trim();}
+function stripH(s){return String(s).replace(/[ً-ٰٟ]/g,'').trim();}
 
 function buildMC(idx){const vocab=getVocab();const c=gQ[idx];const w=[...vocab].sort(()=>Math.random()-0.5).filter(v=>v.id!==c.id).slice(0,3);gMC=[...[c,...w]].sort(()=>Math.random()-0.5);}
 function checkGame(given){
@@ -1733,16 +1733,89 @@ function findUnknownWords(text, taggedNewWords){
   return unknown;
 }
 
-function speakAr(text){
-  try{
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang='ar-SA'; u.rate=0.85; u.pitch=1;
-    const vs=speechSynthesis.getVoices();
-    const av=vs.find(v=>v.lang.startsWith('ar'));
-    if(av)u.voice=av;
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
-  }catch{}
+// Arabische Sprachausgabe — wählt die beste verfügbare Stimme aus
+let _arVoicesCache=null;
+let _preferredArVoice=null;
+
+function _rankArVoice(v){
+  // Bewertet Stimmen nach Qualität: Online/Natural-Stimmen sind meist besser als lokale Robot-Stimmen
+  let score=0;
+  const name=v.name.toLowerCase();
+  if(!v.localService) score+=10; // Cloud-Stimmen klingen fast immer natürlicher
+  if(name.includes('enhanced')||name.includes('premium')||name.includes('natural')) score+=8;
+  if(name.includes('google')) score+=6; // Google-Stimmen sind auf Android/Chrome meist gut
+  if(name.includes('siri')) score+=6; // Siri-Stimmen auf iOS sind meist gut
+  if(v.lang==='ar-SA') score+=5; // Saudi-Arabisch ist oft die klarste Hochsprache-Aussprache
+  else if(v.lang==='ar-EG') score+=3;
+  else if(v.lang.startsWith('ar')) score+=2;
+  if(name.includes('male')||name.includes('majed')||name.includes('tarik')||name.includes('hoda')||name.includes('laila')) score+=2;
+  return score;
 }
+
+function _loadArVoice(){
+  const all=speechSynthesis.getVoices();
+  const arVoices=all.filter(v=>v.lang.toLowerCase().startsWith('ar'));
+  if(arVoices.length===0) return null;
+  _arVoicesCache=arVoices;
+  // Falls der Nutzer bereits eine Stimme manuell gewählt hat, diese respektieren
+  const saved=localStorage.getItem('preferredVoiceName');
+  if(saved){
+    const match=arVoices.find(v=>v.name===saved);
+    if(match) return match;
+  }
+  const ranked=[...arVoices].sort((a,b)=>_rankArVoice(b)-_rankArVoice(a));
+  return ranked[0];
+}
+
+// Versucht sofort zu laden; falls Stimmen noch nicht bereit sind, wartet auf das voiceschanged-Event
+if(typeof speechSynthesis!=='undefined'){
+  _preferredArVoice=_loadArVoice();
+  speechSynthesis.onvoiceschanged=()=>{ _preferredArVoice=_loadArVoice(); };
+}
+
+function speakAr(text, opts){
+  if(!text) return;
+  opts=opts||{};
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='ar-SA';
+    u.rate=opts.rate||0.82;   // etwas langsamer als normal für bessere Verständlichkeit beim Lernen
+    u.pitch=opts.pitch||1;
+    u.volume=1;
+    // Beste verfügbare Stimme neu prüfen, falls sie erst jetzt geladen wurde
+    if(!_preferredArVoice) _preferredArVoice=_loadArVoice();
+    if(_preferredArVoice) u.voice=_preferredArVoice;
+    speechSynthesis.speak(u);
+  }catch(e){
+    console.warn('Sprachausgabe fehlgeschlagen:', e);
+  }
+}
+
+// Zeigt an, welche Stimme aktuell verwendet wird (nützlich für Profil-Einstellungen)
+function getCurrentArVoiceName(){
+  if(_preferredArVoice) return _preferredArVoice.name+' ('+_preferredArVoice.lang+')';
+  return 'Keine arabische Stimme gefunden — Systemstandard wird verwendet';
+}
+
+// Testet die aktuell gewählte Stimme mit einem Beispielsatz
+window._testVoice=function(){
+  speakAr('مَرْحَبًا بِكَ فِي تَعَلُّمِ الْعَرَبِيَّةِ');
+};
+
+// Erlaubt manuelle Auswahl einer anderen verfügbaren Stimme
+window._setVoice=function(idx){
+  if(!_arVoicesCache) return;
+  const chosen=_arVoicesCache[parseInt(idx)];
+  if(chosen){
+    _preferredArVoice=chosen;
+    localStorage.setItem('preferredVoiceName', chosen.name);
+    window._testVoice();
+    render();
+  }
+};
+
+// (Stimmenpräferenz wird bereits direkt in _loadArVoice() berücksichtigt)
 
 // PROFIL
 function renderProfil(app){
@@ -1785,6 +1858,17 @@ function renderProfil(app){
     <div onclick="window.resetTutorial()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:14px;font-weight:600;color:var(--text)">Tutorial erneut anzeigen</div>
       <div style="color:var(--text3);font-size:18px">›</div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🔊 Sprachausgabe</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Aktuelle Stimme: <span style="color:var(--gold)">${getCurrentArVoiceName()}</span></div>
+      <button class="sec-btn" onclick="window._testVoice()" style="margin-bottom:10px">Testen: مرحبا بك في تعلم العربية</button>
+      ${(_arVoicesCache&&_arVoicesCache.length>1)?`
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Andere verfügbare Stimme wählen:</div>
+        <select id="voiceSelect" onchange="window._setVoice(this.value)" style="font-size:13px">
+          ${_arVoicesCache.map((v,i)=>`<option value="${i}" ${_preferredArVoice&&_preferredArVoice.name===v.name?'selected':''}>${v.name} (${v.lang})</option>`).join('')}
+        </select>
+      `:`<div style="font-size:11px;color:#F59E0B">Nur eine arabische Stimme auf diesem Gerät gefunden. Für bessere Qualität: iOS-Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Arabisch → weitere Stimmen herunterladen.</div>`}
     </div>
     <div class="card">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">Backend-URL (sicherer Modus)</div>
