@@ -50,6 +50,13 @@ let tab = 'home';
 let subView = null; // for nested views within tabs
 document.documentElement.setAttribute('data-theme', theme);
 
+// Kartenrichtung: 'ar2de' = Arabisch vorne, Deutsch hinten (Standard) | 'de2ar' = Deutsch vorne, Arabisch hinten
+let cardDirection = localStorage.getItem('cardDirection') || 'ar2de';
+// Satz-Layout: 'stacked' = Arabisch über Deutsch (untereinander) | 'sideBySide' = "Arabisch - Deutsch" nebeneinander
+let sentenceLayout = localStorage.getItem('sentenceLayout') || 'stacked';
+function setCardDirection(d){ cardDirection=d; localStorage.setItem('cardDirection',d); render(); }
+function setSentenceLayout(l){ sentenceLayout=l; localStorage.setItem('sentenceLayout',l); render(); }
+
 const LANGS = {
   de:{name:'Deutsch',flag:'🇩🇪'},
   en:{name:'English',flag:'🇬🇧'}
@@ -605,14 +612,33 @@ updateStreak();
 // SRS
 // ═══════════════════════════════════════════════════════
 function isDue(c){ return !c.nextReview||Date.now()>=c.nextReview; }
+// Anki-Style SRS: "Gar nicht" und "Geht so" nutzen kurze Minuten-Intervalle (Learning Steps),
+// "Gut" und "Perfekt" nutzen Tage-Intervalle wie gewohnt.
+// score: 0=Gar nicht, 1=Geht so, 3=Gut, 5=Perfekt
 function calcNext(card,score){
   let {interval=1,easeFactor=2.5,repetitions=0,failCount=0}=card, fc=failCount;
-  if(score<3){repetitions=0;fc=Math.min(failCount+1,5);interval=1;}
-  else{fc=Math.max(0,failCount-1);interval=repetitions===0?1:repetitions===1?6:Math.round(interval*easeFactor);repetitions++;}
+  const MIN=60000; // 1 Minute in ms
+
+  if(score===0){
+    // Gar nicht: Karte fällt zurück in die Lernphase, kommt in 3 Minuten wieder
+    repetitions=0; fc=Math.min(failCount+1,5); interval=1;
+    easeFactor=Math.max(1.3,easeFactor-0.2);
+    return{...card,interval,easeFactor,repetitions,nextReview:Date.now()+3*MIN,status:'neu',lastScore:score,failCount:fc};
+  }
+  if(score===1){
+    // Geht so: kommt in 10 Minuten wieder, bleibt in der Lernphase
+    repetitions=0; fc=Math.min(failCount+1,5); interval=1;
+    easeFactor=Math.max(1.3,easeFactor-0.1);
+    return{...card,interval,easeFactor,repetitions,nextReview:Date.now()+10*MIN,status:'neu',lastScore:score,failCount:fc};
+  }
+  // score===3 (Gut) oder score===5 (Perfekt): normales Tage-Intervall
+  fc=Math.max(0,failCount-1);
+  interval=repetitions===0?(score>=5?3:1):repetitions===1?(score>=5?3:2):Math.round(interval*easeFactor*(score>=5?1.15:0.9));
+  repetitions++;
   easeFactor=Math.max(1.3,easeFactor+0.1-(5-score)*(0.08+(5-score)*0.02));
   const pf=fc>0?Math.max(0.3,1-fc*0.15):1;
-  const ai=score<3?interval:Math.max(1,Math.round(interval*pf));
-  return{...card,interval:ai,easeFactor,repetitions,nextReview:Date.now()+ai*86400000,status:score>=4?'gelernt':score>=2?'lernend':'neu',lastScore:score,failCount:fc};
+  const ai=Math.max(1,Math.round(interval*pf));
+  return{...card,interval:ai,easeFactor,repetitions,nextReview:Date.now()+ai*86400000,status:score>=5?'gelernt':'lernend',lastScore:score,failCount:fc};
 }
 function buildPool(vocab,f){
   const base=vocab.filter(v=>f==='fällig'?isDue(v):f==='alle'?true:v.status===f);
@@ -626,7 +652,7 @@ function buildPool(vocab,f){
 // ═══════════════════════════════════════════════════════
 // URL deiner Vercel Backend-Funktion. Nach dem Deployment hier eintragen, z.B.:
 // 'https://dein-projekt.vercel.app/api/chat'
-const BACKEND_URL = window._backendUrl || localStorage.getItem('backendUrl') || '';
+const BACKEND_URL = 'https://arabisch-backend-three.vercel.app/api/chat';
 
 async function callAI(prompt,maxTokens=1500){
   // Wenn ein Backend konfiguriert ist, läuft alles sicher darüber (kein API-Key im Browser)
@@ -688,7 +714,6 @@ function render(){
     ${t.id==='lernen'&&due>0?`<div style="position:absolute;top:0;right:22%;background:#ef4444;color:white;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center">${due}</div>`:''}
   </button>`).join('');
 
-  if(!localStorage.getItem('tutorialDone')){renderTutorial(app);return;}
   nav.style.display='flex';
   if(tab==='home') renderHome(app);
   else if(tab==='lernen') renderLernen(app);
@@ -696,7 +721,6 @@ function render(){
   else renderProfil(app);
 }
 function goTab(t){
-  if(!localStorage.getItem('tutorialDone')) return;
   tab=t; subView=null; render();
 }
 
@@ -800,20 +824,18 @@ function renderTutorial(app){
 // HOME
 // ═══════════════════════════════════════════════════════
 function getQUICK(){return[
-  {icon:'📖',title:ui('vocab'),desc:ui('vocab')+' hinzufügen & verwalten',action:()=>{tab='lernen';subView='vokabeln';render();}},
-  {icon:'📚',title:ui('verbs'),desc:ui('verbs')+' – Konjugationstabellen',action:()=>{tab='lernen';subView='verben';render();}},
-  {icon:'🎮',title:ui('games'),desc:'Spielerisch üben',action:()=>{tab='lernen';subView='spiele';render();}},
-  {icon:'🎤',title:ui('voiceChat'),desc:'Mit KI auf Arabisch sprechen',action:()=>{tab='sprechen';subView=null;render();}},
-  {icon:'✍️',title:ui('correction'),desc:'Texte prüfen und verbessern',action:()=>{tab='lernen';subView='korrektor';render();}},
-  {icon:'📊',title:ui('stats'),desc:'Dein Lernfortschritt im Überblick',action:()=>{tab='profil';subView='stats';render();}},
+  {icon:'book',title:ui('vocab'),desc:ui('vocab')+' hinzufügen & verwalten',action:()=>{tab='lernen';subView='vokabeln';render();}},
+  {icon:'bookOpen',title:ui('verbs'),desc:ui('verbs')+' – Konjugationstabellen',action:()=>{tab='lernen';subView='verben';render();}},
+  {icon:'mic',title:'Diktat',desc:'Sätze hören und auf Arabisch schreiben',action:()=>{tab='lernen';subView='diktat';window._diktatState=null;render();}},
+  {icon:'message',title:ui('voiceChat'),desc:'Mit KI auf Arabisch sprechen',action:()=>{tab='sprechen';subView=null;render();}},
+  {icon:'pencil',title:ui('correction'),desc:'Texte prüfen und verbessern',action:()=>{tab='lernen';subView='korrektor';render();}},
+  {icon:'chart',title:ui('stats'),desc:'Dein Lernfortschritt im Überblick',action:()=>{tab='profil';subView='stats';render();}},
 ];}
 
 function renderHome(app){
   const vocab=getVocab();
   const due=vocab.filter(isDue).length;
   const motto=getTodayMotto();
-  const xpToday=streak.todayXP||0;
-  const xpPct=Math.min((xpToday/100)*100,100);
 
   app.innerHTML=`<div style="padding:20px 16px 100px">
 
@@ -832,22 +854,6 @@ function renderHome(app){
       </div>
     </div>
 
-    <!-- Hauptaktion -->
-    <div style="background:linear-gradient(135deg,#1a1200,#2a1f00);border:2px solid var(--gold);border-radius:22px;padding:24px;margin-bottom:14px">
-      <div style="font-size:12px;color:#92400e;font-weight:700;letter-spacing:1px;margin-bottom:6px">HEUTE ZU LERNEN</div>
-      <div style="font-size:48px;font-weight:900;color:${due>0?'#ef4444':'#a3e635'};line-height:1;margin-bottom:4px">${due}</div>
-      <div style="font-size:14px;color:var(--text3);margin-bottom:20px">${due===0?'Alles erledigt für heute!':due===1?'Karte fällig':'Karten fällig'}</div>
-      <button onclick="tab='lernen';subView='karten';render()" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;padding:16px;color:#080c14;font-weight:900;font-size:17px;cursor:pointer">${due>0?'Jetzt lernen →':'Neue Karten lernen →'}</button>
-      <div style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px">
-          <span>Tagesziel</span><span>${xpToday} / 100 XP</span>
-        </div>
-        <div style="background:var(--bg3);border-radius:6px;height:6px">
-          <div style="width:${xpPct}%;background:linear-gradient(90deg,var(--gold),#a3e635);height:6px;border-radius:6px"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Themen -->
     <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:10px">THEMEN</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
@@ -855,18 +861,37 @@ function renderHome(app){
         const g=p.vocab.filter(v=>v.status==='gelernt').length;
         const t=p.vocab.length;
         const pct=t?Math.round(g/t*100):0;
+        const dueCount=p.vocab.filter(isDue).length;
+        const verbList=p.verbs||[];
+        const verbDue=verbList.filter(isDue).length;
         const isActive=i===curProject;
-        return `<div onclick="curProject=${i};saveProjects();tab='lernen';subView='vokabeln';render()" style="background:${isActive?'linear-gradient(135deg,#1a1200,#2a1f00)':'var(--bg2)'};border:1.5px solid ${isActive?'var(--gold)':'var(--border)'};border-radius:16px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-size:15px;font-weight:700;color:${isActive?'var(--gold)':'var(--text)'}">${p.name}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px">${t} Vokabeln · ${g} gelernt</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:16px;font-weight:800;color:${isActive?'var(--gold)':'var(--text2)'}">${pct}%</div>
-            <div style="width:60px;background:var(--bg3);border-radius:4px;height:4px;margin-top:4px">
-              <div style="width:${pct}%;background:${isActive?'var(--gold)':'#60a5fa'};height:4px;border-radius:4px"></div>
+        const isExpanded=window._expandedTheme===i;
+        return `<div style="background:${isActive?'linear-gradient(135deg,#1a1200,#2a1f00)':'var(--bg2)'};border:1.5px solid ${isActive?'var(--gold)':'var(--border)'};border-radius:16px;overflow:hidden">
+          <div onclick="curProject=${i};saveProjects();window._expandedTheme=window._expandedTheme===${i}?null:${i};render()" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:${isActive?'var(--gold)':'var(--text3)'};transform:rotate(${isExpanded?'45deg':'0deg'});transition:transform 0.2s">${icon('plus',16,isActive?'var(--gold)':'var(--text3)',2.5)}</div>
+              <div>
+                <div style="font-size:15px;font-weight:700;color:${isActive?'var(--gold)':'var(--text)'}">${p.name}</div>
+                <div style="font-size:11px;color:${dueCount>0?'#ef4444':'var(--text3)'};margin-top:2px">${t} Vokabeln · ${dueCount>0?`${dueCount} fällig`:'nichts fällig'}</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:16px;font-weight:800;color:${isActive?'var(--gold)':'var(--text2)'}">${pct}%</div>
+              <div style="width:60px;background:var(--bg3);border-radius:4px;height:4px;margin-top:4px">
+                <div style="width:${pct}%;background:${isActive?'var(--gold)':'#60a5fa'};height:4px;border-radius:4px"></div>
+              </div>
             </div>
           </div>
+          ${isExpanded?`<div style="padding:0 16px 14px 48px;display:flex;flex-direction:column;gap:6px">
+            <div onclick="event.stopPropagation();curProject=${i};saveProjects();lIsVerbMode=false;tab='lernen';subView='karten';lFilter='fällig';render()" style="background:var(--bg3);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:8px">${icon('book',16,'var(--text2)',2)}<span style="font-size:13px;color:var(--text)">Vokabeln</span></div>
+              <span style="font-size:11px;color:${dueCount>0?'#ef4444':'var(--text3)'}">${dueCount>0?dueCount+' fällig':'—'}</span>
+            </div>
+            <div onclick="event.stopPropagation();curProject=${i};saveProjects();startVerbKarten()" style="background:var(--bg3);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:8px">${icon('bookOpen',16,'var(--text2)',2)}<span style="font-size:13px;color:var(--text)">Verben</span></div>
+              <span style="font-size:11px;color:${verbDue>0?'#ef4444':'var(--text3)'}">${verbList.length===0?'keine':verbDue>0?verbDue+' fällig':'—'}</span>
+            </div>
+          </div>`:''}
         </div>`;
       }).join('')}
     </div>
@@ -903,15 +928,15 @@ function renderLernen(app){
     </div>
 
     <!-- Hauptlernbereich -->
-    <div onclick="subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid ${due>0?'#22c55e':'var(--border)'};border-radius:18px;padding:20px;margin-bottom:12px;cursor:pointer">
-      <div style="font-size:28px;margin-bottom:8px">🔄</div>
+    <div onclick="lIsVerbMode=false;subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid ${due>0?'#22c55e':'var(--border)'};border-radius:18px;padding:20px;margin-bottom:12px;cursor:pointer">
+      <div style="margin-bottom:8px">${icon('rotate',26,due>0?'#4ade80':'var(--text)',2)}</div>
       <div style="font-size:18px;font-weight:800;color:${due>0?'#4ade80':'var(--text)'}">${ui("reviews")}</div>
       <div style="font-size:13px;color:var(--text3);margin-top:4px">${due>0?`${due} ${ui('cardsWaiting')}`:ui('allLearned')}}</div>
       ${due>0?`<div style="margin-top:12px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;padding:10px;text-align:center;color:#0a1628;font-weight:800;font-size:14px">Jetzt ${due} Karten lernen →</div>`:''}
     </div>
 
-    <div onclick="subView='karten';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;cursor:pointer;display:flex;gap:14px;align-items:center">
-      <div style="font-size:32px">✨</div>
+    <div onclick="lIsVerbMode=false;subView='karten';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;cursor:pointer;display:flex;gap:14px;align-items:center">
+      <div>${icon('sparkles',28,'var(--gold)',2)}</div>
       <div><div style="font-size:16px;font-weight:700;color:var(--text)">${ui('newWords')}</div><div style="font-size:12px;color:var(--text3);margin-top:2px">${neu} neue Wörter</div></div>
       <div style="color:var(--text3);font-size:20px;margin-left:auto">›</div>
     </div>
@@ -920,12 +945,12 @@ function renderLernen(app){
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin:20px 0 12px">Bereiche</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       ${[
-        {icon:'📖',title:ui('vocab'),desc:ui('vocab')+' verwalten',sv:'vokabeln'},
-        {icon:'📚',title:ui('verbs'),desc:'Konjugationstabellen',sv:'verben'},
-        {icon:'🎮',title:ui('games'),desc:'Spielerisch üben',sv:'spiele'},
-        {icon:'✍️',title:ui('correction'),desc:'Texte prüfen',sv:'korrektor'},
-      ].map(q=>`<div class="quick-card" onclick="subView='${q.sv}';render()">
-        <div style="font-size:24px">${q.icon}</div>
+        {icon:'book',title:ui('vocab'),desc:ui('vocab')+' verwalten',sv:'vokabeln'},
+        {icon:'bookOpen',title:ui('verbs'),desc:'Konjugationstabellen',sv:'verben'},
+        {icon:'mic',title:'Diktat',desc:'Sätze hören & schreiben',sv:'diktat'},
+        {icon:'pencil',title:ui('correction'),desc:'Texte prüfen',sv:'korrektor'},
+      ].map(q=>`<div class="quick-card" onclick="subView='${q.sv}';${q.sv==='diktat'?'window._diktatState=null;':''}render()">
+        <div>${icon(q.icon,24,'var(--gold)',2)}</div>
         <div style="font-size:14px;font-weight:700;color:var(--text)">${q.title}</div>
         <div style="font-size:11px;color:var(--text3)">${q.desc}</div>
       </div>`).join('')}
@@ -943,7 +968,7 @@ function renderVokabeln(app){
       <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">${ui('vocab')}</div></div>
       <button onclick="showAddVocab()" class="gold-btn" style="width:auto;padding:8px 16px;margin-left:auto;font-size:13px">+ Hinzufügen</button>
     </div>
-    ${due>0?`<div onclick="subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid #22c55e;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer"><div><div style="font-size:13px;font-weight:700;color:#4ade80">${due} ${ui('reviews')} fällig</div><div style="font-size:11px;color:var(--text3)">Tippe um zu lernen</div></div><div style="font-size:24px;font-weight:800;color:#4ade80">${due}</div></div>`:''}
+    ${due>0?`<div onclick="lIsVerbMode=false;subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid #22c55e;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer"><div><div style="font-size:13px;font-weight:700;color:#4ade80">${due} ${ui('reviews')} fällig</div><div style="font-size:11px;color:var(--text3)">Tippe um zu lernen</div></div><div style="font-size:24px;font-weight:800;color:#4ade80">${due}</div></div>`:''}
     <input placeholder="🔍 Suchen..." oninput="filterVocab(this.value)" style="margin-bottom:14px"/>
     <div id="vocabList">${vocab.map(v=>vocabCard(v)).join('')}</div>
   </div>`;
@@ -1062,32 +1087,83 @@ async function addVocab(){
 }
 
 // ── KARTEN (Spaced Repetition) ────────────────────────────────────────────────
-let lP=[],lI=0,lF=false,lS={p:0,g:0,s:0},lD=false,lFilter='fällig';
-const RATES=[{l:ui('never'),c:'#ef4444',s:0},{l:ui('ok'),c:'#eab308',s:2},{l:ui('perfect'),c:'#a3e635',s:5}];
+let lP=[],lI=0,lF=false,lS={p:0,g:0,s:0},lD=false,lFilter='fällig',lIsVerbMode=false;
+const RATES=[{l:'Gar nicht',c:'#ef4444',s:0},{l:'Geht so',c:'#F59E0B',s:1},{l:'Gut',c:'#60a5fa',s:3},{l:'Perfekt',c:'#a3e635',s:5}];
+
+// Wandelt ein Verb in eine "virtuelle Vokabelkarte" um: هُوَ-Form vorne, Übersetzung + Beispielsatz hinten
+function verbToCard(v){
+  const praesensHuwa=(v.konjugation&&v.konjugation.gegenwart&&v.konjugation.gegenwart[0])?v.konjugation.gegenwart[0].a:v.arabic;
+  const beispiel=(v.beispiele&&v.beispiele[0])?v.beispiele[0]:null;
+  return {
+    id:v.id, arabic:praesensHuwa, harakat:praesensHuwa,
+    translations:v.translations, wordType:'Verb',
+    exampleArabic:beispiel?beispiel.a:'', exampleTranslation:beispiel?{de:beispiel.d,en:beispiel.d}:null,
+    plural:'', pluralHarakat:'', opposite:'', oppHarakat:'',
+    status:v.status||'neu', interval:v.interval||1, easeFactor:v.easeFactor||2.5,
+    repetitions:v.repetitions||0, failCount:v.failCount||0, nextReview:v.nextReview||0,
+    _isVerb:true, _origId:v.id
+  };
+}
+function startVerbKarten(){
+  lIsVerbMode=true;
+  tab='lernen'; subView='karten'; lFilter='fällig';
+  render();
+}
 
 function renderKarten(app){
-  lP=buildPool(getVocab(),lFilter); lI=0; lF=false; lS={p:0,g:0,s:0}; lD=false;
+  const source=lIsVerbMode?getVerbs().map(verbToCard):getVocab();
+  lP=buildPool(source,lFilter); lI=0; lF=false; lS={p:0,g:0,s:0}; lD=false;
   showCard(app);
 }
 function showCard(app){
   const fb=['fällig','alle','neu','lernend','gelernt'].map(f=>`<button onclick="lFilter='${f}';renderKarten(document.getElementById('app'))" style="background:${lFilter===f?'var(--gold)':'var(--bg3)'};border:1px solid ${lFilter===f?'var(--gold)':'var(--border)'};color:${lFilter===f?'#080c14':'var(--text2)'};border-radius:10px;padding:6px 10px;font-weight:700;font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`).join('');
   if(lD){
-    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;color:var(--text)">Session abgeschlossen ${icon('trophy',20,'var(--gold)',2)}</div></div>
+    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="lIsVerbMode=false;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;color:var(--text)">Session abgeschlossen ${icon('trophy',20,'var(--gold)',2)}</div></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">${[['Perfekt','p','#a3e635'],['Gut','g','#F59E0B'],['Schlecht','s','#ef4444']].map(([l,k,c])=>`<div class="card" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:${c}">${lS[k]}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`).join('')}</div>
     ${lS.s>0?`<div style="background:#1a1000;border:1px solid #92400e;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--gold)">${ui('badCards')||'Schlechte Karten kommen öfter wieder.'}</div>`:''}
     <button class="gold-btn" onclick="renderKarten(document.getElementById('app'))">${ui('playAgain')}</button></div>`; return;
   }
   if(!lP.length){
-    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Lernkarten</div></div>
+    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:6px"><button onclick="lIsVerbMode=false;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Lernkarten</div></div>
     <div style="display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px">${fb}</div>
     <div style="text-align:center;color:var(--text3);padding:60px 0;font-size:15px">${ui('noCards')||'Keine Karten.'}</div></div>`; return;
   }
   const card=lP[lI];
   const tr=getTr(card), exTr=getExTr(card);
+  const isDe2Ar=cardDirection==='de2ar';
+  const hasPlural=card.plural&&card.plural!=='-';
+  // Mufrad/Jam'u nebeneinander — wird auf der arabischen Seite gezeigt (vorne bei ar2de, hinten bei de2ar)
+  const mufradJamuBlock=hasPlural?`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <div style="background:var(--bg3);border-radius:10px;padding:10px 14px;text-align:center"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">مفرد</div><div class="ar" style="font-size:22px;color:var(--gold)">${card.harakat||card.arabic}</div></div>
+      <div style="background:var(--bg3);border-radius:10px;padding:10px 14px;text-align:center"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">جمع</div><div class="ar" style="font-size:22px;color:#a78bfa">${card.pluralHarakat||card.plural}</div></div>
+    </div>`:`<div class="ar" style="font-size:52px;color:var(--gold);font-weight:700;line-height:1.4">${card.harakat||card.arabic}</div>`;
+  // Vorderseite: Arabisch (mit mufrad/jam'u falls vorhanden) ODER nur Deutsch
+  const frontContent=!isDe2Ar
+    ? mufradJamuBlock
+    : `<div style="font-size:32px;color:var(--gold);font-weight:800;line-height:1.4">${tr}</div>`;
+  const oppositeBlock=(card.wordType||'').toLowerCase().includes('adj')&&card.opposite&&card.opposite!==''?`<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;text-align:center;margin-top:14px;display:inline-block"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">ضد</div><div class="ar" style="font-size:20px;color:#60a5fa">${card.oppHarakat||card.opposite}</div></div>`:'';
+  // Beispielsatz: gestapelt (Arabisch exakt über Deutsch, gleiche Breite/Zentrierung) oder nebeneinander mit "-"
+  const sentenceBlock=card.exampleArabic?(
+    sentenceLayout==='sideBySide'
+      ? `<div style="background:var(--bg3);border-radius:12px;padding:14px;margin-top:14px"><div style="font-size:14px;color:var(--text);line-height:1.8"><span class="ar" style="font-size:17px">${card.exampleArabic}</span><span style="color:var(--text3)"> - </span><span style="color:var(--text3)">${exTr}</span></div></div>`
+      : `<div style="background:var(--bg3);border-radius:12px;padding:14px;margin-top:14px;display:flex;flex-direction:column;align-items:center;text-align:center"><div class="ar" style="font-size:18px;color:var(--text);line-height:1.9">${card.exampleArabic}</div><div style="font-size:12px;color:var(--text3);margin-top:6px">${exTr}</div></div>`
+  ):'';
+  // Rückseite: NUR Deutsch + Satz (bei ar2de) — oder mufrad/jam'u + Satz (bei de2ar)
+  const backContent=!isDe2Ar
+    ? `<div style="width:100%;display:flex;flex-direction:column;align-items:center">
+        <div style="font-size:26px;font-weight:800;color:var(--text);margin-bottom:${oppositeBlock?'0':'4px'}">${tr}</div>
+        ${oppositeBlock}
+        ${sentenceBlock}
+      </div>`
+    : `<div style="width:100%;display:flex;flex-direction:column;align-items:center">
+        ${mufradJamuBlock}
+        ${oppositeBlock}
+        ${sentenceBlock}
+      </div>`;
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-top:6px">
-      <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
-      <div style="font-size:20px;font-weight:800;color:var(--text)">Lernkarten</div>
+      <button onclick="lIsVerbMode=false;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+      <div style="font-size:20px;font-weight:800;color:var(--text)">${lIsVerbMode?'Verben':'Lernkarten'}</div>
       <div style="font-size:13px;font-weight:700;color:var(--gold);margin-left:auto">${lI+1}/${lP.length}</div>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px">${fb}</div>
@@ -1095,26 +1171,39 @@ function showCard(app){
     <div onclick="lF=!lF;showCard(document.getElementById('app'))" style="background:var(--bg2);border:1px solid ${(card.failCount||0)>1?'#7f1d1d':'var(--border)'};border-radius:20px;padding:24px;min-height:260px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;margin-bottom:14px">
       ${!lF?`${(card.failCount||0)>0?`<div style="font-size:10px;color:#f97316;margin-bottom:10px;font-weight:700">SCHWIERIG – ${card.failCount}x falsch</div>`:''}
       <div style="font-size:12px;color:var(--gold);font-weight:700;letter-spacing:1px;margin-bottom:18px">${ui('tapToFlip')}</div>
-      <div class="ar" style="font-size:58px;color:var(--gold);font-weight:700;line-height:1.4;margin-bottom:10px">${card.harakat||card.arabic}</div>
+      <div style="margin-bottom:10px">${frontContent}</div>
       <div style="font-size:12px;color:var(--text3)">${card.wordType||''}</div>`
-      :`<div style="width:100%">
-        <div style="font-size:24px;font-weight:800;color:var(--text);margin-bottom:18px">${tr}</div>
-        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
-          ${card.plural&&card.plural!=='-'?`<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;text-align:center"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">جمع</div><div class="ar" style="font-size:20px;color:#a78bfa">${card.pluralHarakat||card.plural}</div></div>`:''}
-          ${(card.wordType||'').toLowerCase().includes('adj')&&card.opposite&&card.opposite!==''?`<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;text-align:center"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">ضد</div><div class="ar" style="font-size:20px;color:#60a5fa">${card.oppHarakat||card.opposite}</div></div>`:''}
-        </div>
-        ${card.exampleArabic?`<div style="background:var(--bg3);border-radius:12px;padding:14px"><div class="ar" style="font-size:18px;color:var(--text);line-height:2;margin-bottom:6px">${card.exampleArabic}</div><div style="font-size:12px;color:var(--text3)">${exTr}</div></div>`:''}</div>`}
+      :backContent}
     </div>
     ${lF?`<div><div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:10px">${ui('howWell')}</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">${RATES.map(r=>`<button onclick="rateCard(${r.s})" style="background:var(--bg2);border:1px solid ${r.c}44;border-radius:14px;padding:14px 6px;cursor:pointer;text-align:center"><div style="font-size:14px;font-weight:800;color:${r.c}">${r.l}</div>${r.s<2?'<div style="font-size:9px;color:var(--text3);margin-top:2px">öfter</div>':r.s>=4?'<div style="font-size:9px;color:var(--text3);margin-top:2px">seltener</div>':''}</button>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">${RATES.map(r=>{
+      const preview=calcNext(card,r.s);
+      const diffMs=preview.nextReview-Date.now();
+      let timeLabel;
+      if(diffMs<3600000) timeLabel=Math.round(diffMs/60000)+'min';
+      else if(diffMs<86400000) timeLabel=Math.round(diffMs/3600000)+'h';
+      else timeLabel=Math.round(diffMs/86400000)+'d';
+      return `<button onclick="rateCard(${r.s})" style="background:var(--bg2);border:1px solid ${r.c}44;border-radius:14px;padding:12px 4px;cursor:pointer;text-align:center">
+        <div style="font-size:13px;font-weight:800;color:${r.c}">${r.l}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${timeLabel}</div>
+      </button>`;
+    }).join('')}</div>
     <button onclick="lF=false;lI++;if(lI>=lP.length){lD=true;}showCard(document.getElementById('app'))" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px;width:100%;color:var(--text2);font-weight:700;cursor:pointer">${ui('skip')}</button></div>`:''}`
 }
 function rateCard(score){
   const card=lP[lI];
   const updated=calcNext(card,score);
-  setVocab(getVocab().map(v=>v.id===card.id?updated:v));
-  if(score>=4)lS.p++;else if(score>=2)lS.g++;else lS.s++;
-  addXP(score>=4?10:score>=2?5:2);
+  if(lIsVerbMode){
+    setVerbs(getVerbs().map(v=>v.id===card._origId?{...v,status:updated.status,interval:updated.interval,easeFactor:updated.easeFactor,repetitions:updated.repetitions,failCount:updated.failCount,nextReview:updated.nextReview,lastScore:updated.lastScore}:v));
+  } else {
+    setVocab(getVocab().map(v=>v.id===card.id?updated:v));
+  }
+  if(score>=5)lS.p++;else if(score>=3)lS.g++;else lS.s++;
+  addXP(score>=5?10:score>=3?5:2);
+  // Anki-Style: Karten mit kurzem Lern-Intervall (Minuten) kommen direkt wieder in der aktuellen Session dran
+  if(score<3){
+    lP.push(updated);
+  }
   lI++; lF=false;
   if(lI>=lP.length){lD=true;updateStreak();}
   showCard(document.getElementById('app'));
@@ -1297,247 +1386,14 @@ async function addVerb(){
 let gQ=[],gI=0,gScore=0,gDone=false,gMode=null,gMC=[],gAns='',gResult=null;
 
 function renderSpiele(app){
-  const vocab=getVocab();
-  if(!gMode){
-    app.innerHTML=`<div style="padding:20px 16px 100px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
-        <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
-        <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">${ui('games')}</div></div>
-      </div>
-      ${[
-        {mode:'mc',title:'Multiple Choice',desc:'Arabisch sehen → Bedeutung wählen',color:'#60a5fa',icon:'target'},
-        {mode:'ar2tr',title:`Arabisch → ${LANGS[lang].name}`,desc:'Arabisches Wort übersetzen',color:'#a3e635',icon:'pencil'},
-        {mode:'tr2ar',title:`${LANGS[lang].name} → Arabisch`,desc:'Wort auf Arabisch eintippen',color:'#F59E0B',icon:'pencil'},
-        {mode:'hoeren',title:'Hören & Erkennen',desc:'Wort wird vorgelesen – welches ist es?',color:'#f472b6',icon:'ear'},
-        {mode:'luecke',title:'Lückentext',desc:'Fehlende Wörter im Satz ergänzen',color:'#34d399',icon:'bookOpen'},
-        {mode:'paare',title:'Paare finden',desc:'Arabisch und Übersetzung zusammenführen',color:'#fb923c',icon:'link'},
-        {mode:'saetze',title:'Sätze übersetzen',desc:'KI generiert Sätze mit Vokabeln',color:'#c084fc',icon:'message'},
-        {mode:'schnell',title:'Schnellantwort',desc:'So schnell wie möglich antworten',color:'#f87171',icon:'zap'},
-        {mode:'plural',title:'Plural-Trainer',desc:'Mehrzahl des arabischen Worts nennen',color:'#38bdf8',icon:'hash'},
-        {mode:'wortart',title:'Wortart erkennen',desc:'Nomen, Verb oder Adjektiv?',color:'#a3e635',icon:'tag'},
-        {mode:'kontext',title:'Im Kontext',desc:'KI zeigt Satz – welches Wort passt?',color:'#fbbf24',icon:'puzzle'},
-        {mode:'harakat',title:'Harakat einsetzen',desc:'Setze die Vokalisierung richtig ein',color:'#f472b6',icon:'sparkles'},
-      ].map(g=>`<div onclick="startGame('${g.mode}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div>${icon(g.icon,22,g.color,2)}</div>
-          <div><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${g.title}</div><div style="font-size:11px;color:var(--text3)">${g.desc}</div></div>
-        </div>
-        <div style="color:${g.color};font-size:20px;flex-shrink:0;margin-left:8px">›</div>
-      </div>`).join('')}
-      <div onclick="subView='diktat';window._diktatState=null;render()" style="background:linear-gradient(135deg,#1a1200,#2a1f00);border:2px solid var(--gold);border-radius:16px;padding:16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div>${icon('mic',24,'var(--gold)',2)}</div>
-          <div><div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:2px">Diktat</div><div style="font-size:11px;color:var(--text3)">Sätze hören und auf Arabisch schreiben</div></div>
-        </div>
-        <div style="color:var(--gold);font-size:20px;flex-shrink:0;margin-left:8px">›</div>
-      </div>
-    </div>`; return;
-  }
-  if(gDone){
-    const pct=Math.round((gScore/gQ.length)*100);
-    app.innerHTML=`<div style="padding:20px 16px 100px">
-      <div style="padding:24px 0 16px;text-align:center"><div style="font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px">${pct>=80?'Ausgezeichnet!':pct>=60?'Gut gemacht!':'Weiter üben!'}</div><div style="font-size:14px;color:var(--text3)">${gScore} / ${gQ.length}</div></div>
-      <div class="card" style="text-align:center;margin-bottom:16px"><div style="font-size:52px;font-weight:900;color:${pct>=80?'#a3e635':'#F59E0B'}">${pct}%</div><div style="background:var(--bg3);border-radius:8px;height:8px;margin-top:12px"><div style="width:${pct}%;background:${pct>=80?'#a3e635':'#F59E0B'};height:8px;border-radius:8px"></div></div></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="gold-btn" onclick="startGame('${gMode}')">Nochmal</button><button onclick="gMode=null;renderSpiele(document.getElementById('app'))" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;color:var(--text);font-weight:700;cursor:pointer">Menü</button></div>
-    </div>`; return;
-  }
-  if(!gQ.length){app.innerHTML=`<div style="padding:60px 16px;text-align:center"><div style="color:var(--text3)">Aufgaben werden erstellt...</div></div>`;return;}
-
-  // ── PAARE (matching pairs) — eigenes Rendering ──
-  if(gMode==='paare'){
-    const ps=window._paareState;
-    if(!ps){app.innerHTML=`<div style="padding:60px 16px;text-align:center"><div style="color:var(--text3)">Lädt...</div></div>`;return;}
-    const leftItems=ps.leftOrder.map(id=>ps.pairs.find(p=>p.id===id));
-    const rightItems=ps.rightOrder.map(id=>ps.pairs.find(p=>p.id===id));
-    app.innerHTML=`<div style="padding:20px 16px 100px">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;margin-bottom:14px">
-        <button onclick="gMode=null;window._paareState=null;renderSpiele(document.getElementById('app'))" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px">← Zurück</button>
-        <div style="font-size:13px;font-weight:700;color:var(--gold)">${ps.matchedCount} / ${ps.pairs.length} Paare</div>
-      </div>
-      <div style="background:var(--bg3);border-radius:4px;height:4px;margin-bottom:18px"><div style="width:${(ps.matchedCount/ps.pairs.length)*100}%;background:var(--gold);height:4px;border-radius:4px;transition:width 0.4s"></div></div>
-      <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:16px">Tippe auf ein arabisches Wort, dann auf die passende Übersetzung</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div style="display:flex;flex-direction:column;gap:8px">
-          ${leftItems.map(p=>{
-            if(!p) return '';
-            const isMatched=p.matched;
-            const isSelected=ps.selectedLeft===p.id;
-            const isWrong=ps.wrongFlash==='left-'+p.id;
-            return `<div onclick="${isMatched?'':`window._paareClickLeft(${p.id})`}" style="background:${isMatched?'#14532d':isWrong?'#7f1d1d':isSelected?'var(--gold)':'var(--bg2)'};border:1.5px solid ${isMatched?'#22c55e':isWrong?'#ef4444':isSelected?'var(--gold)':'var(--border)'};border-radius:14px;padding:16px 10px;cursor:${isMatched?'default':'pointer'};text-align:center;opacity:${isMatched?'0.5':'1'};-webkit-tap-highlight-color:transparent;transition:all 0.2s">
-              <div class="ar" style="font-size:20px;color:${isSelected&&!isMatched?'#080c14':isMatched?'#4ade80':'var(--gold)'};font-weight:700">${p.ar}</div>
-            </div>`;
-          }).join('')}
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          ${rightItems.map(p=>{
-            if(!p) return '';
-            const isMatched=p.matched;
-            const isSelected=ps.selectedRight===p.id;
-            const isWrong=ps.wrongFlash==='right-'+p.id;
-            return `<div onclick="${isMatched?'':`window._paareClickRight(${p.id})`}" style="background:${isMatched?'#14532d':isWrong?'#7f1d1d':isSelected?'var(--gold)':'var(--bg2)'};border:1.5px solid ${isMatched?'#22c55e':isWrong?'#ef4444':isSelected?'var(--gold)':'var(--border)'};border-radius:14px;padding:16px 10px;cursor:${isMatched?'default':'pointer'};text-align:center;opacity:${isMatched?'0.5':'1'};-webkit-tap-highlight-color:transparent;transition:all 0.2s">
-              <div style="font-size:13px;color:${isSelected&&!isMatched?'#080c14':isMatched?'#4ade80':'var(--text)'};font-weight:600">${p.tr}</div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-      ${ps.matchedCount>=ps.pairs.length?`<div style="margin-top:20px;text-align:center"><div style="font-size:18px;font-weight:800;color:#a3e635;margin-bottom:12px">Alle Paare gefunden! 🎉</div><button class="gold-btn" onclick="startGame('paare')">Nochmal</button></div>`:''}
-    </div>`;
-
-    window._paareClickLeft=function(id){
-      const ps=window._paareState;
-      if(ps.pairs.find(p=>p.id===id).matched) return;
-      ps.selectedLeft=id;
-      if(ps.selectedRight!==null) window._paareTryMatch();
-      else renderSpiele(document.getElementById('app'));
-    };
-    window._paareClickRight=function(id){
-      const ps=window._paareState;
-      if(ps.pairs.find(p=>p.id===id).matched) return;
-      ps.selectedRight=id;
-      if(ps.selectedLeft!==null) window._paareTryMatch();
-      else renderSpiele(document.getElementById('app'));
-    };
-    window._paareTryMatch=function(){
-      const ps=window._paareState;
-      if(ps.selectedLeft===ps.selectedRight){
-        // Correct match
-        const p=ps.pairs.find(x=>x.id===ps.selectedLeft);
-        p.matched=true;
-        ps.matchedCount++;
-        ps.selectedLeft=null; ps.selectedRight=null;
-        addXP(10);
-        renderSpiele(document.getElementById('app'));
-      } else {
-        // Wrong match - flash red then reset
-        ps.wrongFlash='left-'+ps.selectedLeft;
-        const wrongRight='right-'+ps.selectedRight;
-        renderSpiele(document.getElementById('app'));
-        setTimeout(()=>{
-          ps.selectedLeft=null; ps.selectedRight=null; ps.wrongFlash=null;
-          renderSpiele(document.getElementById('app'));
-        },600);
-      }
-    };
-    return;
-  }
-
-  const q=gQ[gI];
-  const qTr=getTr(q)||'';
-  app.innerHTML=`<div style="padding:20px 16px 100px">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;margin-bottom:14px">
-      <button onclick="gMode=null;renderSpiele(document.getElementById('app'))" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px">← Zurück</button>
-      <div style="font-size:13px;font-weight:700;color:var(--gold)">${gScore} ✓ · ${gI+1}/${gQ.length}</div>
-    </div>
-    <div style="background:var(--bg3);border-radius:4px;height:4px;margin-bottom:18px"><div style="width:${(gI/gQ.length)*100}%;background:var(--gold);height:4px;border-radius:4px;transition:width 0.4s"></div></div>
-    <div class="card" style="min-height:170px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;margin-bottom:16px;border-color:${gResult==='correct'?'#166534':gResult==='wrong'?'#7f1d1d':'var(--border)'}">
-      ${gMode==='mc'||gMode==='ar2tr'||gMode==='plural'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">${gMode==='plural'?'Mehrzahl (جمع) von:':'Was bedeutet?'}</div><div class="ar" style="font-size:54px;color:var(--gold);font-weight:700">${q.harakat||q.arabic}</div><div style="font-size:11px;color:var(--text3);margin-top:8px">${q.wordType||''}</div>`:''}
-      ${gMode==='hoeren'?`<div style="font-size:11px;color:var(--text3);margin-bottom:16px">Welches Wort wurde vorgelesen?</div><button onclick="speakAr('${(q.harakat||q.arabic).replace(/'/g,"\\'")}');return false" style="background:#1e3a5f;border:1px solid #3b5f8a;border-radius:14px;padding:14px 24px;color:#60a5fa;font-weight:700;cursor:pointer;font-size:16px;margin-bottom:12px">Nochmal hören</button>`:''}
-      ${gMode==='tr2ar'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Schreibe auf Arabisch:</div><div style="font-size:26px;font-weight:800;color:var(--text)">${getTr(q)}</div>`:''}
-      ${gMode==='wortart'?`<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Was für eine Wortart ist das?</div><div class="ar" style="font-size:48px;color:var(--gold);font-weight:700;margin-bottom:8px">${q.harakat||q.arabic}</div><div style="font-size:14px;color:var(--text2)">${getTr(q)}</div>`:''}
-      ${gMode==='schnell'?`<div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:14px">SCHNELL!</div><div class="ar" style="font-size:48px;color:var(--gold);font-weight:700">${q.harakat||q.arabic}</div>`:''}
-      ${gMode==='saetze'||gMode==='luecke'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">${gMode==='luecke'?'Ergänze das fehlende Wort:':q.dir==='ar2tr'?'Übersetze:':'Übersetze ins Arabische:'}</div><div class="${(gMode==='saetze'&&q.dir==='ar2tr')||gMode==='luecke'?'ar':''}" style="font-size:${(gMode==='saetze'&&q.dir==='ar2tr')||gMode==='luecke'?'22':'18'}px;color:var(--text);font-weight:600;line-height:1.6">${q.aufgabe}</div>${q.hinweis?`<div style="font-size:11px;color:var(--text3);margin-top:8px">Tipp: ${q.hinweis}</div>`:''}`:''}
-      ${gMode==='kontext'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">Welches Wort passt?</div><div class="ar" style="font-size:20px;color:var(--text);font-weight:600;line-height:1.8;margin-bottom:10px">${q.aufgabe}</div>`:''}
-      ${gMode==='harakat'?`<div style="font-size:11px;color:var(--gold);margin-bottom:12px;font-weight:700">Setze die Harakat richtig ein</div><div class="ar" style="font-size:26px;color:var(--text);font-weight:600;line-height:1.8;margin-bottom:10px">${q.aufgabe}</div><div style="font-size:12px;color:var(--text3);margin-bottom:10px">${q.hinweis}</div>`:''}      ${gResult?`<div style="margin-top:14px;padding:10px 16px;background:${gResult==='correct'?'#14532d':'#7f1d1d'};border-radius:10px;width:100%"><div style="font-size:13px;font-weight:700;color:${gResult==='correct'?'#4ade80':'#fca5a5'}">${gResult==='correct'?'Richtig!':'Falsch'}</div>${gResult==='wrong'?`<div style="font-size:12px;color:#94a3b8;margin-top:4px">Richtig: ${gMode==='tr2ar'?`<span class="ar">${q.harakat||q.arabic}</span>`:gMode==='saetze'?q.loesung:qTr}</div>`:''}</div>`:''}
-    </div>
-    ${gMode==='mc'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${gMC.map(opt=>`<div onclick="checkGame(${opt.id})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div style="font-size:13px;color:var(--text);font-weight:600">${getTr(opt)}</div></div>`).join('')}</div>`:''} 
-    ${gMode==='hoeren'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${gMC.map(opt=>`<div onclick="checkGame(${opt.id})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div class="ar" style="font-size:18px;color:var(--gold);font-weight:700">${opt.harakat||opt.arabic}</div></div>`).join('')}</div>`:''}
-    ${gMode==='wortart'&&!gResult?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${['Nomen','Verb','Adjektiv','Partikel'].map(w=>`<div onclick="checkGame('${w}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 8px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div style="font-size:13px;color:var(--text);font-weight:600">${w}</div></div>`).join('')}</div>`:''}
-    ${(gMode==='kontext'||gMode==='harakat')&&!gResult&&q.optionen?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${q.optionen.map(opt=>`<div onclick="checkGame('${opt}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent"><div class="ar" style="font-size:18px;color:var(--gold);font-weight:700">${opt}</div></div>`).join('')}</div>`:''}
-    ${!['mc','hoeren','wortart','kontext','harakat'].includes(gMode)&&!gResult?`<div><input id="gAns" value="${gAns}" onchange="gAns=this.value" onkeydown="if(event.key==='Enter'){var a=this.value;if(a.trim())checkGame(a)}" placeholder="${gMode==='tr2ar'||gMode==='luecke'?'اكتب هنا...':'Antwort eingeben...'}" class="${gMode==='tr2ar'||gMode==='luecke'?'ar':''}" style="font-size:${gMode==='tr2ar'||gMode==='luecke'?'22':'15'}px;margin-bottom:10px;color:${gMode==='tr2ar'||gMode==='luecke'?'var(--gold)':'var(--text)'}" autofocus/><button class="gold-btn" onclick="var a=document.getElementById('gAns').value;if(a.trim())checkGame(a)">Prüfen</button></div>`:''}
-    ${gResult?`<button class="gold-btn" style="margin-top:12px" onclick="nextGame()">${gI+1>=gQ.length?'Ergebnis sehen':'Weiter →'}</button>`:''}`
-}
-
-async function startGame(mode){
-  gMode=mode;gI=0;gScore=0;gDone=false;gResult=null;gAns='';
-  const vocab=getVocab();
-  if(vocab.length<4){alert('Mindestens 4 '+ui('vocab')+' nötig!');gMode=null;renderSpiele(document.getElementById('app'));return;}
-  renderSpiele(document.getElementById('app'));
-  const sh=arr=>[...arr].sort(()=>Math.random()-0.5);
-
-  if(['mc','ar2tr','tr2ar','hoeren','schnell','wortart'].includes(mode)){
-    gQ=sh(vocab).slice(0,10);
-    if(mode==='mc'||mode==='hoeren')buildMC(0);
-    if(mode==='hoeren'){ setTimeout(()=>speakAr(gQ[0].harakat||gQ[0].arabic),400); }
-  } else if(mode==='plural'){
-    const withPlural=vocab.filter(v=>v.plural&&v.plural!=='-'&&v.plural.trim()!=='');
-    if(withPlural.length<4){alert('Zu wenige Vokabeln mit Plural!');gMode=null;renderSpiele(document.getElementById('app'));return;}
-    gQ=sh(withPlural).slice(0,10);
-  } else if(mode==='harakat'){
-    // Local game: show word without harakat, pick correct vocalized version from 4 options
-    const withH=vocab.filter(v=>(v.harakat||v.arabic)&&stripH(v.harakat||v.arabic)!==(v.harakat||v.arabic));
-    if(withH.length<4){alert('Zu wenige Vokabeln mit Harakat!');gMode=null;renderSpiele(document.getElementById('app'));return;}
-    gQ=sh(withH).slice(0,10).map(v=>{
-      const correct=v.harakat||v.arabic;
-      const others=sh(withH.filter(x=>x.id!==v.id)).slice(0,3).map(x=>x.harakat||x.arabic);
-      return {aufgabe:stripH(correct),optionen:sh([correct,...others]),loesung:correct,hinweis:getTr(v),dir:'harakat'};
-    });
-  } else if(mode==='paare'){
-    const sel=sh(vocab).slice(0,6);
-    window._paareState={
-      pairs: sel.map(v=>({id:v.id,ar:v.harakat||v.arabic,tr:getTr(v),matched:false})),
-      leftOrder: sh(sel.map(v=>v.id)),
-      rightOrder: sh(sel.map(v=>v.id)),
-      selectedLeft: null,
-      selectedRight: null,
-      wrongFlash: null,
-      matchedCount: 0
-    };
-    gQ=sel; // for progress tracking compat
-  } else if(['saetze','luecke','kontext'].includes(mode)){
-    try{
-      const wl=sh(vocab).slice(0,6).map(v=>`${v.arabic} (${getTr(v)})`).join(', ');
-      let prompt='';
-      if(mode==='saetze') prompt=`Create 8 simple translation exercises (max 5 words) using: ${wl}. Alternate Arabic→${LANGS[lang].name} and ${LANGS[lang].name}→Arabic. ONLY JSON: [{"aufgabe":"sentence","dir":"ar2tr or tr2ar","loesung":"translation","hinweis":"hint"}]`;
-      else if(mode==='luecke') prompt=`Create 8 fill-in-the-blank exercises using these Arabic words: ${wl}. Show an Arabic sentence with one word replaced by ___. User must type the missing word. ONLY JSON: [{"aufgabe":"Arabic sentence with ___","loesung":"the missing Arabic word with diacritics","hinweis":"hint: ${LANGS[lang].name} meaning","dir":"luecke"}]`;
-      else if(mode==='kontext') prompt=`Create 8 context exercises: show an Arabic sentence, ask which word from a list fits best. Use words: ${wl}. ONLY JSON: [{"aufgabe":"Arabic sentence with blank","optionen":["word1","word2","word3","word4"],"loesung":"correct word with diacritics","hinweis":"context hint"}]`;
-      const raw=await callAI(prompt,1500);
-      const p=pJ(raw);
-      if(Array.isArray(p)&&p.length>0){gQ=p;renderSpiele(document.getElementById('app'));}
-      else{alert('KI Fehler');gMode=null;renderSpiele(document.getElementById('app'));}
-    }catch{alert('KI Fehler');gMode=null;renderSpiele(document.getElementById('app'));}
-  }
-  renderSpiele(document.getElementById('app'));
+  // Alle anderen Spiele entfernt — direkt zu Diktat weiterleiten
+  subView='diktat';
+  window._diktatState=null;
+  renderDiktat(app);
 }
 // Strip Arabic diacritics for comparison
 function stripH(s){return String(s).replace(/[ً-ٰٟ]/g,'').trim();}
 
-function buildMC(idx){const vocab=getVocab();const c=gQ[idx];const w=[...vocab].sort(()=>Math.random()-0.5).filter(v=>v.id!==c.id).slice(0,3);gMC=[...[c,...w]].sort(()=>Math.random()-0.5);}
-function checkGame(given){
-  const q=gQ[gI]; const qTr=getTr(q)||''; let ok=false;
-  const g=String(given).trim(); const gS=stripH(g); // gS = without harakat
-  if(gMode==='mc')ok=given===q.id;
-  else if(gMode==='hoeren')ok=given===q.id;
-  else if(gMode==='ar2tr'||gMode==='schnell'){
-    const translations=qTr.toLowerCase().split(',').map(t=>t.trim());
-    ok=translations.some(t=>t.length>2&&(g.toLowerCase()===t||g.toLowerCase().includes(t)||t.includes(g.toLowerCase())));
-  }
-  else if(gMode==='tr2ar'){const a=stripH(q.arabic);ok=gS===a||gS===stripH(q.harakat||q.arabic)||a.includes(gS);}
-  else if(gMode==='plural'){const pl=stripH(q.plural||'');ok=gS===pl||gS===stripH(q.pluralHarakat||q.plural||'');}
-  else if(gMode==='wortart'){
-    const wt=(q.wordType||'').toLowerCase();
-    const gL=g.toLowerCase();
-    ok=(gL==='nomen'&&wt.includes('nomen'))||(gL==='verb'&&wt.includes('verb'))||(gL==='adjektiv'&&wt.includes('adj'))||(gL==='partikel'&&(wt.includes('partikel')||wt.includes('präposition')||wt.includes('adverb')));
-  }
-  else if(gMode==='saetze'){
-    const l=(q.loesung||'').toLowerCase().trim();
-    const gL=g.toLowerCase();
-    ok=gL.length>2&&(gL===l||l.includes(gL)||gL.includes(l)||stripH(gL)===stripH(l));
-  }
-  else if(gMode==='luecke'){const sol=stripH(q.loesung||'');ok=gS===sol||(gS.length>=3&&sol.startsWith(gS))||(sol.length>=3&&gS.startsWith(sol));}
-  else if(gMode==='kontext'){const sol=stripH(q.loesung||'');ok=gS===sol;}
-  else if(gMode==='harakat'){ok=g===q.loesung;} // exact match needed for harakat game
-  gResult=ok?'correct':'wrong'; if(ok){gScore++;addXP(10);}
-  renderSpiele(document.getElementById('app'));
-}
-function nextGame(){
-  gI++;gResult=null;gAns='';
-  if(gI>=gQ.length){gDone=true;}
-  else{
-    if(gMode==='mc'||gMode==='hoeren')buildMC(gI);
-    if(gMode==='hoeren'){ setTimeout(()=>speakAr(gQ[gI].harakat||gQ[gI].arabic),400); }
-  }
-  renderSpiele(document.getElementById('app'));
-}
 
 // ── KORREKTOR ─────────────────────────────────────────────────────────────────
 let cResult=null;
@@ -1820,6 +1676,7 @@ window._setVoice=function(idx){
 // PROFIL
 function renderProfil(app){
   if(subView==='stats'){renderStats(app);return;}
+  if(subView==='settings'){renderSettings(app);return;}
   const vocab=getVocab();
   const gelernt=vocab.filter(v=>v.status==='gelernt').length;
   const lernend=vocab.filter(v=>v.status==='lernend').length;
@@ -1840,10 +1697,30 @@ function renderProfil(app){
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('projects')}</div>
     ${projects.map((p,i)=>`<div onclick="curProject=${i};goTab('lernen')" style="background:${curProject===i?'linear-gradient(135deg,#1a2f1a,#0d1a0d)':'var(--bg2)'};border:1px solid ${curProject===i?'#22c55e':'var(--border)'};border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:14px;font-weight:700;color:${curProject===i?'#4ade80':'var(--text)'}">${p.name} ${curProject===i?'✓':''}</div><div style="font-size:11px;color:var(--text3)">${(p.vocab||[]).length} ${ui('vocab')} · ${(p.verbs||[]).length} ${ui('verbs')}</div></div><div style="color:var(--text3);font-size:18px">›</div></div>`).join('')}
     <button onclick="addNewProject()" style="background:none;border:2px dashed var(--border);border-radius:14px;padding:14px;width:100%;color:var(--text3);cursor:pointer;font-size:14px;font-weight:600;margin-bottom:20px">${ui('newProject')}</button>
+    <div onclick="subView='stats';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:14px;font-weight:600;color:var(--text)">${ui('stats')}</div>
+      <div style="color:var(--text3);font-size:18px">›</div>
+    </div>
+    <div onclick="subView='settings';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px">${icon('settings',18,'var(--text2)',2)}<span style="font-size:14px;font-weight:600;color:var(--text)">Einstellungen</span></div>
+      <div style="color:var(--text3);font-size:18px">›</div>
+    </div>
+    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der ${ui('language')}</div>
+  </div>`;
+}
+
+function renderSettings(app){
+  app.innerHTML=`<div style="padding:20px 16px 100px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px">
+      <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+      <div style="display:flex;align-items:center;gap:8px">${icon('settings',20,'var(--gold)',2)}<div style="font-size:20px;font-weight:800;color:var(--text)">Einstellungen</div></div>
+    </div>
+
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('language')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
       ${Object.entries(LANGS).map(([code,l])=>`<div onclick="changeLang('${code}')" style="background:${lang===code?'var(--gold)':'var(--bg2)'};color:${lang===code?'#080c14':'var(--text)'};border:1px solid ${lang===code?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center;-webkit-tap-highlight-color:transparent">${l.flag} ${l.name}</div>`).join('')}
     </div>
+
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('appearance')}</div>
     <div onclick="toggleTheme()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <span style="font-size:14px;font-weight:600;color:var(--text)">${theme==='dark'?' Nacht-Modus':'️ Tag-Modus'}</span>
@@ -1851,13 +1728,22 @@ function renderProfil(app){
         <div style="position:absolute;top:4px;${theme==='dark'?'left:4px':'left:24px'};width:20px;height:20px;background:${theme==='dark'?'#fff':'#0a1628'};border-radius:50%"></div>
       </div>
     </div>
-    <div onclick="subView='stats';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:14px;font-weight:600;color:var(--text)">${ui('stats')}</div>
-      <div style="color:var(--text3);font-size:18px">›</div>
+
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">Kartenrichtung</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Bestimmt, welche Sprache vorne auf der Karte erscheint.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div onclick="setCardDirection('ar2de')" style="background:${cardDirection==='ar2de'?'var(--gold)':'var(--bg3)'};color:${cardDirection==='ar2de'?'#080c14':'var(--text)'};border:1px solid ${cardDirection==='ar2de'?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center">Arabisch → Deutsch</div>
+        <div onclick="setCardDirection('de2ar')" style="background:${cardDirection==='de2ar'?'var(--gold)':'var(--bg3)'};color:${cardDirection==='de2ar'?'#080c14':'var(--text)'};border:1px solid ${cardDirection==='de2ar'?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center">Deutsch → Arabisch</div>
+      </div>
     </div>
-    <div onclick="window.resetTutorial()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:14px;font-weight:600;color:var(--text)">Tutorial erneut anzeigen</div>
-      <div style="color:var(--text3);font-size:18px">›</div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">Beispielsatz-Layout</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Wie der Beispielsatz auf der Karte dargestellt wird.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div onclick="setSentenceLayout('stacked')" style="background:${sentenceLayout==='stacked'?'var(--gold)':'var(--bg3)'};color:${sentenceLayout==='stacked'?'#080c14':'var(--text)'};border:1px solid ${sentenceLayout==='stacked'?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center">Untereinander</div>
+        <div onclick="setSentenceLayout('sideBySide')" style="background:${sentenceLayout==='sideBySide'?'var(--gold)':'var(--bg3)'};color:${sentenceLayout==='sideBySide'?'#080c14':'var(--text)'};border:1px solid ${sentenceLayout==='sideBySide'?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center">Nebeneinander (-)</div>
+      </div>
     </div>
     <div class="card">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🔊 Sprachausgabe</div>
@@ -1870,14 +1756,6 @@ function renderProfil(app){
         </select>
       `:`<div style="font-size:11px;color:#F59E0B">Nur eine arabische Stimme auf diesem Gerät gefunden. Für bessere Qualität: iOS-Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Arabisch → weitere Stimmen herunterladen.</div>`}
     </div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">Backend-URL (sicherer Modus)</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Trage hier deine Vercel-Backend-URL ein, damit dein API-Key nicht mehr im Browser gespeichert werden muss.</div>
-      <input id="backendUrlInput" value="${localStorage.getItem('backendUrl')||''}" placeholder="https://dein-projekt.vercel.app/api/chat" style="font-size:13px;margin-bottom:8px"/>
-      <button class="gold-btn" onclick="const v=document.getElementById('backendUrlInput').value.trim();if(v){localStorage.setItem('backendUrl',v);alert('Backend-URL gespeichert! App wird neu geladen.');location.reload();}else{localStorage.removeItem('backendUrl');alert('Backend-URL entfernt — App nutzt wieder den lokalen API-Key.');location.reload();}">Speichern</button>
-      ${localStorage.getItem('backendUrl')?`<div style="font-size:11px;color:#a3e635;margin-top:8px">✓ Backend aktiv — API-Key ist sicher</div>`:`<div style="font-size:11px;color:#F59E0B;margin-top:8px">⚠ Kein Backend konfiguriert — API-Key liegt im Browser</div>`}
-    </div>
-    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der ${ui('language')}</div>
   </div>`;
 }
 
@@ -2209,22 +2087,9 @@ function renderStats(app){
     </div>
   </div>`;
 }
-// BOOT
-window._ak = localStorage.getItem('ak') || '';
-function checkApiKey(){
-  if(window._ak){ render(); return; }
-  document.getElementById('navbar').innerHTML='';
-  document.getElementById('app').innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px">
-    <div style="margin-bottom:20px">${icon('key',52,'var(--gold)',1.5)}</div>
-    <div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;text-align:center">API Key eingeben</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:24px;text-align:center;line-height:1.6">Du brauchst einen Anthropic API Key.<br>Hol ihn kostenlos auf console.anthropic.com</div>
-    <input id="akIn" type="password" placeholder="sk-ant-..." style="width:100%;margin-bottom:12px;font-size:14px" />
-    <button onclick="var v=document.getElementById('akIn').value.trim();if(v.startsWith('sk-')){window._ak=v;localStorage.setItem('ak',v);render();}else{alert('Ungültiger Key – muss mit sk-ant- beginnen')}" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:14px;color:#080c14;font-weight:900;font-size:16px;padding:16px 0;width:100%;cursor:pointer">Speichern & Starten</button>
-    <div style="font-size:11px;color:var(--text3);margin-top:16px;text-align:center">Der Key wird nur lokal auf deinem Gerät gespeichert.</div>
-  </div>`;
-}
+// BOOT — Backend ist fest eingebaut, kein API-Key vom Nutzer mehr nötig
 try {
-  checkApiKey();
+  render();
 } catch(e) {
   document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;font-size:14px">Fehler: ' + e.message + '</div>';
 }
