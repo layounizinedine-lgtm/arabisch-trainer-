@@ -35,12 +35,39 @@ input,textarea,select{background:var(--bg3);border:1px solid var(--border);borde
 .quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:transform 0.1s,border-color 0.2s;-webkit-tap-highlight-color:transparent}
 .quick-card:active{transform:scale(0.97)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="topbar"></div>
 <div id="app" style="padding-top:3px"></div>
 <div id="navbar"></div>
 <script>
+// ═══════════════════════════════════════════════════════
+// SUPABASE — Cloud-Speicherung des Lernfortschritts
+// ═══════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://tbvonsklczjrtgfckptn.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_G6wG6xW5ZwgY8ithsXE63Q_FRXrBoYi';
+let supa = null;
+
+// Wartet bis das Supabase-CDN-Skript vollständig geladen ist (kann beim ersten App-Start etwas dauern)
+function waitForSupabaseLib(maxTries){
+  return new Promise((resolve)=>{
+    let tries=0;
+    const check=()=>{
+      if(window.supabase){ resolve(true); return; }
+      tries++;
+      if(tries>=maxTries){ resolve(false); return; }
+      setTimeout(check, 100);
+    };
+    check();
+  });
+}
+
+let currentUser = null; // { id, email }
+let authError = '';
+let authLoading = false;
+let authMode = 'login'; // 'login' | 'signup'
+
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
@@ -569,7 +596,7 @@ function getTodayMotto(){
   return MOTTOS[_mottoIdx%MOTTOS.length];
 }
 
-function saveProjects(){ try{localStorage.setItem('projects_v2',JSON.stringify(projects))}catch{} }
+function saveProjects(){ try{localStorage.setItem('projects_v2',JSON.stringify(projects))}catch{}; cloudSyncDebounced(); }
 function getP(){ return projects[curProject]||projects[0]; }
 function getVocab(){ return getP().vocab||[]; }
 function getVocabUpToHere(){ return projects.slice(0,curProject+1).flatMap(p=>p.vocab||[]); }
@@ -578,6 +605,51 @@ function setVocab(v){ projects[curProject].vocab=v; saveProjects(); }
 function setVerbs(v){ projects[curProject].verbs=v; saveProjects(); }
 function getTr(item){ return item.translations?(item.translations[lang]||item.translations.de||''):(item.translation||item.german||''); }
 function getExTr(item){ return item.exampleTranslation?(item.exampleTranslation[lang]||item.exampleTranslation.de||''):''; }
+
+// ═══════════════════════════════════════════════════════
+// CLOUD SYNC — speichert Lernfortschritt bei Supabase, sobald eingeloggt
+// ═══════════════════════════════════════════════════════
+let _cloudSyncTimer=null;
+function cloudSyncDebounced(){
+  if(!supa||!currentUser) return;
+  clearTimeout(_cloudSyncTimer);
+  _cloudSyncTimer=setTimeout(cloudSyncNow, 1500);
+}
+async function cloudSyncNow(){
+  if(!supa||!currentUser) return;
+  try{
+    await supa.from('progress').upsert({
+      user_id: currentUser.id,
+      projects: projects,
+      streak: streak,
+      settings: { cardDirection, sentenceLayout, lang, theme },
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+  }catch(e){ console.warn('Cloud-Sync fehlgeschlagen:', e); }
+}
+async function cloudLoadForUser(){
+  if(!supa||!currentUser) return false;
+  try{
+    const { data, error } = await supa.from('progress').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if(error) throw error;
+    if(data){
+      if(data.projects&&data.projects.length) projects=data.projects;
+      if(data.streak) streak=data.streak;
+      if(data.settings){
+        cardDirection=data.settings.cardDirection||cardDirection;
+        sentenceLayout=data.settings.sentenceLayout||sentenceLayout;
+        lang=data.settings.lang||lang;
+        theme=data.settings.theme||theme;
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+      saveProjectsLocal(); saveStreakLocal();
+      return true;
+    }
+  }catch(e){ console.warn('Cloud-Laden fehlgeschlagen:', e); }
+  return false;
+}
+function saveProjectsLocal(){ try{localStorage.setItem('projects_v2',JSON.stringify(projects))}catch{} }
+function saveStreakLocal(){ try{localStorage.setItem('streak_v4',JSON.stringify(streak))}catch{} }
 
 // ═══════════════════════════════════════════════════════
 // STREAK & STATS
@@ -592,12 +664,12 @@ function updateStreak(){
   const yk=y.toISOString().slice(0,10);
   streak.days = streak.lastDate===yk ? streak.days+1 : 1;
   streak.lastDate=today; streak.longest=Math.max(streak.longest,streak.days); streak.todayXP=0;
-  try{localStorage.setItem('streak_v4',JSON.stringify(streak))}catch{}
+  saveStreakLocal(); cloudSyncDebounced();
 }
 function addXP(n){
   streak.todayXP=(streak.todayXP||0)+n;
   streak.totalXP=(streak.totalXP||0)+n;
-  try{localStorage.setItem('streak_v4',JSON.stringify(streak))}catch{}
+  saveStreakLocal(); cloudSyncDebounced();
   // Track daily review count for heatmap
   try{
     const today=new Date().toISOString().slice(0,10);
@@ -1705,6 +1777,11 @@ function renderProfil(app){
       <div style="display:flex;align-items:center;gap:10px">${icon('settings',18,'var(--text2)',2)}<span style="font-size:14px;font-weight:600;color:var(--text)">Einstellungen</span></div>
       <div style="color:var(--text3);font-size:18px">›</div>
     </div>
+    ${currentUser?`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px">Angemeldet als</div>
+      <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:12px">${currentUser.email}</div>
+      <button class="sec-btn" onclick="doLogout()">Abmelden</button>
+    </div>`:''}
     <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der ${ui('language')}</div>
   </div>`;
 }
@@ -2087,12 +2164,90 @@ function renderStats(app){
     </div>
   </div>`;
 }
-// BOOT — Backend ist fest eingebaut, kein API-Key vom Nutzer mehr nötig
-try {
-  render();
-} catch(e) {
-  document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;font-size:14px">Fehler: ' + e.message + '</div>';
+// ═══════════════════════════════════════════════════════
+// AUTH — Login / Registrierung mit E-Mail + Passwort (Supabase)
+// ═══════════════════════════════════════════════════════
+function renderAuth(app){
+  const nav=document.getElementById('navbar');
+  if(nav) nav.style.display='none';
+  const isSignup=authMode==='signup';
+  app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
+    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${isSignup?'Erstelle dein Konto':'Melde dich an'}</div>
+    <div style="width:100%;max-width:340px">
+      <input id="authEmail" type="email" placeholder="E-Mail-Adresse" style="margin-bottom:10px" autocomplete="email"/>
+      <input id="authPassword" type="password" placeholder="Passwort" style="margin-bottom:16px" autocomplete="${isSignup?'new-password':'current-password'}"/>
+      ${authError?`<div style="background:#2a1010;border:1px solid #7f1d1d;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#f87171;font-size:13px">${authError}</div>`:''}
+      <button class="gold-btn" onclick="window._doAuth()" style="margin-bottom:12px" ${authLoading?'disabled':''}>${authLoading?'Lädt...':(isSignup?'Konto erstellen':'Anmelden')}</button>
+      <div style="text-align:center;font-size:13px;color:var(--text3)">
+        ${isSignup?'Schon ein Konto?':'Noch kein Konto?'}
+        <span onclick="authMode='${isSignup?'login':'signup'}';authError='';render()" style="color:var(--gold);font-weight:700;cursor:pointer">${isSignup?'Anmelden':'Registrieren'}</span>
+      </div>
+    </div>
+  </div>`;
 }
+window._doAuth=async function(){
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPassword').value;
+  if(!email||!password){ authError='Bitte E-Mail und Passwort eingeben.'; render(); return; }
+  if(password.length<6){ authError='Passwort muss mindestens 6 Zeichen haben.'; render(); return; }
+  authLoading=true; authError=''; render();
+  try{
+    if(authMode==='signup'){
+      const {data,error}=await supa.auth.signUp({email,password});
+      if(error) throw error;
+      if(data.user){
+        currentUser={id:data.user.id,email:data.user.email};
+        await cloudSyncNow(); // Ersteinrichtung: lokalen Stand hochladen
+        authLoading=false; render();
+      }
+    } else {
+      const {data,error}=await supa.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      currentUser={id:data.user.id,email:data.user.email};
+      await cloudLoadForUser();
+      authLoading=false; render();
+    }
+  }catch(e){
+    authLoading=false;
+    authError=(e.message||'Fehler bei der Anmeldung.').includes('Invalid login')?'E-Mail oder Passwort falsch.':(e.message||'Fehler bei der Anmeldung.');
+    render();
+  }
+};
+async function doLogout(){
+  if(supa) await supa.auth.signOut();
+  currentUser=null;
+  render();
+}
+window.doLogout=doLogout;
+
+// BOOT — Backend ist fest eingebaut, kein API-Key vom Nutzer mehr nötig
+async function boot(){
+  try{
+    // Erst warten bis die Supabase-Bibliothek vollständig geladen ist (max. 3 Sekunden)
+    const libReady = await waitForSupabaseLib(30);
+    if(libReady && SUPABASE_URL!=='DEINE_SUPABASE_URL'){
+      try{
+        supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }catch(e){ console.warn('Supabase-Client konnte nicht erstellt werden:', e); }
+    }
+    if(supa){
+      const {data}=await supa.auth.getSession();
+      if(data&&data.session&&data.session.user){
+        currentUser={id:data.session.user.id,email:data.session.user.email};
+        await cloudLoadForUser();
+      }
+    }
+    if(supa&&!currentUser){
+      renderAuth(document.getElementById('app'));
+    } else {
+      render();
+    }
+  } catch(e) {
+    document.getElementById('app').innerHTML = '<div style="color:red;padding:20px;font-size:14px">Fehler: ' + e.message + '</div>';
+  }
+}
+boot();
 </script>
 </body>
 </html>
