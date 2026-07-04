@@ -1131,7 +1131,21 @@ function filterVocab(q){
   const filtered=vocab.filter(v=>v.arabic.includes(q)||getTr(v).toLowerCase().includes(q.toLowerCase()));
   document.getElementById('vocabList').innerHTML=filtered.map(v=>vocabCard(v)).join('');
 }
-function deleteVocab(id){ setVocab(getVocab().filter(v=>v.id!==id)); renderVokabeln(document.getElementById('app')); }
+function deleteVocab(id){
+  const v=getVocab().find(x=>x.id===id); if(!v)return;
+  const m=document.createElement('div'); m.className='overlay';
+  m.innerHTML=`<div class="sheet" style="max-width:400px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:8px">Vokabel löschen?</div>
+      <div style="font-size:13px;color:var(--text3);line-height:1.6">Möchtest du <span class="ar" style="color:var(--gold);font-size:16px">${v.harakat||v.arabic}</span> (${getTr(v)}) wirklich löschen? Das kann nicht rückgängig gemacht werden.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="sec-btn" onclick="this.closest('.overlay').remove()">Abbrechen</button>
+      <button onclick="setVocab(getVocab().filter(v=>v.id!==${id}));this.closest('.overlay').remove();renderVokabeln(document.getElementById('app'))" style="background:#7f1d1d;border:none;border-radius:14px;color:#fecaca;font-weight:700;font-size:14px;padding:14px 0;cursor:pointer">Löschen</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+}
 
 function showAddVocab(){
   const m=document.createElement('div'); m.className='overlay';
@@ -1800,6 +1814,13 @@ function renderSettings(app){
       <div style="display:flex;align-items:center;gap:8px">${icon('settings',20,'var(--gold)',2)}<div style="font-size:20px;font-weight:800;color:var(--text)">Einstellungen</div></div>
     </div>
 
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">Name</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Erscheint als Begrüßung auf der Startseite.</div>
+      <input id="nameInput" placeholder="Name (z.B. Abu Fulan)" value="${(currentUser&&currentUser.name)?currentUser.name:''}" style="margin-bottom:10px"/>
+      <button class="gold-btn" onclick="saveName()" id="saveNameBtn">Speichern</button>
+    </div>
+
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('language')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
       ${Object.entries(LANGS).map(([code,l])=>`<div onclick="changeLang('${code}')" style="background:${lang===code?'var(--gold)':'var(--bg2)'};color:${lang===code?'#080c14':'var(--text)'};border:1px solid ${lang===code?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center;-webkit-tap-highlight-color:transparent">${l.flag} ${l.name}</div>`).join('')}
@@ -1840,6 +1861,13 @@ function renderSettings(app){
         </select>
       `:`<div style="font-size:11px;color:#F59E0B">Nur eine arabische Stimme auf diesem Gerät gefunden. Für bessere Qualität: iOS-Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Arabisch → weitere Stimmen herunterladen.</div>`}
     </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">📤 Vokabeln teilen</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Exportiere deine Vokabeln als Datei und schick sie an jemanden. Beim Import werden bereits vorhandene Wörter automatisch übersprungen — es entstehen keine Duplikate.</div>
+      <button class="gold-btn" onclick="exportVocab()" style="margin-bottom:8px">Meine Vokabeln exportieren</button>
+      <button class="sec-btn" onclick="triggerImportVocab()">Vokabeln importieren</button>
+      <input id="importFileInput" type="file" accept=".json" onchange="handleImportFile(event)" style="display:none"/>
+    </div>
   </div>`;
 }
 
@@ -1847,6 +1875,84 @@ function addNewProject(){
   const name=prompt('Projektname:','Thema '+(projects.length+1));
   if(!name)return; projects.push({id:Date.now(),name,vocab:[],verbs:[]}); saveProjects(); render();
 }
+async function saveName(){
+  const input=document.getElementById('nameInput');
+  const name=input?input.value.trim():'';
+  if(!name){ alert('Bitte einen Namen eingeben.'); return; }
+  const btn=document.getElementById('saveNameBtn');
+  if(btn){ btn.textContent='Speichern...'; btn.disabled=true; }
+  try{
+    if(supa&&currentUser){
+      const {error}=await supa.auth.updateUser({data:{name}});
+      if(error) throw error;
+    }
+    currentUser=currentUser?{...currentUser,name}:{name};
+    render();
+  }catch(e){
+    alert('Fehler beim Speichern: '+e.message);
+    if(btn){ btn.textContent='Speichern'; btn.disabled=false; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// VOKABELN TEILEN — Export als Datei, Import mit Duplikat-Schutz
+// ═══════════════════════════════════════════════════════
+function exportVocab(){
+  const data=JSON.stringify({exportedAt:new Date().toISOString(),app:'مركز اللغة',projects},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='meine-vokabeln-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function triggerImportVocab(){
+  const input=document.getElementById('importFileInput');
+  if(input) input.click();
+}
+function handleImportFile(event){
+  const file=event.target.files&&event.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      const importedProjects=data.projects||(Array.isArray(data)?data:null);
+      if(!importedProjects||!importedProjects.length) throw new Error('Keine Projekte in dieser Datei gefunden.');
+      let addedVocab=0, addedVerbs=0, skippedVocab=0, skippedVerbs=0;
+      importedProjects.forEach(impProj=>{
+        let target=projects.find(p=>p.name===impProj.name);
+        if(!target){ target={id:Date.now()+Math.floor(Math.random()*100000),name:impProj.name,vocab:[],verbs:[]}; projects.push(target); }
+        target.vocab=target.vocab||[]; target.verbs=target.verbs||[];
+        const existingV=new Set(target.vocab.map(v=>stripH(v.arabic)));
+        (impProj.vocab||[]).forEach(v=>{
+          const key=stripH(v.arabic);
+          if(!key||existingV.has(key)){ skippedVocab++; return; }
+          target.vocab.push({...v,id:Date.now()+Math.floor(Math.random()*1000000),status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:0});
+          existingV.add(key); addedVocab++;
+        });
+        const existingVb=new Set(target.verbs.map(v=>stripH(v.arabic)));
+        (impProj.verbs||[]).forEach(v=>{
+          const key=stripH(v.arabic);
+          if(!key||existingVb.has(key)){ skippedVerbs++; return; }
+          target.verbs.push({...v,id:Date.now()+Math.floor(Math.random()*1000000),status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:0});
+          existingVb.add(key); addedVerbs++;
+        });
+      });
+      saveProjects();
+      alert(`Import fertig!\n✓ ${addedVocab} neue Vokabeln, ${addedVerbs} neue Verben hinzugefügt\n↷ ${skippedVocab+skippedVerbs} Duplikate übersprungen`);
+      render();
+    }catch(err){
+      alert('Fehler beim Import: '+err.message);
+    }
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
 function changeLang(code){
   lang=code; localStorage.setItem('lang',code); render();
 }
@@ -2183,7 +2289,7 @@ function renderAuth(app){
     <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${isSignup?'Erstelle dein Konto':'Melde dich an'}</div>
     <div style="width:100%;max-width:340px">
-      ${isSignup?`<input id="authName" type="text" placeholder="Vorname (z.B. Yusuf)" style="margin-bottom:10px" autocomplete="given-name"/>`:''}
+      ${isSignup?`<input id="authName" type="text" placeholder="Name (z.B. Abu Fulan)" style="margin-bottom:10px" autocomplete="given-name"/>`:''}
       <input id="authEmail" type="email" placeholder="E-Mail-Adresse" style="margin-bottom:10px" autocomplete="email"/>
       <input id="authPassword" type="password" placeholder="Passwort" style="margin-bottom:16px" autocomplete="${isSignup?'new-password':'current-password'}"/>
       ${authError?`<div style="background:#2a1010;border:1px solid #7f1d1d;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#f87171;font-size:13px">${authError}</div>`:''}
