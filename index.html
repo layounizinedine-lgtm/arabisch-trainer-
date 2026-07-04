@@ -2188,7 +2188,7 @@ function renderAuth(app){
       <button class="gold-btn" onclick="window._doAuth()" style="margin-bottom:12px" ${authLoading?'disabled':''}>${authLoading?'Lädt...':(isSignup?'Konto erstellen':'Anmelden')}</button>
       <div style="text-align:center;font-size:13px;color:var(--text3)">
         ${isSignup?'Schon ein Konto?':'Noch kein Konto?'}
-        <span onclick="authMode='${isSignup?'login':'signup'}';authError='';render()" style="color:var(--gold);font-weight:700;cursor:pointer">${isSignup?'Anmelden':'Registrieren'}</span>
+        <span onclick="authMode='${isSignup?'login':'signup'}';authError='';renderAuth(document.getElementById('app'))" style="color:var(--gold);font-weight:700;cursor:pointer">${isSignup?'Anmelden':'Registrieren'}</span>
       </div>
     </div>
   </div>`;
@@ -2196,9 +2196,9 @@ function renderAuth(app){
 window._doAuth=async function(){
   const email=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
-  if(!email||!password){ authError='Bitte E-Mail und Passwort eingeben.'; render(); return; }
-  if(password.length<6){ authError='Passwort muss mindestens 6 Zeichen haben.'; render(); return; }
-  authLoading=true; authError=''; render();
+  if(!email||!password){ authError='Bitte E-Mail und Passwort eingeben.'; renderAuth(document.getElementById('app')); return; }
+  if(password.length<6){ authError='Passwort muss mindestens 6 Zeichen haben.'; renderAuth(document.getElementById('app')); return; }
+  authLoading=true; authError=''; renderAuth(document.getElementById('app'));
   try{
     if(authMode==='signup'){
       const {data,error}=await supa.auth.signUp({email,password});
@@ -2218,7 +2218,7 @@ window._doAuth=async function(){
   }catch(e){
     authLoading=false;
     authError=(e.message||'Fehler bei der Anmeldung.').includes('Invalid login')?'E-Mail oder Passwort falsch.':(e.message||'Fehler bei der Anmeldung.');
-    render();
+    renderAuth(document.getElementById('app'));
   }
 };
 async function doLogout(){
