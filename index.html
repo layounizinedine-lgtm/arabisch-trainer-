@@ -2176,7 +2176,8 @@ function renderStats(app){
 // ═══════════════════════════════════════════════════════
 function renderAuth(app){
   const nav=document.getElementById('navbar');
-  if(nav) nav.style.display='none';
+  if(nav){ nav.style.display='none'; nav.innerHTML=''; } // Navbar komplett leeren, damit kein versehentlicher Klick durchgeht
+  tab='home'; subView=null; // Zustand zurücksetzen, damit nach Login kein alter Tab-Zustand "durchsickert"
   const isSignup=authMode==='signup';
   app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
     <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
@@ -2229,6 +2230,9 @@ async function doLogout(){
 window.doLogout=doLogout;
 
 // BOOT — Backend ist fest eingebaut, kein API-Key vom Nutzer mehr nötig
+let _bootComplete = false;
+let _authListenerAttached = false;
+
 async function boot(){
   try{
     // Erst warten bis die Supabase-Bibliothek vollständig geladen ist (max. 3 Sekunden)
@@ -2254,7 +2258,22 @@ async function boot(){
       }catch(e){
         console.warn('getSession warf einen Fehler:', e);
       }
+
+      // Auth-Listener NACH der initialen Prüfung registrieren, damit er nicht
+      // versehentlich während des Boot-Vorgangs eine widersprüchliche Anzeige auslöst.
+      if(!_authListenerAttached){
+        _authListenerAttached = true;
+        supa.auth.onAuthStateChange((event, session)=>{
+          if(!_bootComplete) return; // Ignoriere Events während des initialen Boots
+          if(event==='SIGNED_OUT'){
+            currentUser=null;
+            renderAuth(document.getElementById('app'));
+          }
+          // SIGNED_IN wird bereits explizit in window._doAuth() behandelt — hier keine Doppel-Aktion nötig
+        });
+      }
     }
+    _bootComplete = true;
     if(supa&&!currentUser){
       renderAuth(document.getElementById('app'));
     } else {
