@@ -914,8 +914,8 @@ function renderHome(app){
     <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-top:6px">
       <div>
-        <div style="font-size:13px;color:var(--text3)">مرحباً بك</div>
-        <div style="font-size:24px;font-weight:800;color:var(--text)">مركز اللغة</div>
+        <div class="ar" style="font-size:22px;font-weight:800;color:var(--gold)">مرحباً بك ${currentUser&&currentUser.name?currentUser.name:''}</div>
+        <div style="font-size:13px;color:var(--text3)">Willkommen zurück${currentUser&&currentUser.name?', '+currentUser.name:''}</div>
       </div>
       <div onclick="goTab('profil')" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:14px;padding:10px 14px;cursor:pointer">
         <div>${icon('flame',20,'var(--gold)',2)}</div>
@@ -2183,6 +2183,7 @@ function renderAuth(app){
     <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${isSignup?'Erstelle dein Konto':'Melde dich an'}</div>
     <div style="width:100%;max-width:340px">
+      ${isSignup?`<input id="authName" type="text" placeholder="Vorname (z.B. Yusuf)" style="margin-bottom:10px" autocomplete="given-name"/>`:''}
       <input id="authEmail" type="email" placeholder="E-Mail-Adresse" style="margin-bottom:10px" autocomplete="email"/>
       <input id="authPassword" type="password" placeholder="Passwort" style="margin-bottom:16px" autocomplete="${isSignup?'new-password':'current-password'}"/>
       ${authError?`<div style="background:#2a1010;border:1px solid #7f1d1d;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#f87171;font-size:13px">${authError}</div>`:''}
@@ -2197,22 +2198,26 @@ function renderAuth(app){
 window._doAuth=async function(){
   const email=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
+  const isSignup=authMode==='signup';
+  const nameEl=document.getElementById('authName');
+  const name=nameEl?nameEl.value.trim():'';
   if(!email||!password){ authError='Bitte E-Mail und Passwort eingeben.'; renderAuth(document.getElementById('app')); return; }
+  if(isSignup&&!name){ authError='Bitte gib deinen Vornamen ein.'; renderAuth(document.getElementById('app')); return; }
   if(password.length<6){ authError='Passwort muss mindestens 6 Zeichen haben.'; renderAuth(document.getElementById('app')); return; }
   authLoading=true; authError=''; renderAuth(document.getElementById('app'));
   try{
-    if(authMode==='signup'){
-      const {data,error}=await supa.auth.signUp({email,password});
+    if(isSignup){
+      const {data,error}=await supa.auth.signUp({email,password,options:{data:{name}}});
       if(error) throw error;
       if(data.user){
-        currentUser={id:data.user.id,email:data.user.email};
+        currentUser={id:data.user.id,email:data.user.email,name};
         await cloudSyncNow(); // Ersteinrichtung: lokalen Stand hochladen
         authLoading=false; render();
       }
     } else {
       const {data,error}=await supa.auth.signInWithPassword({email,password});
       if(error) throw error;
-      currentUser={id:data.user.id,email:data.user.email};
+      currentUser={id:data.user.id,email:data.user.email,name:data.user.user_metadata?.name||''};
       await cloudLoadForUser();
       authLoading=false; render();
     }
@@ -2252,7 +2257,7 @@ async function boot(){
         const {data,error}=await supa.auth.getSession();
         if(error) console.warn('getSession Fehler:', error);
         if(data&&data.session&&data.session.user){
-          currentUser={id:data.session.user.id,email:data.session.user.email};
+          currentUser={id:data.session.user.id,email:data.session.user.email,name:data.session.user.user_metadata?.name||''};
           await cloudLoadForUser();
         }
       }catch(e){
