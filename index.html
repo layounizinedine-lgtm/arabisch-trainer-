@@ -704,6 +704,7 @@ function renderHome(app){
         const dueCount=p.vocab.filter(isDue).length;
         const verbList=p.verbs||[];
         const verbDue=verbList.filter(isDue).length;
+        const totalDue=dueCount+verbDue;
         const isActive=i===curProject;
         const isExpanded=window._expandedTheme===i;
         return `<div style="background:${isActive?'linear-gradient(135deg,#1a1200,#2a1f00)':'var(--bg2)'};border:1.5px solid ${isActive?'var(--gold)':'var(--border)'};border-radius:16px;overflow:hidden">
@@ -712,7 +713,7 @@ function renderHome(app){
               <div style="width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:${isActive?'var(--gold)':'var(--text3)'};transform:rotate(${isExpanded?'45deg':'0deg'});transition:transform 0.2s">${icon('plus',16,isActive?'var(--gold)':'var(--text3)',2.5)}</div>
               <div>
                 <div style="font-size:15px;font-weight:700;color:${isActive?'var(--gold)':'var(--text)'}">${p.name}</div>
-                <div style="font-size:11px;color:${dueCount>0?'#ef4444':'var(--text3)'};margin-top:2px">${t} Vokabeln · ${dueCount>0?`${dueCount} fällig`:'nichts fällig'}</div>
+                <div style="font-size:11px;color:${totalDue>0?'#ef4444':'var(--text3)'};margin-top:2px">${t} Vokabeln${verbList.length?` · ${verbList.length} Verben`:''} · ${totalDue>0?`${totalDue} fällig`:'nichts fällig'}</div>
               </div>
             </div>
             <div style="text-align:right">
@@ -828,6 +829,27 @@ function renderVokabeln(app){
       <button onclick="window._vokFilterChapter='all';renderVokabeln(document.getElementById('app'))" style="background:${activeChapter==='all'?'var(--gold)':'var(--bg3)'};border:1px solid ${activeChapter==='all'?'var(--gold)':'var(--border)'};color:${activeChapter==='all'?'#080c14':'var(--text2)'};border-radius:10px;padding:6px 12px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">Alle</button>
       ${chapters.map(c=>`<button onclick="window._vokFilterChapter=${c.id};renderVokabeln(document.getElementById('app'))" style="background:${activeChapter===c.id?'var(--gold)':'var(--bg3)'};border:1px solid ${activeChapter===c.id?'var(--gold)':'var(--border)'};color:${activeChapter===c.id?'#080c14':'var(--text2)'};border-radius:10px;padding:6px 12px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">${c.name}</button>`).join('')}
     </div>`:''}
+    ${(()=>{
+      const total=shown.length;
+      const neu=shown.filter(v=>v.status==='neu').length;
+      const lernend=shown.filter(v=>v.status==='lernend').length;
+      const gelernt=shown.filter(v=>v.status==='gelernt').length;
+      const pctL=total?Math.round(lernend/total*100):0;
+      const pctG=total?Math.round(gelernt/total*100):0;
+      const label=activeChapter==='all'?'Karten im Deck':(chapters.find(c=>c.id===activeChapter)||{}).name||'Karten im Deck';
+      return `<div class="card">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">${label} (${total})</div>
+        <div style="display:flex;height:8px;border-radius:6px;overflow:hidden;background:var(--bg3);margin-bottom:10px">
+          <div style="width:${pctL}%;background:#60a5fa"></div>
+          <div style="width:${pctG}%;background:#a3e635"></div>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px">
+          <div style="display:flex;align-items:center;gap:5px;color:var(--text3)"><div style="width:8px;height:8px;border-radius:2px;background:var(--text3)"></div>${neu} Nicht gelernte</div>
+          <div style="display:flex;align-items:center;gap:5px;color:var(--text3)"><div style="width:8px;height:8px;border-radius:2px;background:#60a5fa"></div>${lernend} In Bearbeitung</div>
+          <div style="display:flex;align-items:center;gap:5px;color:var(--text3)"><div style="width:8px;height:8px;border-radius:2px;background:#a3e635"></div>${gelernt} Gemeisterte</div>
+        </div>
+      </div>`;
+    })()}
     <input placeholder="🔍 Suchen..." oninput="filterVocab(this.value)" style="margin-bottom:14px"/>
     <div id="vocabList">${shown.map(v=>vocabCard(v)).join('')}</div>
   </div>`;
