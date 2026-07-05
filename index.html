@@ -320,9 +320,59 @@ function getP(){ return projects[curProject]||projects[0]; }
 function getVocab(){ return getP().vocab||[]; }
 function getVocabUpToHere(){ return projects.slice(0,curProject+1).flatMap(p=>p.vocab||[]); }
 function getVerbs(){ return getP().verbs||[]; }
+function getChapters(){ return getP().chapters||[]; }
 function setVocab(v){ projects[curProject].vocab=v; saveProjects(); }
 function setVerbs(v){ projects[curProject].verbs=v; saveProjects(); }
 function getTr(item){ return item.translations?(item.translations[lang]||item.translations.de||''):(item.translation||item.german||''); }
+
+// ═══════════════════════════════════════════════════════
+// NAMEN-UMSCHRIFT — wandelt lateinisch eingegebene Namen automatisch in arabische Schrift um
+// Bekannte Namen: exakte klassische Schreibweise. Unbekannte Namen: phonetische Annäherung.
+// ═══════════════════════════════════════════════════════
+const NAME_DICT={
+  'yusuf':'يوسف','yousef':'يوسف','yusof':'يوسف','joseph':'يوسف',
+  'ahmad':'أحمد','ahmed':'أحمد','muhammad':'محمد','mohammed':'محمد','mohamed':'محمد','mohammad':'محمد',
+  'omar':'عمر','umar':'عمر','ali':'علي','hassan':'حسن','hasan':'حسن','hussein':'حسين','husayn':'حسين','husain':'حسين',
+  'khalid':'خالد','khaled':'خالد','ibrahim':'إبراهيم','ismail':'إسماعيل','ismael':'إسماعيل',
+  'yasin':'ياسين','yaseen':'ياسين','abdullah':'عبدالله','abdallah':'عبدالله',
+  'abdulrahman':'عبدالرحمن','abdurrahman':'عبدالرحمن','bilal':'بلال','salman':'سلمان',
+  'hamza':'حمزة','hamzah':'حمزة','tariq':'طارق','tarek':'طارق','malik':'مالك','malick':'مالك',
+  'zaid':'زيد','zayd':'زيد','saad':'سعد','sami':'سامي','samir':'سمير','karim':'كريم','kareem':'كريم',
+  'rashid':'راشد','rasheed':'راشد','walid':'وليد','waleed':'وليد','anas':'أنس','amir':'أمير','ameer':'أمير',
+  'faisal':'فيصل','faysal':'فيصل','nasser':'ناصر','nasir':'ناصر','jamal':'جمال','kamal':'كمال',
+  'sami':'سامي','adam':'آدم','yahya':'يحيى','musa':'موسى','moussa':'موسى','isa':'عيسى','dawud':'داود','dawood':'داود',
+  'sulaiman':'سليمان','suleiman':'سليمان','younes':'يونس','yunus':'يونس','idris':'إدريس','zakariya':'زكريا',
+  'abu fulan':'أبو فلان','fulan':'فلان',
+  'fatima':'فاطمة','fatimah':'فاطمة','aisha':'عائشة','ayesha':'عائشة','khadija':'خديجة','khadijah':'خديجة',
+  'zainab':'زينب','zaynab':'زينب','maryam':'مريم','mariam':'مريم','mary':'مريم','safiyyah':'صفية','safiya':'صفية',
+  'sara':'سارة','sarah':'سارة','layla':'ليلى','laila':'ليلى','nour':'نور','noor':'نور','amina':'أمينة','aminah':'أمينة',
+  'yusra':'يسرى','hafsa':'حفصة','hafsah':'حفصة','ruqayya':'رقية','umm kulthum':'أم كلثوم',
+  'asma':'أسماء','asmaa':'أسماء','rania':'رانيا','dina':'دينا','lina':'لينا','yara':'يارا','huda':'هدى'
+};
+function phoneticTransliterate(word){
+  const multi=[
+    [/sch/gi,'ش'],[/kh/gi,'خ'],[/gh/gi,'غ'],[/sh/gi,'ش'],[/th/gi,'ث'],[/dh/gi,'ذ'],
+    [/ph/gi,'ف'],[/ck/gi,'ك'],[/qu/gi,'ق'],[/ou/gi,'و'],[/ee/gi,'ي'],[/oo/gi,'و'],
+    [/ei/gi,'ي'],[/ay/gi,'اي'],[/aa/gi,'ا']
+  ];
+  let s=word;
+  multi.forEach(([re,ar])=>{ s=s.replace(re,ar); });
+  const single={a:'ا',b:'ب',c:'ك',d:'د',e:'ي',f:'ف',g:'ج',h:'ه',i:'ي',j:'ج',k:'ك',l:'ل',m:'م',n:'ن',o:'و',p:'ب',q:'ق',r:'ر',s:'س',t:'ت',u:'و',v:'ف',w:'و',x:'كس',y:'ي',z:'ز'};
+  let out='';
+  for(const ch of s){
+    if(/[\u0600-\u06FF]/.test(ch)){ out+=ch; continue; }
+    out+=single[ch.toLowerCase()]||'';
+  }
+  return out;
+}
+function transliterateNameToArabic(name){
+  if(!name) return '';
+  if(/[\u0600-\u06FF]/.test(name)) return name; // schon Arabisch -> unverändert
+  const fullKey=name.trim().toLowerCase();
+  if(NAME_DICT[fullKey]) return NAME_DICT[fullKey];
+  const words=name.trim().split(/\s+/);
+  return words.map(w=>NAME_DICT[w.toLowerCase()]||phoneticTransliterate(w)).join(' ');
+}
 function getExTr(item){ return item.exampleTranslation?(item.exampleTranslation[lang]||item.exampleTranslation.de||''):''; }
 
 // ═══════════════════════════════════════════════════════
@@ -632,7 +682,7 @@ function renderHome(app){
     <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-top:6px">
       <div>
-        <div class="ar" style="font-size:22px;font-weight:800;color:var(--gold)">مرحباً بك ${currentUser&&currentUser.name?currentUser.name:''}</div>
+        <div class="ar" style="font-size:22px;font-weight:800;color:var(--gold)">مرحباً بك ${currentUser&&currentUser.name?transliterateNameToArabic(currentUser.name):''}</div>
         <div style="font-size:13px;color:var(--text3)">Willkommen zurück${currentUser&&currentUser.name?', '+currentUser.name:''}</div>
       </div>
       <div onclick="goTab('profil')" style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1a1a0a,#2a1f00);border:1px solid #92400e;border-radius:14px;padding:10px 14px;cursor:pointer">
@@ -673,7 +723,7 @@ function renderHome(app){
             </div>
           </div>
           ${isExpanded?`<div style="padding:0 16px 14px 48px;display:flex;flex-direction:column;gap:6px">
-            <div onclick="event.stopPropagation();curProject=${i};saveProjects();lIsVerbMode=false;tab='lernen';subView='karten';lFilter='fällig';render()" style="background:var(--bg3);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+            <div onclick="event.stopPropagation();curProject=${i};saveProjects();lIsVerbMode=false;window._chapterFilter=null;tab='lernen';subView='karten';lFilter='fällig';render()" style="background:var(--bg3);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
               <div style="display:flex;align-items:center;gap:8px">${icon('book',16,'var(--text2)',2)}<span style="font-size:13px;color:var(--text)">Vokabeln</span></div>
               <span style="font-size:11px;color:${dueCount>0?'#ef4444':'var(--text3)'}">${dueCount>0?dueCount+' fällig':'—'}</span>
             </div>
@@ -681,6 +731,18 @@ function renderHome(app){
               <div style="display:flex;align-items:center;gap:8px">${icon('bookOpen',16,'var(--text2)',2)}<span style="font-size:13px;color:var(--text)">Verben</span></div>
               <span style="font-size:11px;color:${verbDue>0?'#ef4444':'var(--text3)'}">${verbList.length===0?'keine':verbDue>0?verbDue+' fällig':'—'}</span>
             </div>
+            ${(p.chapters||[]).map(c=>{
+              const cVocab=p.vocab.filter(v=>v.chapterId===c.id);
+              const cDue=cVocab.filter(isDue).length;
+              return `<div style="display:flex;gap:6px">
+                <div onclick="event.stopPropagation();startChapterKarten(${i},${c.id})" style="flex:1;background:var(--bg3);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+                  <div style="display:flex;align-items:center;gap:8px">${icon('tag',16,'#a78bfa',2)}<span style="font-size:13px;color:var(--text)">${c.name}</span><span style="font-size:10px;color:var(--text3)">(${cVocab.length})</span></div>
+                  <span style="font-size:11px;color:${cDue>0?'#ef4444':'var(--text3)'}">${cVocab.length===0?'leer':cDue>0?cDue+' fällig':'—'}</span>
+                </div>
+                <div onclick="event.stopPropagation();deleteChapter(${i},${c.id})" style="background:#3b1a1a;border-radius:10px;padding:0 10px;display:flex;align-items:center;cursor:pointer;color:#fca5a5;font-size:12px">✕</div>
+              </div>`;
+            }).join('')}
+            <div onclick="event.stopPropagation();addChapter(${i})" style="background:none;border:1.5px dashed var(--border);border-radius:12px;padding:9px 14px;cursor:pointer;text-align:center;color:var(--text3);font-size:12px;font-weight:600">+ Kapitel (z.B. Text 1)</div>
           </div>`:''}
         </div>`;
       }).join('')}
@@ -718,14 +780,14 @@ function renderLernen(app){
     </div>
 
     <!-- Hauptlernbereich -->
-    <div onclick="lIsVerbMode=false;subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid ${due>0?'#22c55e':'var(--border)'};border-radius:18px;padding:20px;margin-bottom:12px;cursor:pointer">
+    <div onclick="lIsVerbMode=false;window._chapterFilter=null;subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid ${due>0?'#22c55e':'var(--border)'};border-radius:18px;padding:20px;margin-bottom:12px;cursor:pointer">
       <div style="margin-bottom:8px">${icon('rotate',26,due>0?'#4ade80':'var(--text)',2)}</div>
       <div style="font-size:18px;font-weight:800;color:${due>0?'#4ade80':'var(--text)'}">${ui("reviews")}</div>
       <div style="font-size:13px;color:var(--text3);margin-top:4px">${due>0?`${due} ${ui('cardsWaiting')}`:ui('allLearned')}}</div>
       ${due>0?`<div style="margin-top:12px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;padding:10px;text-align:center;color:#0a1628;font-weight:800;font-size:14px">Jetzt ${due} Karten lernen →</div>`:''}
     </div>
 
-    <div onclick="lIsVerbMode=false;subView='karten';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;cursor:pointer;display:flex;gap:14px;align-items:center">
+    <div onclick="lIsVerbMode=false;window._chapterFilter=null;subView='karten';render()" style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;cursor:pointer;display:flex;gap:14px;align-items:center">
       <div>${icon('sparkles',28,'var(--gold)',2)}</div>
       <div><div style="font-size:16px;font-weight:700;color:var(--text)">${ui('newWords')}</div><div style="font-size:12px;color:var(--text3);margin-top:2px">${neu} neue Wörter</div></div>
       <div style="color:var(--text3);font-size:20px;margin-left:auto">›</div>
@@ -752,15 +814,22 @@ function renderLernen(app){
 function renderVokabeln(app){
   const vocab=getVocab();
   const due=vocab.filter(isDue).length;
+  const chapters=getChapters();
+  const activeChapter=window._vokFilterChapter!==undefined?window._vokFilterChapter:'all';
+  const shown=activeChapter==='all'?vocab:vocab.filter(v=>(v.chapterId||null)===activeChapter);
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
       <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
       <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">${ui('vocab')}</div></div>
       <button onclick="showAddVocab()" class="gold-btn" style="width:auto;padding:8px 16px;margin-left:auto;font-size:13px">+ Hinzufügen</button>
     </div>
-    ${due>0?`<div onclick="lIsVerbMode=false;subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid #22c55e;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer"><div><div style="font-size:13px;font-weight:700;color:#4ade80">${due} ${ui('reviews')} fällig</div><div style="font-size:11px;color:var(--text3)">Tippe um zu lernen</div></div><div style="font-size:24px;font-weight:800;color:#4ade80">${due}</div></div>`:''}
+    ${due>0?`<div onclick="lIsVerbMode=false;window._chapterFilter=null;subView='karten';render()" style="background:linear-gradient(135deg,#1a2f1a,#0d1a0d);border:1px solid #22c55e;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer"><div><div style="font-size:13px;font-weight:700;color:#4ade80">${due} ${ui('reviews')} fällig</div><div style="font-size:11px;color:var(--text3)">Tippe um zu lernen</div></div><div style="font-size:24px;font-weight:800;color:#4ade80">${due}</div></div>`:''}
+    ${chapters.length?`<div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px">
+      <button onclick="window._vokFilterChapter='all';renderVokabeln(document.getElementById('app'))" style="background:${activeChapter==='all'?'var(--gold)':'var(--bg3)'};border:1px solid ${activeChapter==='all'?'var(--gold)':'var(--border)'};color:${activeChapter==='all'?'#080c14':'var(--text2)'};border-radius:10px;padding:6px 12px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">Alle</button>
+      ${chapters.map(c=>`<button onclick="window._vokFilterChapter=${c.id};renderVokabeln(document.getElementById('app'))" style="background:${activeChapter===c.id?'var(--gold)':'var(--bg3)'};border:1px solid ${activeChapter===c.id?'var(--gold)':'var(--border)'};color:${activeChapter===c.id?'#080c14':'var(--text2)'};border-radius:10px;padding:6px 12px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">${c.name}</button>`).join('')}
+    </div>`:''}
     <input placeholder="🔍 Suchen..." oninput="filterVocab(this.value)" style="margin-bottom:14px"/>
-    <div id="vocabList">${vocab.map(v=>vocabCard(v)).join('')}</div>
+    <div id="vocabList">${shown.map(v=>vocabCard(v)).join('')}</div>
   </div>`;
 }
 
@@ -769,6 +838,7 @@ function vocabCard(v){
   const sc=v.status==='gelernt'?'#4ade80':v.status==='lernend'?'#60a5fa':'var(--text3)';
   const sb=v.status==='gelernt'?'#14532d':v.status==='lernend'?'#1e3a5f':'var(--bg3)';
   const isAdj=(v.wordType||'').toLowerCase().includes('adj');
+  const chapters=getChapters();
   return `<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
       <div style="flex:1">
@@ -780,6 +850,7 @@ function vocabCard(v){
           ${isAdj&&v.opposite&&v.opposite!==''?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">ضد</div><div class="ar" style="font-size:28px;color:#60a5fa;font-weight:700">${v.oppHarakat||v.opposite}</div></div>`:''}
         </div>
         ${v.exampleArabic?`<div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:10px"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div class="ar" style="font-size:16px;color:var(--text);line-height:1.9;flex:1">${v.exampleArabic}</div><button onclick="speakAr('${(v.exampleArabic||'').replace(/'/g,"\\'")}');event.stopPropagation()" style="background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',13,'var(--text2)',2)}</button></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${exTr}</div></div>`:''}
+        ${chapters.length?`<select onchange="assignVocabChapter(${v.id},this.value)" style="margin-top:10px;font-size:12px;padding:8px 10px"><option value="" ${!v.chapterId?'selected':''}>Kein Kapitel</option>${chapters.map(c=>`<option value="${c.id}" ${v.chapterId===c.id?'selected':''}>${c.name}</option>`).join('')}</select>`:''}
         <button onclick="showVocabMehr(${v.id})" style="margin-top:10px;background:none;border:1px solid #3b2d6e;border-radius:10px;padding:8px 14px;color:#a78bfa;font-size:12px;font-weight:700;cursor:pointer;width:100%">Kontext & Mehr anzeigen</button>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
@@ -845,8 +916,9 @@ async function showVocabMehr(id){
 }
 
 function filterVocab(q){
-  const vocab=getVocab();
-  const filtered=vocab.filter(v=>v.arabic.includes(q)||getTr(v).toLowerCase().includes(q.toLowerCase()));
+  const activeChapter=window._vokFilterChapter!==undefined?window._vokFilterChapter:'all';
+  const base=activeChapter==='all'?getVocab():getVocab().filter(v=>(v.chapterId||null)===activeChapter);
+  const filtered=base.filter(v=>v.arabic.includes(q)||getTr(v).toLowerCase().includes(q.toLowerCase()));
   document.getElementById('vocabList').innerHTML=filtered.map(v=>vocabCard(v)).join('');
 }
 function deleteVocab(id){
@@ -909,26 +981,27 @@ function verbToCard(v){
   };
 }
 function startVerbKarten(){
-  lIsVerbMode=true;
+  lIsVerbMode=true; window._chapterFilter=null;
   tab='lernen'; subView='karten'; lFilter='fällig';
   render();
 }
 
 function renderKarten(app){
-  const source=lIsVerbMode?getVerbs().map(verbToCard):getVocab();
+  let source=lIsVerbMode?getVerbs().map(verbToCard):getVocab();
+  if(!lIsVerbMode&&window._chapterFilter!=null){ source=source.filter(v=>v.chapterId===window._chapterFilter); }
   lP=buildPool(source,lFilter); lI=0; lF=false; lS={p:0,g:0,s:0}; lD=false;
   showCard(app);
 }
 function showCard(app){
   const fb=['fällig','alle','neu','lernend','gelernt'].map(f=>`<button onclick="lFilter='${f}';renderKarten(document.getElementById('app'))" style="background:${lFilter===f?'var(--gold)':'var(--bg3)'};border:1px solid ${lFilter===f?'var(--gold)':'var(--border)'};color:${lFilter===f?'#080c14':'var(--text2)'};border-radius:10px;padding:6px 10px;font-weight:700;font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`).join('');
   if(lD){
-    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="lIsVerbMode=false;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;color:var(--text)">Session abgeschlossen ${icon('trophy',20,'var(--gold)',2)}</div></div>
+    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding-top:6px"><button onclick="lIsVerbMode=false;window._chapterFilter=null;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;color:var(--text)">Session abgeschlossen ${icon('trophy',20,'var(--gold)',2)}</div></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">${[['Perfekt','p','#a3e635'],['Gut','g','#F59E0B'],['Schlecht','s','#ef4444']].map(([l,k,c])=>`<div class="card" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:${c}">${lS[k]}</div><div style="font-size:11px;color:var(--text3)">${l}</div></div>`).join('')}</div>
     ${lS.s>0?`<div style="background:#1a1000;border:1px solid #92400e;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--gold)">${ui('badCards')||'Schlechte Karten kommen öfter wieder.'}</div>`:''}
     <button class="gold-btn" onclick="renderKarten(document.getElementById('app'))">${ui('playAgain')}</button></div>`; return;
   }
   if(!lP.length){
-    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:6px"><button onclick="lIsVerbMode=false;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Lernkarten</div></div>
+    app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:6px"><button onclick="lIsVerbMode=false;window._chapterFilter=null;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div style="font-size:20px;font-weight:800;color:var(--text)">Lernkarten</div></div>
     <div style="display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px">${fb}</div>
     <div style="text-align:center;color:var(--text3);padding:60px 0;font-size:15px">${ui('noCards')||'Keine Karten.'}</div></div>`; return;
   }
@@ -966,8 +1039,8 @@ function showCard(app){
       </div>`;
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-top:6px">
-      <button onclick="lIsVerbMode=false;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
-      <div style="font-size:20px;font-weight:800;color:var(--text)">${lIsVerbMode?'Verben':'Lernkarten'}</div>
+      <button onclick="lIsVerbMode=false;window._chapterFilter=null;subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+      <div style="font-size:20px;font-weight:800;color:var(--text)">${lIsVerbMode?'Verben':(window._chapterFilter!=null?((getChapters().find(c=>c.id===window._chapterFilter)||{}).name||'Lernkarten'):'Lernkarten')}</div>
       <div style="font-size:13px;font-weight:700;color:var(--gold);margin-left:auto">${lI+1}/${lP.length}</div>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px">${fb}</div>
@@ -1579,6 +1652,35 @@ function renderSettings(app){
       <input id="importFileInput" type="file" accept=".json" onchange="handleImportFile(event)" style="display:none"/>
     </div>
   </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// KAPITEL (freie Unterthemen, z.B. "Text 1", "Text 2" innerhalb eines Themas)
+// ═══════════════════════════════════════════════════════
+function addChapter(projectIndex){
+  const name=prompt('Name des Kapitels (z.B. Text 1):');
+  if(!name||!name.trim())return;
+  const p=projects[projectIndex];
+  p.chapters=p.chapters||[];
+  p.chapters.push({id:Date.now(),name:name.trim()});
+  saveProjects(); render();
+}
+function deleteChapter(projectIndex,chapterId){
+  if(!confirm('Kapitel löschen? Die Wörter bleiben erhalten, werden aber keinem Kapitel mehr zugeordnet.'))return;
+  const p=projects[projectIndex];
+  p.chapters=(p.chapters||[]).filter(c=>c.id!==chapterId);
+  p.vocab=(p.vocab||[]).map(v=>v.chapterId===chapterId?{...v,chapterId:null}:v);
+  saveProjects(); render();
+}
+function assignVocabChapter(vocabId,chapterIdRaw){
+  const chapterId=chapterIdRaw?Number(chapterIdRaw):null;
+  setVocab(getVocab().map(v=>v.id===vocabId?{...v,chapterId}:v));
+}
+function startChapterKarten(projectIndex,chapterId){
+  curProject=projectIndex; saveProjects();
+  lIsVerbMode=false; window._chapterFilter=chapterId;
+  tab='lernen'; subView='karten'; lFilter='fällig';
+  render();
 }
 
 function addNewProject(){
