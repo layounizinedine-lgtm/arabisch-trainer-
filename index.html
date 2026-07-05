@@ -102,7 +102,7 @@ const UI_TEXT = {
     learnTitle:'Was lernst du heute?', reviews:'Wiederholungen', newWords:'Neue Wörter',
     areas:'Bereiche', verbsTitle:'Verben', gamesTitle:'Spiele', corrTitle:'Korrektur',
     cardsWaiting:'Karten warten auf dich!', allLearned:'Alle Karten gelernt – komm morgen wieder.',
-    learnNow:'Jetzt Karten lernen →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    learnNow:'Jetzt Karten lernen →', singular:'مفرد', plural:'جمع', opposite:'العكس',
     tapToFlip:'Tippen zum Umdrehen', howWell:'Wie gut kanntest du das Wort?',
     never:'Gar nicht', ok:'Okay', perfect:'Perfekt', skip:'Überspringen',
     sessionDone:'Session abgeschlossen! 🏆', playAgain:'Nochmal lernen',
@@ -135,7 +135,7 @@ const UI_TEXT = {
     learnTitle:'What are you learning today?', reviews:'Reviews', newWords:'New words',
     areas:'Sections', verbsTitle:'Verbs', gamesTitle:'Games', corrTitle:'Correction',
     cardsWaiting:'cards waiting for you!', allLearned:'All cards learned – come back tomorrow.',
-    learnNow:'Learn cards now →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    learnNow:'Learn cards now →', singular:'مفرد', plural:'جمع', opposite:'العكس',
     tapToFlip:'Tap to flip', howWell:'How well did you know this?',
     never:'Not at all', ok:'Okay', perfect:'Perfect', skip:'Skip',
     sessionDone:'Session complete! 🏆', playAgain:'Learn again',
@@ -168,7 +168,7 @@ const UI_TEXT = {
     learnTitle:'Что учим сегодня?', reviews:'Повторение', newWords:'Новые слова',
     areas:'Разделы', verbsTitle:'Глаголы', gamesTitle:'Игры', corrTitle:'Проверка',
     cardsWaiting:'карточек ждут вас!', allLearned:'Все карточки изучены – вернитесь завтра.',
-    learnNow:'Учить карточки →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    learnNow:'Учить карточки →', singular:'مفرد', plural:'جمع', opposite:'العكس',
     tapToFlip:'Нажмите чтобы перевернуть', howWell:'Насколько хорошо вы знали?',
     never:'Совсем нет', ok:'Нормально', perfect:'Превосходно', skip:'Пропустить',
     sessionDone:'Сессия завершена! 🏆', playAgain:'Учить снова',
@@ -201,7 +201,7 @@ const UI_TEXT = {
     learnTitle:'آج کیا سیکھ رہے ہیں؟', reviews:'مراجعت', newWords:'نئے الفاظ',
     areas:'حصے', verbsTitle:'فعل', gamesTitle:'کھیل', corrTitle:'تصحیح',
     cardsWaiting:'کارڈ آپ کا انتظار کر رہے ہیں!', allLearned:'سب کارڈ سیکھے – کل واپس آئیں۔',
-    learnNow:'کارڈ سیکھیں →', singular:'مفرد', plural:'جمع', opposite:'ضد',
+    learnNow:'کارڈ سیکھیں →', singular:'مفرد', plural:'جمع', opposite:'العكس',
     tapToFlip:'پلٹنے کے لیے ٹیپ کریں', howWell:'آپ کو کتنا یاد تھا؟',
     never:'بالکل نہیں', ok:'ٹھیک', perfect:'کامل', skip:'چھوڑیں',
     sessionDone:'سیشن مکمل! 🏆', playAgain:'دوبارہ سیکھیں',
@@ -907,7 +907,7 @@ function vocabCard(v){
         <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;align-items:flex-end">
           <div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">مفرد</div><div style="display:flex;align-items:center;gap:8px"><div class="ar" style="font-size:28px;color:var(--gold);font-weight:700">${v.harakat||v.arabic}</div><button onclick="speakAr('${(v.harakat||v.arabic).replace(/'/g,"\\'")}');event.stopPropagation()" style="background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',15,'var(--gold)',2)}</button></div></div>
           ${v.plural&&v.plural!=='-'?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">جمع</div><div class="ar" style="font-size:28px;color:#a78bfa;font-weight:700">${v.pluralHarakat||v.plural}</div></div>`:''}
-          ${isAdj&&v.opposite&&v.opposite!==''?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">ضد</div><div class="ar" style="font-size:28px;color:#60a5fa;font-weight:700">${v.oppHarakat||v.opposite}</div></div>`:''}
+          ${isAdj&&v.opposite&&v.opposite!==''?`<div><div style="font-size:10px;color:var(--text3);margin-bottom:2px">العكس</div><div class="ar" style="font-size:28px;color:#60a5fa;font-weight:700">${v.oppHarakat||v.opposite}</div></div>`:''}
         </div>
         ${v.exampleArabic?`<div style="margin-top:10px;padding:10px;background:var(--bg3);border-radius:10px"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div class="ar" style="font-size:16px;color:var(--text);line-height:1.9;flex:1">${v.exampleArabic}</div><button onclick="speakAr('${(v.exampleArabic||'').replace(/'/g,"\\'")}');event.stopPropagation()" style="background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',13,'var(--text2)',2)}</button></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${exTr}</div></div>`:''}
         ${chapters.length?`<select onchange="assignVocabChapter(${v.id},this.value)" style="margin-top:10px;font-size:12px;padding:8px 10px"><option value="" ${!v.chapterId?'selected':''}>Kein Kapitel</option>${chapters.map(c=>`<option value="${c.id}" ${v.chapterId===c.id?'selected':''}>${c.parentId?'↳ ':''}${c.name}</option>`).join('')}</select>`:''}
@@ -1264,7 +1264,7 @@ function showCard(app){
   const frontContent=!isDe2Ar
     ? mufradJamuBlock
     : `<div style="font-size:32px;color:var(--gold);font-weight:800;line-height:1.4">${tr}</div>`;
-  const oppositeBlock=(card.wordType||'').toLowerCase().includes('adj')&&card.opposite&&card.opposite!==''?`<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;text-align:center;margin-top:14px;display:inline-block"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">ضد</div><div class="ar" style="font-size:20px;color:#60a5fa">${card.oppHarakat||card.opposite}</div></div>`:'';
+  const oppositeBlock=(card.wordType||'').toLowerCase().includes('adj')&&card.opposite&&card.opposite!==''?`<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;text-align:center;margin-top:14px;display:inline-block"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">العكس</div><div class="ar" style="font-size:20px;color:#60a5fa">${card.oppHarakat||card.opposite}</div></div>`:'';
   // Beispielsatz: gestapelt (Arabisch exakt über Deutsch, gleiche Breite/Zentrierung) oder nebeneinander mit "-"
   const sentenceBlock=card.exampleArabic?(
     sentenceLayout==='sideBySide'
@@ -1556,8 +1556,8 @@ async function handleVerbImageUpload(event){
 }
 
 async function generateVerbConjugation(ar,tr){
-  const raw=await callAI(`Full Arabic verb conjugation for "${ar}" (${LANGS[lang].name}: "${tr||'translate'}"). First add full diacritics to the root verb. ONLY JSON:
-{"arabic":"${ar} with full diacritics e.g. ذَهَبَ","translations":{"de":"German","en":"English","ru":"Russian","ur":"Urdu"},"konjugation":{"vergangenheit":[{"p":"هُوَ","a":"full diacritics","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"gegenwart":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"zukunft":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"befehl":[{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"beispiele":[{"a":"full diacritics","d":""},{"a":"","d":""},{"a":"","d":""}],"merksatz":"Explain the Arabic root (جذر) of this verb, what letters form it, other words from same root, and a memory tip. E.g. for ذهب: Root is ذ-ه-ب (also means gold ذَهَب). Related: مَذْهَب (school of thought), ذَهَاب (going away)."}}`,8000);
+  const raw=await callAI(`Full Arabic verb conjugation for "${ar}" (${LANGS[lang].name}: "${tr||'translate'}"). First add full diacritics to the root verb. IMPORTANT: every "d" field (one per pronoun row) must be a SHORT GERMAN translation of that exact form, e.g. "er kauft", "sie kaufen (m)", "du kaufst (f)" — never English. ONLY JSON:
+{"arabic":"${ar} with full diacritics e.g. ذَهَبَ","translations":{"de":"German","en":"English","ru":"Russian","ur":"Urdu"},"konjugation":{"vergangenheit":[{"p":"هُوَ","a":"full diacritics","d":"short German e.g. er ging"},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"gegenwart":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"zukunft":[{"p":"هُوَ","a":"","d":""},{"p":"هِيَ","a":"","d":""},{"p":"هُمَا","a":"","d":""},{"p":"هُمَا(f)","a":"","d":""},{"p":"هُمْ","a":"","d":""},{"p":"هُنَّ","a":"","d":""},{"p":"أَنَا","a":"","d":""},{"p":"نَحْنُ","a":"","d":""},{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"befehl":[{"p":"أَنْتَ","a":"","d":""},{"p":"أَنْتِ","a":"","d":""},{"p":"أَنْتُمَا","a":"","d":""},{"p":"أَنْتُمْ","a":"","d":""},{"p":"أَنْتُنَّ","a":"","d":""}],"beispiele":[{"a":"full diacritics","d":""},{"a":"","d":""},{"a":"","d":""}],"merksatz":"Explain the Arabic root (جذر) of this verb, what letters form it, other words from same root, and a memory tip. E.g. for ذهب: Root is ذ-ه-ب (also means gold ذَهَب). Related: مَذْهَب (school of thought), ذَهَاب (going away)."}}`,8000);
   return pJ(raw);
 }
 async function addVerb(){
