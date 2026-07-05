@@ -36,6 +36,7 @@ input,textarea,select{background:var(--bg3);border:1px solid var(--border);borde
 .quick-card:active{transform:scale(0.97)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div id="topbar"></div>
@@ -74,7 +75,7 @@ let authMode = 'login'; // 'login' | 'signup'
 // STATE
 // ═══════════════════════════════════════════════════════
 let theme = localStorage.getItem('theme') || 'dark';
-let lang = localStorage.getItem('lang') || 'de';
+let lang = 'de'; // Nur Deutsch verfügbar
 let tab = 'home';
 let subView = null; // for nested views within tabs
 document.documentElement.setAttribute('data-theme', theme);
@@ -87,8 +88,7 @@ function setCardDirection(d){ cardDirection=d; localStorage.setItem('cardDirecti
 function setSentenceLayout(l){ sentenceLayout=l; localStorage.setItem('sentenceLayout',l); render(); }
 
 const LANGS = {
-  de:{name:'Deutsch',flag:'🇩🇪'},
-  en:{name:'English',flag:'🇬🇧'}
+  de:{name:'Deutsch',flag:'🇩🇪'}
 };
 
 // ── UI TRANSLATIONS ──────────────────────────────────────────────────────────
@@ -406,7 +406,6 @@ async function cloudLoadForUser(){
       if(data.streak) streak=data.streak;
       if(data.settings){
         cardDirection=data.settings.cardDirection||cardDirection;
-        lang=data.settings.lang||lang;
         theme=data.settings.theme||theme;
         document.documentElement.setAttribute('data-theme', theme);
       }
@@ -494,13 +493,15 @@ function buildPool(vocab,f){
 // 'https://dein-projekt.vercel.app/api/chat'
 const BACKEND_URL = 'https://arabisch-backend-three.vercel.app/api/chat';
 
-async function callAI(prompt,maxTokens=1500){
+async function callAI(prompt,maxTokens=1500,images=null){
   // Wenn ein Backend konfiguriert ist, läuft alles sicher darüber (kein API-Key im Browser)
   if(BACKEND_URL){
+    const body={prompt,maxTokens};
+    if(images&&images.length) body.images=images;
     const r=await fetch(BACKEND_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt,maxTokens})
+      body:JSON.stringify(body)
     });
     const d=await r.json();
     if(d.error) throw new Error(d.error);
@@ -914,6 +915,7 @@ function vocabCard(v){
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
         <span style="background:${sb};color:${sc};border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700">${ui('status_'+v.status)||v.status||'neu'}</span>
+        <button onclick="showEditVocab(${v.id})" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">✏️ Bearbeiten</button>
         <button onclick="deleteVocab(${v.id})" style="background:#3b1a1a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">Löschen</button>
       </div>
     </div>
@@ -980,6 +982,50 @@ function filterVocab(q){
   const filtered=base.filter(v=>v.arabic.includes(q)||getTr(v).toLowerCase().includes(q.toLowerCase()));
   document.getElementById('vocabList').innerHTML=filtered.map(v=>vocabCard(v)).join('');
 }
+function showEditVocab(id){
+  const v=getVocab().find(x=>x.id===id); if(!v)return;
+  const m=document.createElement('div'); m.className='overlay';
+  m.innerHTML=`<div class="sheet">
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px"><div style="font-size:18px;font-weight:800;color:var(--text)">Vokabel bearbeiten</div><button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px">✕</button></div>
+    <div class="label" style="margin-bottom:4px">ARABISCH (MIT HARAKAT)</div>
+    <input id="editHarakat" value="${(v.harakat||v.arabic||'').replace(/"/g,'&quot;')}" class="ar" style="font-size:20px;margin-bottom:10px;color:var(--gold)"/>
+    <div class="label" style="margin-bottom:4px">ÜBERSETZUNG (DEUTSCH) — mehrere Bedeutungen mit " / " trennen</div>
+    <input id="editDe" value="${(getTr(v)||'').replace(/"/g,'&quot;')}" style="margin-bottom:10px"/>
+    <div class="label" style="margin-bottom:4px">WORTART</div>
+    <input id="editType" value="${(v.wordType||'').replace(/"/g,'&quot;')}" style="margin-bottom:10px"/>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div><div class="label" style="margin-bottom:4px">PLURAL</div><input id="editPlural" value="${(v.pluralHarakat||v.plural||'').replace(/"/g,'&quot;')}" class="ar" style="font-size:15px"/></div>
+      <div><div class="label" style="margin-bottom:4px">GEGENTEIL</div><input id="editOpp" value="${(v.oppHarakat||v.opposite||'').replace(/"/g,'&quot;')}" class="ar" style="font-size:15px"/></div>
+    </div>
+    <div class="label" style="margin-bottom:4px">BEISPIELSATZ (ARABISCH)</div>
+    <input id="editExAr" value="${(v.exampleArabic||'').replace(/"/g,'&quot;')}" class="ar" style="font-size:16px;margin-bottom:10px"/>
+    <div class="label" style="margin-bottom:4px">BEISPIELSATZ (DEUTSCH)</div>
+    <input id="editExDe" value="${(getExTr(v)||'').replace(/"/g,'&quot;')}" style="margin-bottom:14px"/>
+    <button class="gold-btn" onclick="saveEditVocab(${id})">Speichern</button>
+  </div>`;
+  document.body.appendChild(m);
+}
+function saveEditVocab(id){
+  const harakat=document.getElementById('editHarakat').value.trim();
+  const de=document.getElementById('editDe').value.trim();
+  const wordType=document.getElementById('editType').value.trim();
+  const plural=document.getElementById('editPlural').value.trim();
+  const opposite=document.getElementById('editOpp').value.trim();
+  const exAr=document.getElementById('editExAr').value.trim();
+  const exDe=document.getElementById('editExDe').value.trim();
+  setVocab(getVocab().map(v=>v.id===id?{
+    ...v,
+    harakat, arabic:stripH(harakat)||v.arabic,
+    translations:{...v.translations,de},
+    wordType,
+    pluralHarakat:plural, plural,
+    oppHarakat:opposite, opposite,
+    exampleArabic:exAr,
+    exampleTranslation:{...v.exampleTranslation,de:exDe}
+  }:v));
+  document.querySelector('.overlay').remove();
+  renderVokabeln(document.getElementById('app'));
+}
 function deleteVocab(id){
   const v=getVocab().find(x=>x.id===id); if(!v)return;
   const m=document.createElement('div'); m.className='overlay';
@@ -1014,27 +1060,145 @@ function deleteVerb(id){
 
 function showAddVocab(){
   const m=document.createElement('div'); m.className='overlay';
-  m.innerHTML=`<div class="sheet"><div style="display:flex;justify-content:space-between;margin-bottom:18px"><div style="font-size:18px;font-weight:800;color:var(--text)">Vokabel hinzufügen</div><button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px">✕</button></div>
-    <input id="arIn" placeholder="Arabisches Wort..." class="ar" style="font-size:22px;margin-bottom:10px;color:var(--gold)"/>
-    <input id="trIn" placeholder="Übersetzung (optional)" style="margin-bottom:14px"/>
-    <button class="gold-btn" onclick="addVocab()" id="addVBtn">Karte erstellen</button>
+  m.innerHTML=`<div class="sheet"><div style="display:flex;justify-content:space-between;margin-bottom:18px"><div style="font-size:18px;font-weight:800;color:var(--text)">Vokabeln hinzufügen</div><button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:16px">✕</button></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Ein Wort pro Zeile, oder durch Komma getrennt. Bereits bekannte Wörter werden sofort übernommen, ohne erneute KI-Generierung.</div>
+    <textarea id="arIn" placeholder="كِتَابٌ, بَيْتٌ..." class="ar" style="font-size:20px;height:90px;margin-bottom:10px;color:var(--gold);line-height:1.6"></textarea>
+    <input id="trIn" placeholder="Übersetzungshinweis (optional)" style="margin-bottom:10px"/>
+    <button class="gold-btn" onclick="addVocab()" id="addVBtn">Karten erstellen</button>
+    <div style="text-align:center;font-size:11px;color:var(--text3);margin:10px 0">oder</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="sec-btn" onclick="document.getElementById('vocabFileInput').click()">📄 Datei (Excel/CSV/TXT)</button>
+      <button class="sec-btn" onclick="document.getElementById('vocabImageInput').click()">📷 Foto(s)</button>
+    </div>
+    <input id="vocabFileInput" type="file" accept=".csv,.txt,.xlsx,.xls" onchange="handleVocabFileUpload(event)" style="display:none"/>
+    <input id="vocabImageInput" type="file" accept="image/*" multiple onchange="handleVocabImageUpload(event)" style="display:none"/>
+    <div id="imageUploadStatus" style="font-size:12px;color:var(--gold);text-align:center;margin-top:10px"></div>
   </div>`;
   document.body.appendChild(m);
 }
-
-async function addVocab(){
-  const ar=document.getElementById('arIn').value.trim();
-  const tr=document.getElementById('trIn').value.trim();
-  if(!ar)return;
-  const btn=document.getElementById('addVBtn');
-  btn.textContent='KI ergänzt...'; btn.disabled=true;
+function handleVocabFileUpload(event){
+  const file=event.target.files&&event.target.files[0];
+  if(!file)return;
+  const isExcel=/\.(xlsx|xls)$/i.test(file.name);
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    let words=[];
+    if(isExcel){
+      try{
+        const data=new Uint8Array(e.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        wb.SheetNames.forEach(sheetName=>{
+          const sheet=wb.Sheets[sheetName];
+          const rows=XLSX.utils.sheet_to_json(sheet,{header:1});
+          rows.forEach(row=>row.forEach(cell=>{
+            const s=String(cell||'').trim();
+            if(s&&/[\u0600-\u06FF]/.test(s)) words.push(s);
+          }));
+        });
+      }catch(err){ alert('Fehler beim Lesen der Excel-Datei: '+err.message); return; }
+    } else {
+      const text=e.target.result;
+      words=text.split(/[\n,;]+/).map(w=>w.trim()).filter(w=>w&&/[\u0600-\u06FF]/.test(w));
+    }
+    words=[...new Set(words)];
+    const ta=document.getElementById('arIn');
+    if(ta) ta.value=words.join('\n');
+    if(!words.length) alert('Keine arabischen Wörter in der Datei gefunden.');
+  };
+  if(isExcel) reader.readAsArrayBuffer(file);
+  else reader.readAsText(file);
+  event.target.value='';
+}
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result.split(',')[1]);
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function handleVocabImageUpload(event){
+  const files=Array.from(event.target.files||[]);
+  if(!files.length)return;
+  const statusEl=document.getElementById('imageUploadStatus');
+  if(statusEl) statusEl.textContent=`Analysiere ${files.length} Bild${files.length>1?'er':''}...`;
   try{
-    const raw=await callAI(`For Arabic word "${ar}" (hint: "${tr||'translate'}"): Reply ONLY with JSON:
-{"arabic":"${ar}","harakat":"word with FULL diacritics including tanwin e.g. كِتَابٌ","translations":{"de":"German","en":"English","ru":"Russian","ur":"Urdu"},"wordType":"Nomen/Verb/Adjektiv/etc","opposite":"Arabic opposite WITH diacritics only if Adjektiv else empty string","oppHarakat":"opposite with diacritics or empty","plural":"Arabic plural WITH diacritics or -","pluralHarakat":"plural with diacritics or -","exampleArabic":"example sentence with FULL diacritics","exampleTranslation":{"de":"German","en":"English","ru":"Russian","ur":"Urdu"}}`);
-    const p=pJ(raw);
-    if(p){ setVocab([{...p,id:Date.now(),status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:Date.now()},...getVocab()]); document.querySelector('.overlay').remove(); addXP(5); renderVokabeln(document.getElementById('app')); }
-    else{alert('KI Fehler');btn.textContent='Karte erstellen';btn.disabled=false;}
-  }catch(e){alert('Fehler: '+e.message);btn.textContent='Karte erstellen';btn.disabled=false;}
+    const images=await Promise.all(files.map(async f=>({media_type:f.type||'image/jpeg',data:await fileToBase64(f)})));
+    const raw=await callAI(`Look at the image(s). Find every Arabic word visible (in vocabulary lists, textbook pages, handwriting, signs, etc). If a German translation is shown next to a word, include it. Reply ONLY with a JSON array: [{"arabic":"word as seen","german":"translation if visible, else empty string"}]. If no Arabic text is found, reply with [].`,2000,images);
+    const arr=pJ(raw);
+    if(Array.isArray(arr)&&arr.length){
+      const ta=document.getElementById('arIn');
+      const trIn=document.getElementById('trIn');
+      if(ta) ta.value=arr.map(x=>x.arabic).filter(Boolean).join('\n');
+      const germanHints=arr.map(x=>x.german).filter(Boolean);
+      if(trIn&&germanHints.length) trIn.value=germanHints.join(', ');
+      if(statusEl) statusEl.textContent=`${arr.length} Wort${arr.length>1?'er':''} erkannt – bitte prüfen, dann "Karten erstellen"`;
+    } else {
+      if(statusEl) statusEl.textContent='Keine arabischen Wörter im Bild erkannt.';
+    }
+  }catch(e){
+    if(statusEl) statusEl.textContent='Fehler: '+e.message;
+  }
+  event.target.value='';
+}
+
+function findExistingVocabData(arabic){
+  const key=stripH(arabic);
+  if(!key) return null;
+  for(const p of projects){
+    const found=(p.vocab||[]).find(v=>stripH(v.arabic)===key);
+    if(found) return found;
+  }
+  return null;
+}
+function findExistingVerbData(arabic){
+  const key=stripH(arabic);
+  if(!key) return null;
+  for(const p of projects){
+    const found=(p.verbs||[]).find(v=>stripH(v.arabic)===key);
+    if(found) return found;
+  }
+  return null;
+}
+async function addVocab(){
+  const raw=document.getElementById('arIn').value.trim();
+  const tr=document.getElementById('trIn').value.trim();
+  if(!raw)return;
+  const words=[...new Set(raw.split(/[\n,]+/).map(w=>w.trim()).filter(Boolean))];
+  if(!words.length)return;
+  const btn=document.getElementById('addVBtn');
+  btn.disabled=true;
+  const newEntries=[]; const toGenerate=[];
+  words.forEach(w=>{
+    const cached=findExistingVocabData(w);
+    if(cached){ newEntries.push({...cached,id:Date.now()+Math.floor(Math.random()*1000000),status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:0,chapterId:null}); }
+    else{ toGenerate.push(w); }
+  });
+  let generatedCount=0;
+  if(toGenerate.length){
+    btn.textContent=`KI ergänzt ${toGenerate.length} Wort${toGenerate.length>1?'er':''}...`;
+    try{
+      const listStr=toGenerate.map(w=>`"${w}"`).join(', ');
+      const rawAi=await callAI(`For each Arabic word in this list: [${listStr}] (translation hint if any: "${tr||'none'}"). Reply ONLY with a JSON array, one object per word, in the SAME order, format for each:
+{"arabic":"exact word as given","harakat":"word with FULL diacritics including tanwin e.g. كِتَابٌ","translations":{"de":"German"},"wordType":"Nomen/Verb/Adjektiv/etc","opposite":"Arabic opposite WITH diacritics only if Adjektiv else empty string","oppHarakat":"opposite with diacritics or empty","plural":"Arabic plural WITH diacritics or -","pluralHarakat":"plural with diacritics or -","exampleArabic":"example sentence with FULL diacritics","exampleTranslation":{"de":"German"}}`,1200+400*toGenerate.length);
+      const arr=pJ(rawAi);
+      if(Array.isArray(arr)){
+        arr.forEach(p=>{
+          newEntries.push({...p,id:Date.now()+Math.floor(Math.random()*1000000),status:'neu',interval:1,easeFactor:2.5,repetitions:0,failCount:0,nextReview:0,chapterId:null});
+          generatedCount++;
+        });
+      }
+    }catch(e){ alert('Fehler bei KI-Generierung: '+e.message); }
+  }
+  if(newEntries.length){
+    setVocab([...newEntries,...getVocab()]);
+    addXP(newEntries.length*5);
+    document.querySelector('.overlay').remove();
+    if(words.length>1) alert(`${newEntries.length} Wörter hinzugefügt (${newEntries.length-generatedCount} bereits bekannt & sofort übernommen, ${generatedCount} neu von der KI erstellt).`);
+    renderVokabeln(document.getElementById('app'));
+  } else {
+    btn.textContent='Karte erstellen'; btn.disabled=false;
+  }
 }
 
 // ── KARTEN (Spaced Repetition) ────────────────────────────────────────────────
@@ -1689,11 +1853,6 @@ function renderSettings(app){
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Erscheint als Begrüßung auf der Startseite.</div>
       <input id="nameInput" placeholder="Name (z.B. Abu Fulan)" value="${(currentUser&&currentUser.name)?currentUser.name:''}" style="margin-bottom:10px"/>
       <button class="gold-btn" onclick="saveName()" id="saveNameBtn">Speichern</button>
-    </div>
-
-    <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('language')}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-      ${Object.entries(LANGS).map(([code,l])=>`<div onclick="changeLang('${code}')" style="background:${lang===code?'var(--gold)':'var(--bg2)'};color:${lang===code?'#080c14':'var(--text)'};border:1px solid ${lang===code?'var(--gold)':'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;font-weight:600;font-size:13px;text-align:center;-webkit-tap-highlight-color:transparent">${l.flag} ${l.name}</div>`).join('')}
     </div>
 
     <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${ui('appearance')}</div>
