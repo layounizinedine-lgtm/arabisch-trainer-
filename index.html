@@ -2446,6 +2446,44 @@ window.doLogout=doLogout;
 let _bootComplete = false;
 let _authListenerAttached = false;
 
+// Fügt neue mitgelieferte Themen (z.B. Thema 6) zum bestehenden Account hinzu,
+// ohne vorhandenen Fortschritt anzurühren. Läuft bei jedem Start, ändert aber
+// nur etwas, wenn ein Thema aus VOKABELN_DATA/VERBEN_DATA beim Nutzer noch fehlt.
+function ensureBuiltInThemes(){
+  let changed=false;
+  VOKABELN_DATA.forEach((themeData,idx)=>{
+    let proj=projects.find(p=>p.name===themeData.name);
+    const verbData=VERBEN_DATA[idx];
+    if(!proj){
+      proj={id:Date.now()+idx,name:themeData.name,vocab:[],verbs:[]};
+      projects.push(proj);
+      changed=true;
+    }
+    proj.vocab=proj.vocab||[];
+    const existingVocabKeys=new Set(proj.vocab.map(v=>stripH(v.arabic)));
+    themeData.vocab.forEach(v=>{
+      const key=stripH(v.arabic);
+      if(!existingVocabKeys.has(key)){
+        proj.vocab.push(JSON.parse(JSON.stringify(v)));
+        existingVocabKeys.add(key);
+        changed=true;
+      }
+    });
+    if(verbData){
+      proj.verbs=proj.verbs||[];
+      const existingVerbKeys=new Set(proj.verbs.map(v=>stripH(v.arabic)));
+      verbData.verbs.forEach(v=>{
+        const key=stripH(v.arabic);
+        if(!existingVerbKeys.has(key)){
+          proj.verbs.push(JSON.parse(JSON.stringify(v)));
+          existingVerbKeys.add(key);
+          changed=true;
+        }
+      });
+    }
+  });
+  if(changed) saveProjects();
+}
 async function boot(){
   try{
     // Erst warten bis die Supabase-Bibliothek vollständig geladen ist (max. 3 Sekunden)
@@ -2487,6 +2525,7 @@ async function boot(){
       }
     }
     _bootComplete = true;
+    ensureBuiltInThemes();
     if(supa&&!currentUser){
       renderAuth(document.getElementById('app'));
     } else {
