@@ -713,7 +713,7 @@ function renderHome(app){
               <div style="width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:${isActive?'var(--gold)':'var(--text3)'};transform:rotate(${isExpanded?'45deg':'0deg'});transition:transform 0.2s">${icon('plus',16,isActive?'var(--gold)':'var(--text3)',2.5)}</div>
               <div>
                 <div style="font-size:15px;font-weight:700;color:${isActive?'var(--gold)':'var(--text)'}">${p.name}</div>
-                <div style="font-size:11px;color:${totalDue>0?'#ef4444':'var(--text3)'};margin-top:2px">${t} Vokabeln${verbList.length?` · ${verbList.length} Verben`:''} · ${totalDue>0?`${totalDue} fällig`:'nichts fällig'}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px">Gesamt: ${t+verbList.length} Wörter</div>
               </div>
             </div>
             <div style="text-align:right">
@@ -737,7 +737,7 @@ function renderHome(app){
               const cDue=cVocab.filter(isDue).length;
               return `<div style="display:flex;gap:6px">
                 <div onclick="event.stopPropagation();startChapterKarten(${i},${c.id})" style="flex:1;background:var(--bg3);border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
-                  <div style="display:flex;align-items:center;gap:8px">${icon('tag',16,'#a78bfa',2)}<span style="font-size:13px;color:var(--text)">${c.name}</span><span style="font-size:10px;color:var(--text3)">(${cVocab.length})</span></div>
+                  <div style="display:flex;align-items:center;gap:8px">${icon('tag',16,'#a78bfa',2)}<span style="font-size:13px;color:var(--text)">${c.name}: ${cVocab.length} Wörter</span></div>
                   <span style="font-size:11px;color:${cDue>0?'#ef4444':'var(--text3)'}">${cVocab.length===0?'leer':cDue>0?cDue+' fällig':'—'}</span>
                 </div>
                 <div onclick="event.stopPropagation();deleteChapter(${i},${c.id})" style="background:#3b1a1a;border-radius:10px;padding:0 10px;display:flex;align-items:center;cursor:pointer;color:#fca5a5;font-size:12px">✕</div>
