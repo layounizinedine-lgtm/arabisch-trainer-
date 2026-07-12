@@ -68,6 +68,7 @@ function waitForSupabaseLib(maxTries){
 
 let currentUser = null; // { id, email }
 let authError = '';
+let authInfo = ''; // grüne Erfolgsmeldung (z.B. "Reset-E-Mail verschickt")
 let authLoading = false;
 let authMode = 'login'; // 'login' | 'signup'
 
@@ -391,7 +392,7 @@ async function cloudSyncNow(){
       user_id: currentUser.id,
       projects: projects,
       streak: streak,
-      settings: { cardDirection, sentenceLayout, lang, theme },
+      settings: { cardDirection, sentenceLayout, lang, theme, qawaid: (typeof meineQawaid!=='undefined'?meineQawaid:[]) },
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
   }catch(e){ console.warn('Cloud-Sync fehlgeschlagen:', e); }
@@ -408,6 +409,12 @@ async function cloudLoadForUser(){
         cardDirection=data.settings.cardDirection||cardDirection;
         theme=data.settings.theme||theme;
         document.documentElement.setAttribute('data-theme', theme);
+        if(Array.isArray(data.settings.qawaid)&&data.settings.qawaid.length&&typeof meineQawaid!=='undefined'){
+          // Vereinigung: Cloud-Regeln übernehmen, lokale behalten (kein Duplikat pro Name)
+          const vorhandene=new Set(meineQawaid.map(r=>qawaidNorm(r.name)));
+          data.settings.qawaid.forEach(r=>{ if(r&&r.name&&!vorhandene.has(qawaidNorm(r.name))) meineQawaid.push(r); });
+          try{localStorage.setItem('qawaid_v1',JSON.stringify(meineQawaid))}catch{}
+        }
       }
       saveProjectsLocal(); saveStreakLocal();
       return true;
@@ -448,9 +455,62 @@ function addXP(n){
 updateStreak();
 
 // ═══════════════════════════════════════════════════════
+// BENACHRICHTIGUNGEN — fällige Wörter & "lange nicht gelernt"
+// Hinweis: Browser-Benachrichtigungen funktionieren, solange
+// die App/der Tab geöffnet ist (auch im Hintergrund).
+// ═══════════════════════════════════════════════════════
+function notifyAktiv(){
+  return localStorage.getItem('notify_v1')==='1' && ('Notification' in window) && Notification.permission==='granted';
+}
+function toggleNotify(){
+  if(!('Notification' in window)){ alert('Dein Browser unterstützt keine Benachrichtigungen.'); return; }
+  if(notifyAktiv()){ localStorage.setItem('notify_v1','0'); render(); return; }
+  Notification.requestPermission().then(perm=>{
+    if(perm==='granted'){
+      localStorage.setItem('notify_v1','1');
+      try{ new Notification('مركز اللغة — Arabisch-Trainer',{body:'Erinnerungen sind aktiv. Wir melden uns, wenn Wörter fällig sind oder du länger nicht gelernt hast. ✦'}); }catch(e){}
+    } else {
+      alert('Benachrichtigungen wurden im Browser abgelehnt. Du kannst sie in den Seiteneinstellungen wieder erlauben.');
+    }
+    render();
+  });
+}
+function sendeNotify(art,titel,text,minAbstandMs){
+  if(!notifyAktiv()) return;
+  const key='notify_last_'+art;
+  const letzte=parseInt(localStorage.getItem(key)||'0',10);
+  if(Date.now()-letzte<minAbstandMs) return;
+  try{ new Notification(titel,{body:text}); localStorage.setItem(key,String(Date.now())); }catch(e){}
+}
+function notifyCheck(){
+  if(!notifyAktiv()) return;
+  // 1. Fällige Karten über alle Themen (Vokabeln + Verben)
+  let due=0;
+  projects.forEach(p=>{
+    due+=(p.vocab||[]).filter(c=>c.status!=='neu'&&isDue(c)).length;
+    due+=(p.verbs||[]).filter(c=>c.status!=='neu'&&isDue(c)).length;
+  });
+  if(due>0){
+    sendeNotify('due','Wiederholung fällig! ⏰',due+' Wort/Wörter warten auf dich. Wiederhole jetzt, um deine Prozentzahl zu halten.',30*60000);
+  }
+  // 2. Länger als einen Tag nicht gelernt
+  if(streak.lastDate){
+    const tage=Math.floor((Date.now()-new Date(streak.lastDate+'T12:00:00').getTime())/86400000);
+    if(tage>=1){
+      sendeNotify('idle','Wir vermissen dich! ✦','Du hast seit '+tage+' Tag(en) nicht gelernt. Schon 5 Minuten halten dein Arabisch frisch — und deinen '+streak.days+'-Tage-Streak am Leben.',12*3600000);
+    }
+  }
+}
+setInterval(notifyCheck,60000);
+setTimeout(notifyCheck,5000);
+
+// ═══════════════════════════════════════════════════════
 // SRS
 // ═══════════════════════════════════════════════════════
 function isDue(c){ return !c.nextReview||Date.now()>=c.nextReview; }
+// "Gelernt" zählt nur, solange die Wiederholungsfrist läuft. Verpasst man sie,
+// fällt das Wort aus der Prozentzahl — so sinkt der Fortschritt, bis man wiederholt.
+function istGelernt(c){ return c.status==='gelernt' && !isDue(c); }
 // Anki-Style SRS: "Gar nicht" und "Geht so" nutzen kurze Minuten-Intervalle (Learning Steps),
 // "Gut" und "Perfekt" nutzen Tage-Intervalle wie gewohnt.
 // score: 0=Gar nicht, 1=Geht so, 3=Gut, 5=Perfekt
@@ -696,6 +756,12 @@ function renderHome(app){
       </div>
     </div>
 
+    <!-- Globale Suche -->
+    <div style="margin-bottom:18px">
+      <input id="globalSearch" placeholder="🔍 Wort suchen — alle Themen & Kapitel, Arabisch oder Deutsch…" oninput="globaleSuche(this.value)" autocomplete="off"/>
+      <div id="globalSearchResults"></div>
+    </div>
+
     <!-- Themen -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px">THEMEN</div>
@@ -703,7 +769,7 @@ function renderHome(app){
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
       ${projects.map((p,i)=>{
-        const g=p.vocab.filter(v=>v.status==='gelernt').length;
+        const g=p.vocab.filter(istGelernt).length;
         const t=p.vocab.length;
         const pct=t?Math.round(g/t*100):0;
         const dueCount=p.vocab.filter(isDue).length;
@@ -809,6 +875,7 @@ function renderLernen(app){
   if(subView==='karten') { renderKarten(app); return; }
   if(subView==='diktat') { renderDiktat(app); return; }
   if(subView==='handschreiben') { renderHandschreiben(app); return; }
+  if(subView==='qawaid') { renderQawaid(app); return; }
   // Default: Lern-Übersicht
   const vocab=getVocab();
   const due=vocab.filter(isDue).length;
@@ -842,6 +909,7 @@ function renderLernen(app){
         {icon:'mic',title:'Diktat',desc:'Sätze hören & schreiben',sv:'diktat'},
         {icon:'pencil',title:'Handschreiben',desc:'Von Hand schreiben üben',sv:'handschreiben'},
         {icon:'pencil',title:ui('correction'),desc:'Texte prüfen',sv:'korrektor'},
+        {icon:'bookOpen',title:'Qawāʿid',desc:'Grammatik-Regeln nachschlagen',sv:'qawaid'},
       ].map(q=>`<div class="quick-card" onclick="subView='${q.sv}';${q.sv==='diktat'?'window._diktatState=null;':''}${q.sv==='handschreiben'?'window._hsState=null;':''}render()">
         <div>${icon(q.icon,24,'var(--gold)',2)}</div>
         <div style="font-size:14px;font-weight:700;color:var(--text)">${q.title}</div>
@@ -873,8 +941,8 @@ function renderVokabeln(app){
     ${(()=>{
       const total=shown.length;
       const neu=shown.filter(v=>v.status==='neu').length;
-      const lernend=shown.filter(v=>v.status==='lernend').length;
-      const gelernt=shown.filter(v=>v.status==='gelernt').length;
+      const lernend=shown.filter(v=>v.status==='lernend'||(v.status==='gelernt'&&isDue(v))).length;
+      const gelernt=shown.filter(istGelernt).length;
       const pctL=total?Math.round(lernend/total*100):0;
       const pctG=total?Math.round(gelernt/total*100):0;
       const label=activeChapter==='all'?'Karten im Deck':(chapters.find(c=>c.id===activeChapter)||{}).name||'Karten im Deck';
@@ -982,8 +1050,74 @@ async function showVocabMehr(id){
 function filterVocab(q){
   const activeChapter=window._vokFilterChapter!==undefined?window._vokFilterChapter:'all';
   const base=activeChapter==='all'?getVocab():getVocab().filter(v=>(v.chapterId||null)===activeChapter);
-  const filtered=base.filter(v=>v.arabic.includes(q)||getTr(v).toLowerCase().includes(q.toLowerCase()));
+  const qAr=stripH(q), qDe=q.toLowerCase();
+  const filtered=base.filter(v=>stripH(v.arabic).includes(qAr)||stripH(v.harakat||'').includes(qAr)||getTr(v).toLowerCase().includes(qDe));
   document.getElementById('vocabList').innerHTML=filtered.map(v=>vocabCard(v)).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// GLOBALE SUCHE — alle Themen & Kapitel, Vokabeln + Verben,
+// Arabisch (mit oder ohne Harakat) oder Deutsch
+// ═══════════════════════════════════════════════════════
+function globaleSuche(q){
+  const box=document.getElementById('globalSearchResults');
+  if(!box) return;
+  q=(q||'').trim();
+  if(q.length<2){ box.innerHTML=''; return; }
+  const qAr=stripH(q), qDe=q.toLowerCase();
+  const istArabisch=/[؀-ۿ]/.test(q);
+  const treffer=[];
+  projects.forEach((p,pi)=>{
+    const chapters=p.chapters||[];
+    const passt=(item)=>{
+      if(istArabisch){
+        return stripH(item.arabic||'').includes(qAr)
+          || stripH(item.harakat||'').includes(qAr)
+          || stripH(item.plural||'').includes(qAr);
+      }
+      return getTr(item).toLowerCase().includes(qDe);
+    };
+    (p.vocab||[]).forEach(v=>{
+      if(passt(v)){
+        const kap=chapters.find(c=>c.id===v.chapterId);
+        treffer.push({item:v,pi,thema:p.name,kapitel:kap?kap.name:null,istVerb:false});
+      }
+    });
+    (p.verbs||[]).forEach(v=>{
+      if(passt(v)) treffer.push({item:v,pi,thema:p.name,kapitel:null,istVerb:true});
+    });
+  });
+  const gezeigt=treffer.slice(0,30);
+  if(gezeigt.length===0){
+    box.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:8px;font-size:13px;color:var(--text3);text-align:center">Kein Wort gefunden für „${q.replace(/</g,'&lt;')}"</div>`;
+    return;
+  }
+  box.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:1px">${treffer.length} TREFFER${treffer.length>30?' (ZEIGE 30)':''}</div>
+    ${gezeigt.map((t,ti)=>{
+      const v=t.item, tr=getTr(v);
+      const ort=t.thema+(t.kapitel?' › '+t.kapitel:'')+(t.istVerb?' · Verb':'');
+      const sc=istGelernt(v)?'#4ade80':isDue(v)&&v.status!=='neu'?'#ef4444':v.status==='lernend'?'#60a5fa':'var(--text3)';
+      return `<div onclick="sucheOeffnen(${t.pi},${t.istVerb},${v.chapterId!=null?v.chapterId:'null'})" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="ar" style="font-size:22px;color:var(--gold);font-weight:700">${v.harakat||v.arabic}</span>
+            <span style="width:8px;height:8px;border-radius:50%;background:${sc};flex-shrink:0"></span>
+          </div>
+          <div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${tr}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">${ort}</div>
+        </div>
+        <button onclick="event.stopPropagation();speakAr('${(v.harakat||v.arabic).replace(/'/g,"\\'")}')" style="background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',15,'var(--gold)',2)}</button>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function sucheOeffnen(pi,istVerb,chapterId){
+  curProject=pi; saveProjects();
+  tab='lernen';
+  if(istVerb){ subView='verben'; }
+  else { subView='vokabeln'; window._vokFilterChapter=chapterId!=null?chapterId:'all'; }
+  render();
 }
 function showEditVocab(id){
   const v=getVocab().find(x=>x.id===id); if(!v)return;
@@ -1334,6 +1468,188 @@ function rateCard(score){
   if(lI>=lP.length){lD=true;updateStreak();}
   showCard(document.getElementById('app'));
 }
+
+// ═══════════════════════════════════════════════════════
+// QAWAID — Grammatikregeln: 5 Grundregeln eingebaut,
+// alle weiteren erklärt die KI und speichert sie dauerhaft
+// unter "Meine Regeln" (danach ohne KI abrufbar).
+// ═══════════════════════════════════════════════════════
+const QAWAID_DB=[
+  { namen:['nominalsatz','mubtada','chabar','khabar','mubtada und chabar','المبتدأ والخبر','مبتدأ','خبر','الجملة الاسمية','al-dschumla al-ismiyya'],
+    titel:'Der Nominalsatz — Mubtada & Chabar', ar:'الْمُبْتَدَأُ وَالْخَبَرُ',
+    erklaerung:'Ein Nominalsatz beginnt mit einem Nomen und braucht KEIN Verb „sein". Er besteht aus zwei Teilen: dem Mubtada (Satzanfang, wovon man spricht) und dem Chabar (die Aussage darüber). Beide stehen im Nominativ (meist mit Damma/-u am Ende).',
+    beispiele:[
+      {ar:'الْبَيْتُ كَبِيرٌ',tr:'al-baitu kabīrun',de:'Das Haus (ist) groß.'},
+      {ar:'الْمُعَلِّمُ فِي الصَّفِّ',tr:'al-muʿallimu fī ṣ-ṣaff',de:'Der Lehrer (ist) im Klassenzimmer.'},
+      {ar:'أَنَا طَالِبٌ',tr:'anā ṭālibun',de:'Ich (bin) Schüler.'}
+    ],
+    merke:'Auf Deutsch denkst du dir das Wort „ist/sind" einfach dazu — im Arabischen fehlt es.' },
+  { namen:['verbalsatz','الجملة الفعلية','fiʿl','fail','verb subjekt objekt','satzbau'],
+    titel:'Der Verbalsatz', ar:'الْجُمْلَةُ الْفِعْلِيَّةُ',
+    erklaerung:'Ein Verbalsatz beginnt mit dem Verb. Die Grundreihenfolge ist: Verb → Subjekt (Fāʿil, Nominativ) → Objekt (Mafʿūl, Akkusativ). Das Verb steht am Satzanfang immer im Singular, auch wenn das Subjekt Plural ist.',
+    beispiele:[
+      {ar:'كَتَبَ الطَّالِبُ الدَّرْسَ',tr:'kataba ṭ-ṭālibu d-darsa',de:'Der Schüler schrieb die Lektion.'},
+      {ar:'شَرِبَ الْوَلَدُ الْمَاءَ',tr:'schariba l-waladu l-māʾa',de:'Der Junge trank das Wasser.'}
+    ],
+    merke:'Reihenfolge: Verb – Wer? (-u) – Wen/Was? (-a).' },
+  { namen:['sonnenbuchstaben','mondbuchstaben','sonnen- und mondbuchstaben','sonnen und mondbuchstaben','الحروف الشمسية','الحروف القمرية','schamsiyya','qamariyya'],
+    titel:'Sonnen- und Mondbuchstaben', ar:'الْحُرُوفُ الشَّمْسِيَّةُ وَالْقَمَرِيَّةُ',
+    erklaerung:'Beim Artikel al- gibt es zwei Fälle: Vor MONDBUCHSTABEN (z.B. b, m, k, q) spricht man das L aus: al-qamar. Vor SONNENBUCHSTABEN (z.B. t, d, r, s, sch, n) verschmilzt das L mit dem folgenden Buchstaben, der dann verdoppelt wird (Schadda): asch-schams statt al-schams. Geschrieben wird immer ال.',
+    beispiele:[
+      {ar:'الْقَمَرُ',tr:'al-qamaru',de:'der Mond (L wird gesprochen)'},
+      {ar:'الشَّمْسُ',tr:'asch-schamsu',de:'die Sonne (L verschmilzt)'},
+      {ar:'السَّلَامُ',tr:'as-salāmu',de:'der Friede (L verschmilzt)'}
+    ],
+    merke:'14 Sonnenbuchstaben: ت ث د ذ ر ز س ش ص ض ط ظ ل ن — alle werden mit der Zunge vorne gebildet, genau wie das L selbst.' },
+  { namen:['idafa','idafah','iḍāfa','genitivverbindung','الإضافة','اضافه','besitz'],
+    titel:'Die Iḍāfa — Genitivverbindung', ar:'الْإِضَافَة',
+    erklaerung:'Die Iḍāfa verbindet zwei Nomen zu „X des Y" (Besitz oder Zugehörigkeit). Das erste Wort bekommt NIE den Artikel al- und NIE Tanwin. Das zweite Wort steht im Genitiv (Kasra/-i) und trägt den Artikel, wenn es bestimmt ist.',
+    beispiele:[
+      {ar:'بَابُ الْبَيْتِ',tr:'bābu l-baiti',de:'die Tür des Hauses'},
+      {ar:'كِتَابُ الطَّالِبِ',tr:'kitābu ṭ-ṭālibi',de:'das Buch des Schülers'},
+      {ar:'مِفْتَاحُ السَّيَّارَةِ',tr:'miftāḥu s-sayyārati',de:'der Autoschlüssel'}
+    ],
+    merke:'Erstes Wort: kein al-, kein Tanwin. Zweites Wort: Genitiv (-i).' },
+  { namen:['bestimmt','unbestimmt','bestimmtes wort','unbestimmtes wort','bestimmt und unbestimmt','artikel','tanwin','nunation','تنوين','المعرفة والنكرة','معرفة','نكرة','marifa','nakira'],
+    titel:'Bestimmt & Unbestimmt — al- und Tanwin', ar:'الْمَعْرِفَةُ وَالنَّكِرَةُ',
+    erklaerung:'Arabisch kennt keinen unbestimmten Artikel („ein/eine"). UNBESTIMMT ist ein Wort mit Tanwin am Ende: -un (ٌ), -an (ً) oder -in (ٍ) — kitābun = ein Buch. BESTIMMT wird ein Wort mit dem Artikel al- (ال) am Anfang: al-kitābu = das Buch. Ein Wort hat NIE gleichzeitig al- und Tanwin — der Artikel ersetzt das Tanwin.',
+    beispiele:[
+      {ar:'كِتَابٌ',tr:'kitābun',de:'ein Buch (unbestimmt, mit Tanwin)'},
+      {ar:'الْكِتَابُ',tr:'al-kitābu',de:'das Buch (bestimmt, mit al-)'},
+      {ar:'بَيْتٌ ← الْبَيْتُ',tr:'baitun → al-baitu',de:'ein Haus → das Haus'}
+    ],
+    merke:'al- ODER Tanwin — niemals beides. Tanwin = „ein/eine", al- = „der/die/das".' }
+];
+
+let meineQawaid=JSON.parse(localStorage.getItem('qawaid_v1')||'[]');
+function saveQawaidLocal(){ try{localStorage.setItem('qawaid_v1',JSON.stringify(meineQawaid))}catch{}; cloudSyncDebounced(); }
+
+function qawaidNorm(s){
+  return stripH(String(s||'')).toLowerCase()
+    .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي')
+    .replace(/[āâ]/g,'a').replace(/[īî]/g,'i').replace(/[ūû]/g,'u')
+    .replace(/[ḍḏ]/g,'d').replace(/[ṭṯ]/g,'t').replace(/[ṣš]/g,'s').replace(/ḥ/g,'h').replace(/[ʿʾ'`’]/g,'')
+    .replace(/[-_/.,؟?!]/g,' ').replace(/\s+/g,' ').trim();
+}
+// Exakter Treffer immer; Teiltreffer nur ab 4 Zeichen (sonst matcht z.B. "al" überall)
+function qawaidPasst(n,q){
+  if(!n||!q) return false;
+  if(n===q) return true;
+  if(n.length>=4&&q.includes(n)) return true;
+  if(q.length>=4&&n.includes(q)) return true;
+  return false;
+}
+function qawaidFinde(eingabe){
+  const q=qawaidNorm(eingabe);
+  if(!q) return null;
+  return QAWAID_DB.find(r=>r.namen.some(n=>qawaidPasst(qawaidNorm(n),q)))||null;
+}
+function qawaidFindeGespeichert(eingabe){
+  const q=qawaidNorm(eingabe);
+  if(!q) return null;
+  return meineQawaid.find(r=>qawaidPasst(qawaidNorm(r.name),q))||null;
+}
+function escQ(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function qawaidRegelHtml(r){
+  return `<div class="card" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+      <div style="font-size:16px;font-weight:800;color:var(--gold)">${escQ(r.titel)}</div>
+      <div class="ar" style="font-size:20px;color:var(--text);font-weight:700">${escQ(r.ar)}</div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-top:10px">${escQ(r.erklaerung)}</div>
+    <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin:14px 0 8px">BEISPIELE</div>
+    ${r.beispiele.map(b=>`<div style="background:var(--bg3);border-radius:12px;padding:10px 14px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div class="ar" style="font-size:19px;color:var(--text);line-height:1.9">${escQ(b.ar)}</div>
+        <button onclick="speakAr('${(b.ar||'').replace(/'/g,"\\'")}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:30px;height:30px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',13,'var(--gold)',2)}</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px"><em>${escQ(b.tr)}</em> — ${escQ(b.de)}</div>
+    </div>`).join('')}
+    <div style="border-left:3px solid var(--gold);padding:8px 12px;margin-top:10px;background:var(--bg3);border-radius:0 10px 10px 0;font-size:12px;color:var(--gold)">✦ Merke: ${escQ(r.merke)}</div>
+  </div>`;
+}
+function qawaidGespeichertHtml(r){
+  const datum=r.datum?new Date(r.datum).toLocaleDateString('de-DE'):'';
+  return `<div class="card" style="margin-top:14px">
+    <div style="font-size:16px;font-weight:800;color:var(--gold);margin-bottom:8px">${escQ(r.name)}</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap">${escQ(r.text)}</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:12px">— gespeicherte Erklärung${datum?' vom '+datum:''} · jederzeit ohne KI abrufbar</div>
+  </div>`;
+}
+
+function renderQawaid(app){
+  app.innerHTML=`<div style="padding:20px 16px 100px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px">
+      <button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button>
+      <div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Qawāʿid <span class="ar" style="color:var(--gold)">الْقَوَاعِد</span></div></div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">Schreibe den Namen einer Regel — auf Deutsch, Arabisch oder in Umschrift. Unbekannte Regeln erklärt die KI und speichert sie dauerhaft unter „Meine Regeln".</div>
+    <input id="qawaidInput" placeholder="z.B. Idafa, مبتدأ, Sonnenbuchstaben…" autocomplete="off" onkeydown="if(event.key==='Enter')window._qawaidErklaeren()" style="margin-bottom:10px"/>
+    <button class="gold-btn" onclick="window._qawaidErklaeren()">Regel erklären</button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+      ${QAWAID_DB.map(r=>{
+        const kurz=r.titel.split('—')[0].trim();
+        return `<button onclick="document.getElementById('qawaidInput').value='${kurz.replace(/'/g,"\\'")}';window._qawaidErklaeren()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">${kurz}</button>`;
+      }).join('')}
+    </div>
+    <div id="qawaidErgebnis"></div>
+    <div id="qawaidMeine" style="margin-top:20px">${renderMeineQawaidHtml()}</div>
+  </div>`;
+}
+function renderMeineQawaidHtml(){
+  if(!meineQawaid.length) return '';
+  return `<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:8px">MEINE REGELN (${meineQawaid.length}) — VON DER KI ERKLÄRT, DAUERHAFT GESPEICHERT</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+    ${meineQawaid.map((r,i)=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div onclick="window._qawaidZeig(${i})" style="flex:1;cursor:pointer;font-size:14px;font-weight:600;color:var(--text)">${escQ(r.name)}</div>
+      <button onclick="window._qawaidLoesch(${i})" style="background:#3b1a1a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">✕</button>
+    </div>`).join('')}
+    </div>`;
+}
+window._qawaidZeig=function(i){
+  const r=meineQawaid[i]; if(!r) return;
+  const box=document.getElementById('qawaidErgebnis');
+  if(box) box.innerHTML=qawaidGespeichertHtml(r);
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+window._qawaidLoesch=function(i){
+  const r=meineQawaid[i]; if(!r) return;
+  if(!confirm('Regel „'+r.name+'" wirklich löschen?')) return;
+  meineQawaid.splice(i,1); saveQawaidLocal();
+  const m=document.getElementById('qawaidMeine'); if(m) m.innerHTML=renderMeineQawaidHtml();
+};
+window._qawaidErklaeren=async function(){
+  const eingabe=(document.getElementById('qawaidInput').value||'').trim();
+  const box=document.getElementById('qawaidErgebnis');
+  if(!eingabe||!box) return;
+  // 1. Eingebaute Grundregel?
+  const regel=qawaidFinde(eingabe);
+  if(regel){ box.innerHTML=qawaidRegelHtml(regel); return; }
+  // 2. Schon gespeichert? Dann ohne KI anzeigen.
+  const gesp=qawaidFindeGespeichert(eingabe);
+  if(gesp){ box.innerHTML=qawaidGespeichertHtml(gesp); return; }
+  // 3. Neu: KI fragen und dauerhaft speichern.
+  box.innerHTML=`<div class="card" style="margin-top:14px;text-align:center;color:var(--text3)"><div style="font-size:13px;margin-bottom:10px">Die KI erklärt „${escQ(eingabe)}"…</div><div style="font-size:24px">⏳</div></div>`;
+  try{
+    const text=await callAI('Du bist ein geduldiger Arabischlehrer für deutschsprachige Anfänger. Erkläre die arabische Grammatikregel "'+eingabe+'" EINFACH und ohne unnötigen Fachjargon (nötige Fachbegriffe kurz erklären). Struktur: 1) Kurze Erklärung in 2-4 Sätzen. 2) 3 einfache Beispiele, jeweils: arabisch mit Vokalzeichen, Umschrift, deutsche Übersetzung. 3) Ein einprägsamer Merksatz. Antworte auf Deutsch, als reiner Text ohne Markdown-Zeichen wie ** oder ##.',1200);
+    if(!text||!text.trim()) throw new Error('leere Antwort');
+    // Speichern (bei gleichem Namen: aktualisieren statt Duplikat)
+    const q=qawaidNorm(eingabe);
+    const idx=meineQawaid.findIndex(r=>qawaidNorm(r.name)===q);
+    const eintrag={name:eingabe,text:text.trim(),datum:new Date().toISOString()};
+    if(idx>=0) meineQawaid[idx]=eintrag; else meineQawaid.push(eintrag);
+    saveQawaidLocal();
+    const m=document.getElementById('qawaidMeine'); if(m) m.innerHTML=renderMeineQawaidHtml();
+    box.innerHTML=`<div class="card" style="margin-top:14px">
+      <div style="font-size:16px;font-weight:800;color:var(--gold);margin-bottom:8px">${escQ(eingabe)}</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap">${escQ(text.trim())}</div>
+      <div style="font-size:10px;color:#4ade80;margin-top:12px">✓ Unter „Meine Regeln" gespeichert — ab jetzt jederzeit ohne KI abrufbar.</div>
+    </div>`;
+  }catch(e){
+    box.innerHTML=`<div class="card" style="margin-top:14px;color:#f87171;font-size:13px">Die KI-Anfrage ist fehlgeschlagen (${escQ(e.message)}). Bist du online? Versuch es gleich nochmal.</div>`;
+  }
+};
 
 // ── VERBEN ────────────────────────────────────────────────────────────────────
 let activeTense='vergangenheit';
@@ -1893,8 +2209,8 @@ function renderProfil(app){
   if(subView==='stats'){renderStats(app);return;}
   if(subView==='settings'){renderSettings(app);return;}
   const vocab=getVocab();
-  const gelernt=vocab.filter(v=>v.status==='gelernt').length;
-  const lernend=vocab.filter(v=>v.status==='lernend').length;
+  const gelernt=vocab.filter(istGelernt).length;
+  const lernend=vocab.filter(v=>v.status==='lernend'||(v.status==='gelernt'&&isDue(v))).length;
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="padding-top:6px;margin-bottom:24px">
       <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Profil</div>
@@ -1952,6 +2268,16 @@ function renderSettings(app){
       <span style="font-size:14px;font-weight:600;color:var(--text)">${theme==='dark'?' Nacht-Modus':'️ Tag-Modus'}</span>
       <div style="width:52px;height:28px;background:${theme==='dark'?'#334155':'var(--gold)'};border-radius:14px;position:relative">
         <div style="position:absolute;top:4px;${theme==='dark'?'left:4px':'left:24px'};width:20px;height:20px;background:${theme==='dark'?'#fff':'#0a1628'};border-radius:50%"></div>
+      </div>
+    </div>
+
+    <div onclick="toggleNotify()" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">🔔 Erinnerungen</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Bei fälligen Wörtern & wenn du 1+ Tage nicht gelernt hast</div>
+      </div>
+      <div style="width:52px;height:28px;background:${notifyAktiv()?'var(--gold)':'#334155'};border-radius:14px;position:relative;flex-shrink:0">
+        <div style="position:absolute;top:4px;${notifyAktiv()?'left:24px':'left:4px'};width:20px;height:20px;background:${notifyAktiv()?'#0a1628':'#fff'};border-radius:50%"></div>
       </div>
     </div>
 
@@ -2644,6 +2970,20 @@ function renderAuth(app){
   if(nav){ nav.style.display='none'; nav.innerHTML=''; } // Navbar komplett leeren, damit kein versehentlicher Klick durchgeht
   tab='home'; subView=null; // Zustand zurücksetzen, damit nach Login kein alter Tab-Zustand "durchsickert"
   const isSignup=authMode==='signup';
+  const isReset=authMode==='reset';
+  if(isReset){
+    // Neues Passwort setzen — nach Klick auf den Link aus der "Passwort vergessen"-E-Mail
+    app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
+      <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:32px">Wähle ein neues Passwort</div>
+      <div style="width:100%;max-width:340px">
+        <input id="authNewPassword" type="password" placeholder="Neues Passwort (mind. 6 Zeichen)" style="margin-bottom:16px" autocomplete="new-password"/>
+        ${authError?`<div style="background:#2a1010;border:1px solid #7f1d1d;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#f87171;font-size:13px">${authError}</div>`:''}
+        <button class="gold-btn" onclick="window._doPasswordReset()" style="margin-bottom:12px" ${authLoading?'disabled':''}>${authLoading?'Lädt...':'Passwort speichern'}</button>
+      </div>
+    </div>`;
+    return;
+  }
   app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
     <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${isSignup?'Erstelle dein Konto':'Melde dich an'}</div>
@@ -2651,15 +2991,58 @@ function renderAuth(app){
       ${isSignup?`<input id="authName" type="text" placeholder="Name (z.B. Abu Fulan)" style="margin-bottom:10px" autocomplete="given-name"/>`:''}
       <input id="authEmail" type="email" placeholder="E-Mail-Adresse" style="margin-bottom:10px" autocomplete="email"/>
       <input id="authPassword" type="password" placeholder="Passwort" style="margin-bottom:16px" autocomplete="${isSignup?'new-password':'current-password'}"/>
+      ${authInfo?`<div style="background:#0d1f12;border:1px solid #14532d;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#4ade80;font-size:13px">${authInfo}</div>`:''}
       ${authError?`<div style="background:#2a1010;border:1px solid #7f1d1d;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#f87171;font-size:13px">${authError}</div>`:''}
       <button class="gold-btn" onclick="window._doAuth()" style="margin-bottom:12px" ${authLoading?'disabled':''}>${authLoading?'Lädt...':(isSignup?'Konto erstellen':'Anmelden')}</button>
+      ${!isSignup?`<div style="text-align:center;margin-bottom:12px">
+        <span onclick="window._forgotPassword()" style="color:var(--text3);font-size:13px;cursor:pointer;text-decoration:underline">Passwort vergessen?</span>
+      </div>`:''}
       <div style="text-align:center;font-size:13px;color:var(--text3)">
         ${isSignup?'Schon ein Konto?':'Noch kein Konto?'}
-        <span onclick="authMode='${isSignup?'login':'signup'}';authError='';renderAuth(document.getElementById('app'))" style="color:var(--gold);font-weight:700;cursor:pointer">${isSignup?'Anmelden':'Registrieren'}</span>
+        <span onclick="authMode='${isSignup?'login':'signup'}';authError='';authInfo='';renderAuth(document.getElementById('app'))" style="color:var(--gold);font-weight:700;cursor:pointer">${isSignup?'Anmelden':'Registrieren'}</span>
       </div>
     </div>
   </div>`;
 }
+window._forgotPassword=async function(){
+  const emailEl=document.getElementById('authEmail');
+  const email=emailEl?emailEl.value.trim():'';
+  if(!email){ authError='Gib oben deine E-Mail-Adresse ein — dann schicken wir dir einen Link zum Zurücksetzen.'; authInfo=''; renderAuth(document.getElementById('app')); return; }
+  if(!supa){ authError='Keine Verbindung zum Server. Bist du online?'; renderAuth(document.getElementById('app')); return; }
+  authLoading=true; authError=''; authInfo=''; renderAuth(document.getElementById('app'));
+  try{
+    const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    if(error) throw error;
+    authLoading=false;
+    authInfo='✓ E-Mail ist unterwegs an '+email+'! Öffne den Link darin — dann kannst du hier ein neues Passwort setzen. (Schau auch im Spam-Ordner nach.)';
+    renderAuth(document.getElementById('app'));
+  }catch(e){
+    authLoading=false;
+    authError=e.message||'Etwas ist schiefgelaufen. Versuch es nochmal.';
+    renderAuth(document.getElementById('app'));
+  }
+};
+window._doPasswordReset=async function(){
+  const pwEl=document.getElementById('authNewPassword');
+  const pw=pwEl?pwEl.value:'';
+  if(pw.length<6){ authError='Passwort muss mindestens 6 Zeichen haben.'; renderAuth(document.getElementById('app')); return; }
+  authLoading=true; authError=''; renderAuth(document.getElementById('app'));
+  try{
+    const {data,error}=await supa.auth.updateUser({password:pw});
+    if(error) throw error;
+    authLoading=false; authMode='login'; authError=''; authInfo='';
+    if(data&&data.user){
+      currentUser={id:data.user.id,email:data.user.email,name:data.user.user_metadata?.name||''};
+      await cloudLoadForUser();
+    }
+    alert('Dein Passwort wurde geändert. Du bist jetzt angemeldet. ✦');
+    render();
+  }catch(e){
+    authLoading=false;
+    authError=e.message||'Etwas ist schiefgelaufen. Versuch es nochmal.';
+    renderAuth(document.getElementById('app'));
+  }
+};
 window._doAuth=async function(){
   const email=document.getElementById('authEmail').value.trim();
   const password=document.getElementById('authPassword').value;
@@ -2743,6 +3126,8 @@ function ensureBuiltInThemes(){
 }
 async function boot(){
   try{
+    // Kommt der Nutzer über den "Passwort vergessen"-Link aus der E-Mail?
+    const _isRecovery=/type=recovery/.test(location.hash||'');
     // Erst warten bis die Supabase-Bibliothek vollständig geladen ist (max. 3 Sekunden)
     const libReady = await waitForSupabaseLib(30);
     if(!libReady){
@@ -2772,6 +3157,12 @@ async function boot(){
       if(!_authListenerAttached){
         _authListenerAttached = true;
         supa.auth.onAuthStateChange((event, session)=>{
+          if(event==='PASSWORD_RECOVERY'){
+            // Nutzer kam über den Reset-Link — Formular für neues Passwort zeigen
+            authMode='reset'; authError='';
+            renderAuth(document.getElementById('app'));
+            return;
+          }
           if(!_bootComplete) return; // Ignoriere Events während des initialen Boots
           if(event==='SIGNED_OUT'){
             currentUser=null;
@@ -2783,6 +3174,12 @@ async function boot(){
     }
     _bootComplete = true;
     ensureBuiltInThemes();
+    if(_isRecovery&&supa){
+      // Reset-Link geöffnet: direkt das "Neues Passwort"-Formular zeigen
+      authMode='reset'; authError='';
+      renderAuth(document.getElementById('app'));
+      return;
+    }
     if(supa&&!currentUser){
       renderAuth(document.getElementById('app'));
     } else {
