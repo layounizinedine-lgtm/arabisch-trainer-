@@ -68,8 +68,11 @@ function waitForSupabaseLib(maxTries){
 
 let currentUser = null; // { id, email }
 let authError = '';
+let authInfo = '';
 let authLoading = false;
-let authMode = 'login'; // 'login' | 'signup'
+let authMode = 'login'; // 'login' | 'signup' | 'reset' | 'updatePassword'
+let remindersEnabled = localStorage.getItem('remindersEnabled')==='1';
+let customGrammarRules = JSON.parse(localStorage.getItem('customGrammarRules_v1')||'[]');
 
 // ═══════════════════════════════════════════════════════
 // STATE
@@ -324,6 +327,12 @@ function getChapters(){ return getP().chapters||[]; }
 function setVocab(v){ projects[curProject].vocab=v; saveProjects(); }
 function setVerbs(v){ projects[curProject].verbs=v; saveProjects(); }
 function getTr(item){ return item.translations?(item.translations[lang]||item.translations.de||''):(item.translation||item.german||''); }
+function stripHarakat(text){ return (text||'').normalize('NFD').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g,'').normalize('NFC'); }
+function normalizeSearch(text){ return stripHarakat(String(text||'')).toLowerCase().trim(); }
+function isLearnedCurrent(c){ return c&&c.status==='gelernt'&&(!c.nextReview||Date.now()<c.nextReview); }
+function getAllDueCards(){ return projects.flatMap(p=>[...(p.vocab||[]),...(p.verbs||[])]).filter(isDue); }
+function saveGrammarRulesLocal(){ try{localStorage.setItem('customGrammarRules_v1',JSON.stringify(customGrammarRules))}catch{} }
+function saveGrammarRules(){ saveGrammarRulesLocal(); cloudSyncDebounced(); }
 
 // ═══════════════════════════════════════════════════════
 // NAMEN-UMSCHRIFT — wandelt lateinisch eingegebene Namen automatisch in arabische Schrift um
@@ -391,7 +400,7 @@ async function cloudSyncNow(){
       user_id: currentUser.id,
       projects: projects,
       streak: streak,
-      settings: { cardDirection, sentenceLayout, lang, theme },
+      settings: { cardDirection, sentenceLayout, lang, theme, remindersEnabled, customGrammarRules },
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
   }catch(e){ console.warn('Cloud-Sync fehlgeschlagen:', e); }
@@ -407,6 +416,10 @@ async function cloudLoadForUser(){
       if(data.settings){
         cardDirection=data.settings.cardDirection||cardDirection;
         theme=data.settings.theme||theme;
+        remindersEnabled=!!data.settings.remindersEnabled;
+        if(Array.isArray(data.settings.customGrammarRules)) customGrammarRules=data.settings.customGrammarRules;
+        localStorage.setItem('remindersEnabled',remindersEnabled?'1':'0');
+        saveGrammarRulesLocal();
         document.documentElement.setAttribute('data-theme', theme);
       }
       saveProjectsLocal(); saveStreakLocal();
@@ -445,7 +458,42 @@ function addXP(n){
     localStorage.setItem('reviewHistory',JSON.stringify(h));
   }catch{}
 }
+
+function daysSinceLastLearning(){
+  if(!streak.lastDate) return 999;
+  const last=new Date(streak.lastDate+'T00:00:00');
+  const today=new Date(); today.setHours(0,0,0,0);
+  return Math.floor((today-last)/86400000);
+}
+async function toggleReminders(){
+  remindersEnabled=!remindersEnabled;
+  localStorage.setItem('remindersEnabled',remindersEnabled?'1':'0');
+  if(remindersEnabled&&'Notification' in window&&Notification.permission==='default'){
+    try{ await Notification.requestPermission(); }catch(e){ console.warn('Benachrichtigungserlaubnis fehlgeschlagen:',e); }
+  }
+  cloudSyncDebounced();
+  checkReminders(true);
+  render();
+}
+function showReminder(title,body,key,force){
+  const today=new Date().toISOString().slice(0,10);
+  const storageKey='reminder_'+key;
+  if(!force&&localStorage.getItem(storageKey)===today) return;
+  localStorage.setItem(storageKey,today);
+  if('Notification' in window&&Notification.permission==='granted') new Notification(title,{body});
+  else if(force) alert(title+'\n'+body);
+}
+function checkReminders(force){
+  if(!remindersEnabled) return;
+  const due=getAllDueCards().length;
+  if(due>0) showReminder('Arabisch: Wiederholung fällig',due+' Wörter/Verben sind jetzt fällig.', 'due', force);
+  const inactive=daysSinceLastLearning();
+  if(inactive>=1) showReminder('Arabisch: Streak auffrischen','Du hast seit '+inactive+' Tag(en) nicht gelernt.', 'inactive', force);
+}
+setInterval(()=>checkReminders(false), 5*60*1000);
+
 updateStreak();
+checkReminders(false);
 
 // ═══════════════════════════════════════════════════════
 // SRS
@@ -696,6 +744,12 @@ function renderHome(app){
       </div>
     </div>
 
+    <div class="card" style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Globale Suche</div>
+      <input id="globalSearchInput" placeholder="Arabisch oder Deutsch suchen..." oninput="renderGlobalSearchResults(this.value)" style="margin-bottom:10px"/>
+      <div id="globalSearchResults" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
     <!-- Themen -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px">THEMEN</div>
@@ -703,7 +757,7 @@ function renderHome(app){
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
       ${projects.map((p,i)=>{
-        const g=p.vocab.filter(v=>v.status==='gelernt').length;
+        const g=p.vocab.filter(isLearnedCurrent).length;
         const t=p.vocab.length;
         const pct=t?Math.round(g/t*100):0;
         const dueCount=p.vocab.filter(isDue).length;
@@ -809,6 +863,7 @@ function renderLernen(app){
   if(subView==='karten') { renderKarten(app); return; }
   if(subView==='diktat') { renderDiktat(app); return; }
   if(subView==='handschreiben') { renderHandschreiben(app); return; }
+  if(subView==='qawaid') { renderQawaid(app); return; }
   // Default: Lern-Übersicht
   const vocab=getVocab();
   const due=vocab.filter(isDue).length;
@@ -841,6 +896,7 @@ function renderLernen(app){
         {icon:'bookOpen',title:ui('verbs'),desc:'Konjugationstabellen',sv:'verben'},
         {icon:'mic',title:'Diktat',desc:'Sätze hören & schreiben',sv:'diktat'},
         {icon:'pencil',title:'Handschreiben',desc:'Von Hand schreiben üben',sv:'handschreiben'},
+        {icon:'bookOpen',title:'Qawāʿid',desc:'Grammatikregeln lernen',sv:'qawaid'},
         {icon:'pencil',title:ui('correction'),desc:'Texte prüfen',sv:'korrektor'},
       ].map(q=>`<div class="quick-card" onclick="subView='${q.sv}';${q.sv==='diktat'?'window._diktatState=null;':''}${q.sv==='handschreiben'?'window._hsState=null;':''}render()">
         <div>${icon(q.icon,24,'var(--gold)',2)}</div>
@@ -874,7 +930,7 @@ function renderVokabeln(app){
       const total=shown.length;
       const neu=shown.filter(v=>v.status==='neu').length;
       const lernend=shown.filter(v=>v.status==='lernend').length;
-      const gelernt=shown.filter(v=>v.status==='gelernt').length;
+      const gelernt=shown.filter(isLearnedCurrent).length;
       const pctL=total?Math.round(lernend/total*100):0;
       const pctG=total?Math.round(gelernt/total*100):0;
       const label=activeChapter==='all'?'Karten im Deck':(chapters.find(c=>c.id===activeChapter)||{}).name||'Karten im Deck';
@@ -1331,7 +1387,7 @@ function rateCard(score){
     lP.push(updated);
   }
   lI++; lF=false;
-  if(lI>=lP.length){lD=true;updateStreak();}
+  if(lI>=lP.length){lD=true; updateStreak(); checkReminders(false);}
   showCard(document.getElementById('app'));
 }
 
@@ -1893,7 +1949,7 @@ function renderProfil(app){
   if(subView==='stats'){renderStats(app);return;}
   if(subView==='settings'){renderSettings(app);return;}
   const vocab=getVocab();
-  const gelernt=vocab.filter(v=>v.status==='gelernt').length;
+  const gelernt=vocab.filter(isLearnedCurrent).length;
   const lernend=vocab.filter(v=>v.status==='lernend').length;
   app.innerHTML=`<div style="padding:20px 16px 100px">
     <div style="padding-top:6px;margin-bottom:24px">
@@ -1973,6 +2029,10 @@ function renderSettings(app){
           ${_arVoicesCache.map((v,i)=>`<option value="${i}" ${_preferredArVoice&&_preferredArVoice.name===v.name?'selected':''}>${v.name} (${v.lang})</option>`).join('')}
         </select>
       `:`<div style="font-size:11px;color:#F59E0B">Nur eine arabische Stimme auf diesem Gerät gefunden. Für bessere Qualität: iOS-Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Arabisch → weitere Stimmen herunterladen.</div>`}
+    </div>
+    <div onclick="toggleReminders()" class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🔔 Erinnerungen</div><div style="font-size:11px;color:var(--text3)">Meldungen bei fälligen Wörtern und Lernpausen, solange die App offen ist.</div></div>
+      <div style="width:52px;height:28px;background:${remindersEnabled?'var(--gold)':'#334155'};border-radius:14px;position:relative;flex-shrink:0"><div style="position:absolute;top:4px;${remindersEnabled?'left:24px':'left:4px'};width:20px;height:20px;background:${remindersEnabled?'#0a1628':'#fff'};border-radius:50%"></div></div>
     </div>
     <div class="card">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">📤 Vokabeln teilen</div>
@@ -2504,7 +2564,7 @@ function renderHandschreiben(app){
 
 function renderStats(app){
   const vocab=projects.flatMap(p=>p.vocab||[]);
-  const gelernt=vocab.filter(v=>v.status==='gelernt').length;
+  const gelernt=vocab.filter(isLearnedCurrent).length;
   const lernend=vocab.filter(v=>v.status==='lernend').length;
   const neu=vocab.filter(v=>v.status==='neu').length;
   const total=vocab.length;
@@ -2548,7 +2608,7 @@ function renderStats(app){
 
   // Build themen HTML outside template literal to avoid nested backtick issues
   const themenHTML=projects.map(p=>{
-    const g=p.vocab.filter(v=>v.status==='gelernt').length;
+    const g=p.vocab.filter(isLearnedCurrent).length;
     const t=p.vocab.length;
     const pct=t?Math.round(g/t*100):0;
     return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--text)">'+p.name+'</span><span style="font-size:12px;color:var(--gold);font-weight:700">'+g+'/'+t+' · '+pct+'%</span></div><div style="background:var(--bg3);border-radius:4px;height:6px"><div style="width:'+pct+'%;background:linear-gradient(90deg,var(--gold),var(--gold2));height:6px;border-radius:4px"></div></div></div>';
@@ -2636,6 +2696,69 @@ function renderStats(app){
     </div>
   </div>`;
 }
+
+// ═══════════════════════════════════════════════════════
+// GLOBALE SUCHE & QAWĀʿID
+// ═══════════════════════════════════════════════════════
+function getChapterPath(project,chapterId){
+  if(!chapterId) return 'ohne Kapitel';
+  const chapters=project.chapters||[];
+  const byId=id=>chapters.find(c=>c.id===id);
+  const names=[]; let c=byId(chapterId), guard=0;
+  while(c&&guard++<10){ names.unshift(c.name); c=c.parentId?byId(c.parentId):null; }
+  return names.join(' › ')||'ohne Kapitel';
+}
+function getGlobalSearchResults(query){
+  const q=normalizeSearch(query);
+  if(!q) return [];
+  const out=[];
+  projects.forEach((p,pi)=>{
+    (p.vocab||[]).forEach(v=>{
+      const hay=[v.arabic,stripHarakat(v.arabic),getTr(v),v.example,getExTr(v),v.wordType].map(normalizeSearch).join(' ');
+      if(hay.includes(q)) out.push({type:'Vokabel',projectIndex:pi,chapterId:v.chapterId,arabic:v.arabic,title:getTr(v),id:v.id,chapter:getChapterPath(p,v.chapterId)});
+    });
+    (p.verbs||[]).forEach(v=>{
+      const hay=[v.arabic,stripHarakat(v.arabic),getTr(v),v.root].map(normalizeSearch).join(' ');
+      if(hay.includes(q)) out.push({type:'Verb',projectIndex:pi,arabic:v.arabic,title:getTr(v),id:v.id,chapter:'Verben'});
+    });
+  });
+  return out.slice(0,25);
+}
+function renderGlobalSearchResults(query){
+  const box=document.getElementById('globalSearchResults'); if(!box) return;
+  const results=getGlobalSearchResults(query);
+  if(!query.trim()){ box.innerHTML=''; return; }
+  box.innerHTML=results.length?results.map((r,idx)=>`<div onclick="openGlobalSearchResult(${r.projectIndex},'${r.type}',${r.chapterId||0})" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;gap:10px;align-items:center;cursor:pointer"><button onclick="event.stopPropagation();speakAr('${String(r.arabic||'').replace(/'/g,'\\\'')}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--gold);padding:8px;cursor:pointer">▶</button><div style="flex:1"><div class="ar" style="font-size:18px;color:var(--gold)">${r.arabic||''}</div><div style="font-size:13px;font-weight:700;color:var(--text)">${r.title||''}</div><div style="font-size:11px;color:var(--text3)">${projects[r.projectIndex].name} · ${r.chapter} · ${r.type}</div></div></div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px">Keine Treffer gefunden.</div>`;
+}
+function openGlobalSearchResult(projectIndex,type,chapterId){
+  curProject=projectIndex; saveProjects(); tab='lernen'; subView=type==='Verb'?'verben':'vokabeln';
+  if(type==='Vokabel') window._vokFilterChapter=chapterId||'all';
+  render();
+}
+const BUILTIN_QAWAID=[
+  {title:'Nominalsatz',ar:'الجملة الاسمية',rule:'Beginnt meist mit einem Namen/Nomen und besteht aus Mubtadaʾ (Subjekt) und Khabar (Aussage).',example:'الْبَيْتُ كَبِيرٌ',de:'Das Haus ist groß.',tip:'Im Präsens braucht Arabisch hier kein „ist“.'},
+  {title:'Verbalsatz',ar:'الجملة الفعلية',rule:'Beginnt meist mit einem Verb. Danach folgen Täter und Ergänzungen.',example:'كَتَبَ الطَّالِبُ الدَّرْسَ',de:'Der Schüler schrieb die Lektion.',tip:'Achte zuerst auf das Verb: Zeit und Grundbedeutung werden dort sichtbar.'},
+  {title:'Sonnen-/Mondbuchstaben',ar:'الحروف الشمسية والقمرية',rule:'Bei Sonnenbuchstaben wird das Lām von ال nicht gesprochen; bei Mondbuchstaben schon.',example:'الشَّمْسُ وَالْقَمَرُ',de:'Die Sonne und der Mond.',tip:'Sonnenbuchstabe: Verdopplung/Schadda hören. Mondbuchstabe: Lām bleibt hörbar.'},
+  {title:'Iḍāfa',ar:'الإضافة',rule:'Zwei Nomen bilden eine Besitz-/Zuordnungsgruppe. Das erste Nomen hat kein ال und kein Tanwīn.',example:'كِتَابُ الطَّالِبِ',de:'Das Buch des Schülers.',tip:'Übersetze oft von hinten nach vorne: „Buch des Schülers“.'},
+  {title:'Bestimmt/Unbestimmt',ar:'المعرفة والنكرة',rule:'Bestimmt ist z.B. ein Wort mit ال oder ein Eigenname. Unbestimmt hat häufig Tanwīn.',example:'بَيْتٌ وَالْبَيْتُ',de:'Ein Haus und das Haus.',tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'}
+];
+function renderQawaid(app){
+  app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Qawāʿid</div></div></div>
+  <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">5 Grundregeln</div>
+  ${BUILTIN_QAWAID.map(r=>`<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div style="font-size:16px;font-weight:800;color:var(--gold)">${r.title}</div><div class="ar" style="font-size:20px;color:var(--text);margin-top:4px">${r.ar}</div></div><button onclick="speakAr('${r.example}')" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--gold);padding:8px 10px;cursor:pointer">▶</button></div><div style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:10px">${r.rule}</div><div class="ar" style="font-size:22px;color:var(--text);margin-top:12px">${r.example}</div><div style="font-size:12px;color:var(--text3)">${r.de}</div><div style="margin-top:10px;background:var(--bg3);border-radius:10px;padding:10px;font-size:12px;color:var(--text2)">💡 ${r.tip}</div></div>`).join('')}
+  <div class="card"><div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Meine Regeln</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">Frage eine weitere Regel an. Die KI-Erklärung wird danach lokal und per Cloud-Sync gespeichert.</div><div style="display:flex;gap:8px"><input id="qawaidAsk" placeholder="z.B. Was ist Naṣb?"/><button class="gold-btn" onclick="askQawaidRule()" style="width:110px;padding:0">KI fragen</button></div></div>
+  <div id="myQawaidRules">${customGrammarRules.length?customGrammarRules.map((r,i)=>`<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><div style="font-size:15px;font-weight:800;color:var(--gold)">${r.title}</div><button onclick="deleteQawaidRule(${i})" style="background:#3b1a1a;border:none;border-radius:8px;color:#fca5a5;padding:6px 10px;cursor:pointer">Löschen</button></div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;margin-top:8px">${r.explanation}</div></div>`).join(''):`<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Noch keine eigenen Regeln gespeichert.</div>`}</div></div>`;
+}
+async function askQawaidRule(){
+  const input=document.getElementById('qawaidAsk'); const question=(input&&input.value||'').trim(); if(!question){ alert('Bitte gib eine Regel oder Frage ein.'); return; }
+  try{
+    const answer=await callAI('Erkläre diese arabische Grammatikregel für deutschsprachige Anfänger klar, kurz und mit 2 arabischen Beispielen inkl. deutscher Übersetzung. Frage: '+question,1200);
+    customGrammarRules.unshift({title:question,explanation:answer,createdAt:new Date().toISOString()});
+    saveGrammarRules(); renderQawaid(document.getElementById('app'));
+  }catch(e){ alert('KI-Fehler: '+e.message); }
+}
+function deleteQawaidRule(i){ customGrammarRules.splice(i,1); saveGrammarRules(); renderQawaid(document.getElementById('app')); }
+
 // ═══════════════════════════════════════════════════════
 // AUTH — Login / Registrierung mit E-Mail + Passwort (Supabase)
 // ═══════════════════════════════════════════════════════
@@ -2644,34 +2767,63 @@ function renderAuth(app){
   if(nav){ nav.style.display='none'; nav.innerHTML=''; } // Navbar komplett leeren, damit kein versehentlicher Klick durchgeht
   tab='home'; subView=null; // Zustand zurücksetzen, damit nach Login kein alter Tab-Zustand "durchsickert"
   const isSignup=authMode==='signup';
+  const isReset=authMode==='reset';
+  const isUpdatePassword=authMode==='updatePassword';
+  const authSubtitle=isSignup?'Erstelle dein Konto':(isReset?'Passwort zurücksetzen':(isUpdatePassword?'Neues Passwort festlegen':'Melde dich an'));
+  const authButtonText=authLoading?'Lädt...':(isSignup?'Konto erstellen':(isReset?'Reset-Link senden':(isUpdatePassword?'Passwort speichern':'Anmelden')));
   app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
     <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${isSignup?'Erstelle dein Konto':'Melde dich an'}</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${authSubtitle}</div>
     <div style="width:100%;max-width:340px">
       ${isSignup?`<input id="authName" type="text" placeholder="Name (z.B. Abu Fulan)" style="margin-bottom:10px" autocomplete="given-name"/>`:''}
-      <input id="authEmail" type="email" placeholder="E-Mail-Adresse" style="margin-bottom:10px" autocomplete="email"/>
-      <input id="authPassword" type="password" placeholder="Passwort" style="margin-bottom:16px" autocomplete="${isSignup?'new-password':'current-password'}"/>
+      ${isUpdatePassword?'':`<input id="authEmail" type="email" placeholder="E-Mail-Adresse" style="margin-bottom:10px" autocomplete="email"/>`}
+      ${isReset?'':`<input id="authPassword" type="password" placeholder="${isUpdatePassword?'Neues Passwort':'Passwort'}" style="margin-bottom:16px" autocomplete="${isSignup||isUpdatePassword?'new-password':'current-password'}"/>`}
       ${authError?`<div style="background:#2a1010;border:1px solid #7f1d1d;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#f87171;font-size:13px">${authError}</div>`:''}
-      <button class="gold-btn" onclick="window._doAuth()" style="margin-bottom:12px" ${authLoading?'disabled':''}>${authLoading?'Lädt...':(isSignup?'Konto erstellen':'Anmelden')}</button>
+      ${authInfo?`<div style="background:#102a1d;border:1px solid #166534;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#86efac;font-size:13px">${authInfo}</div>`:''}
+      <button class="gold-btn" onclick="window._doAuth()" style="margin-bottom:12px" ${authLoading?'disabled':''}>${authButtonText}</button>
+      ${!isSignup&&!isReset&&!isUpdatePassword?`<button class="sec-btn" onclick="authMode='reset';authError='';authInfo='';renderAuth(document.getElementById('app'))" style="margin-bottom:12px" ${authLoading?'disabled':''}>Passwort vergessen?</button>`:''}
       <div style="text-align:center;font-size:13px;color:var(--text3)">
-        ${isSignup?'Schon ein Konto?':'Noch kein Konto?'}
-        <span onclick="authMode='${isSignup?'login':'signup'}';authError='';renderAuth(document.getElementById('app'))" style="color:var(--gold);font-weight:700;cursor:pointer">${isSignup?'Anmelden':'Registrieren'}</span>
+        ${isUpdatePassword?'Zurück zur Anmeldung?':(isReset?'Passwort wieder eingefallen?':(isSignup?'Schon ein Konto?':'Noch kein Konto?'))}
+        <span onclick="authMode='${isSignup||isReset||isUpdatePassword?'login':'signup'}';authError='';authInfo='';renderAuth(document.getElementById('app'))" style="color:var(--gold);font-weight:700;cursor:pointer">${isSignup||isReset||isUpdatePassword?'Anmelden':'Registrieren'}</span>
       </div>
     </div>
   </div>`;
 }
 window._doAuth=async function(){
-  const email=document.getElementById('authEmail').value.trim();
-  const password=document.getElementById('authPassword').value;
+  const emailEl=document.getElementById('authEmail');
+  const passwordEl=document.getElementById('authPassword');
+  const email=emailEl?emailEl.value.trim():'';
+  const password=passwordEl?passwordEl.value:'';
   const isSignup=authMode==='signup';
+  const isReset=authMode==='reset';
+  const isUpdatePassword=authMode==='updatePassword';
   const nameEl=document.getElementById('authName');
   const name=nameEl?nameEl.value.trim():'';
-  if(!email||!password){ authError='Bitte E-Mail und Passwort eingeben.'; renderAuth(document.getElementById('app')); return; }
+  if(isReset&&!email){ authError='Bitte gib deine E-Mail-Adresse ein.'; renderAuth(document.getElementById('app')); return; }
+  if(!isReset&&!isUpdatePassword&&!email){ authError='Bitte E-Mail eingeben.'; renderAuth(document.getElementById('app')); return; }
+  if(!isReset&&!password){ authError='Bitte Passwort eingeben.'; renderAuth(document.getElementById('app')); return; }
   if(isSignup&&!name){ authError='Bitte gib deinen Vornamen ein.'; renderAuth(document.getElementById('app')); return; }
-  if(password.length<6){ authError='Passwort muss mindestens 6 Zeichen haben.'; renderAuth(document.getElementById('app')); return; }
-  authLoading=true; authError=''; renderAuth(document.getElementById('app'));
+  if(!isReset&&password.length<6){ authError='Passwort muss mindestens 6 Zeichen haben.'; renderAuth(document.getElementById('app')); return; }
+  authLoading=true; authError=''; authInfo=''; renderAuth(document.getElementById('app'));
   try{
-    if(isSignup){
+    if(isReset){
+      const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+      if(error) throw error;
+      authLoading=false;
+      authInfo='Wenn ein Konto existiert, wurde ein Reset-Link an deine E-Mail-Adresse gesendet.';
+      renderAuth(document.getElementById('app'));
+    } else if(isUpdatePassword){
+      const {data,error}=await supa.auth.updateUser({password});
+      if(error) throw error;
+      const user=data.user;
+      currentUser=user?{id:user.id,email:user.email,name:user.user_metadata?.name||''}:currentUser;
+      authMode='login';
+      authLoading=false;
+      authInfo='Dein Passwort wurde aktualisiert. Du kannst dich jetzt anmelden.';
+      await supa.auth.signOut();
+      currentUser=null;
+      renderAuth(document.getElementById('app'));
+    } else if(isSignup){
       const {data,error}=await supa.auth.signUp({email,password,options:{data:{name}}});
       if(error) throw error;
       if(data.user){
@@ -2772,7 +2924,13 @@ async function boot(){
       if(!_authListenerAttached){
         _authListenerAttached = true;
         supa.auth.onAuthStateChange((event, session)=>{
-          if(!_bootComplete) return; // Ignoriere Events während des initialen Boots
+          if(event==='PASSWORD_RECOVERY'){
+            authMode='updatePassword';
+            authError=''; authInfo='Bitte lege ein neues Passwort fest.';
+            renderAuth(document.getElementById('app'));
+            return;
+          }
+          if(!_bootComplete) return; // Ignoriere sonstige Events während des initialen Boots
           if(event==='SIGNED_OUT'){
             currentUser=null;
             renderAuth(document.getElementById('app'));
