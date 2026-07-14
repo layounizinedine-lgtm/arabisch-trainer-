@@ -2768,29 +2768,56 @@ function showVocabDetail(id){
   </div>`;
   document.body.appendChild(m);
 }
+// Beispiele nur in arabischer Schrift, voll mit Harakat, ohne Transliteration.
 const BUILTIN_QAWAID=[
-  {title:'Nominalsatz',ar:'الجملة الاسمية',rule:'Beginnt meist mit einem Namen/Nomen und besteht aus Mubtadaʾ (Subjekt) und Khabar (Aussage).',example:'الْبَيْتُ كَبِيرٌ',de:'Das Haus ist groß.',tip:'Im Präsens braucht Arabisch hier kein „ist“.'},
-  {title:'Verbalsatz',ar:'الجملة الفعلية',rule:'Beginnt meist mit einem Verb. Danach folgen Täter und Ergänzungen.',example:'كَتَبَ الطَّالِبُ الدَّرْسَ',de:'Der Schüler schrieb die Lektion.',tip:'Achte zuerst auf das Verb: Zeit und Grundbedeutung werden dort sichtbar.'},
-  {title:'Sonnen-/Mondbuchstaben',ar:'الحروف الشمسية والقمرية',rule:'Bei Sonnenbuchstaben wird das Lām von ال nicht gesprochen; bei Mondbuchstaben schon.',example:'الشَّمْسُ وَالْقَمَرُ',de:'Die Sonne und der Mond.',tip:'Sonnenbuchstabe: Verdopplung/Schadda hören. Mondbuchstabe: Lām bleibt hörbar.'},
-  {title:'Iḍāfa',ar:'الإضافة',rule:'Zwei Nomen bilden eine Besitz-/Zuordnungsgruppe. Das erste Nomen hat kein ال und kein Tanwīn.',example:'كِتَابُ الطَّالِبِ',de:'Das Buch des Schülers.',tip:'Übersetze oft von hinten nach vorne: „Buch des Schülers“.'},
-  {title:'Bestimmt/Unbestimmt',ar:'المعرفة والنكرة',rule:'Bestimmt ist z.B. ein Wort mit ال oder ein Eigenname. Unbestimmt hat häufig Tanwīn.',example:'بَيْتٌ وَالْبَيْتُ',de:'Ein Haus und das Haus.',tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'}
+  {title:'Nominalsatz',ar:'الْجُمْلَةُ الاِسْمِيَّةُ',rule:'Beginnt meist mit einem Namen/Nomen und besteht aus Mubtadaʾ (Subjekt) und Khabar (Aussage).',examples:['الْبَيْتُ كَبِيرٌ','الطَّالِبُ مُجْتَهِدٌ','الْجَوُّ جَمِيلٌ'],tip:'Im Präsens braucht Arabisch hier kein „ist“.'},
+  {title:'Verbalsatz',ar:'الْجُمْلَةُ الْفِعْلِيَّةُ',rule:'Beginnt meist mit einem Verb. Danach folgen Täter und Ergänzungen.',examples:['كَتَبَ الطَّالِبُ الدَّرْسَ','شَرِبَ الْوَلَدُ الْمَاءَ','قَرَأَ الْمُعَلِّمُ الْكِتَابَ'],tip:'Achte zuerst auf das Verb: Zeit und Grundbedeutung werden dort sichtbar.'},
+  {title:'Sonnen-/Mondbuchstaben',ar:'الْحُرُوفُ الشَّمْسِيَّةُ وَالْقَمَرِيَّةُ',rule:'Bei Sonnenbuchstaben wird das Lām von ال nicht gesprochen; bei Mondbuchstaben schon.',examples:['الشَّمْسُ وَالْقَمَرُ','النُّورُ وَالْبَابُ','الرَّجُلُ وَالْكِتَابُ'],tip:'Sonnenbuchstabe: Verdopplung/Schadda hören. Mondbuchstabe: Lām bleibt hörbar.'},
+  {title:'Iḍāfa',ar:'الْإِضَافَةُ',rule:'Zwei Nomen bilden eine Besitz-/Zuordnungsgruppe. Das erste Nomen hat kein ال und kein Tanwīn.',examples:['كِتَابُ الطَّالِبِ','بَابُ الْبَيْتِ','مِفْتَاحُ السَّيَّارَةِ'],tip:'Übersetze oft von hinten nach vorne: „Buch des Schülers“.'},
+  {title:'Bestimmt/Unbestimmt',ar:'الْمَعْرِفَةُ وَالنَّكِرَةُ',rule:'Bestimmt ist z.B. ein Wort mit ال oder ein Eigenname. Unbestimmt hat häufig Tanwīn.',examples:['بَيْتٌ وَالْبَيْتُ','كِتَابٌ وَالْكِتَابُ','وَلَدٌ وَالْوَلَدُ'],tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'}
 ];
+function toggleQawaid(key){
+  window._qawaidOpen=window._qawaidOpen||{};
+  window._qawaidOpen[key]=!window._qawaidOpen[key];
+  renderQawaid(document.getElementById('app'));
+}
+function qawaidBeispieleHtml(examples){
+  return `<div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px">Beispiele</div>`+
+    examples.map(ex=>`<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div class="ar" style="font-size:22px;color:var(--text);line-height:1.9">${ex}</div>
+      <button onclick="event.stopPropagation();speakAr('${String(ex).replace(/'/g,"\\'")}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',14,'var(--gold)',2)}</button>
+    </div>`).join('');
+}
 function renderQawaid(app){
+  const open=window._qawaidOpen||{};
   app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Qawāʿid</div></div></div>
-  <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">5 Grundregeln</div>
-  ${BUILTIN_QAWAID.map(r=>`<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div style="font-size:16px;font-weight:800;color:var(--gold)">${r.title}</div><div class="ar" style="font-size:20px;color:var(--text);margin-top:4px">${r.ar}</div></div><button onclick="speakAr('${r.example}')" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--gold);padding:8px 10px;cursor:pointer">▶</button></div><div style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:10px">${r.rule}</div><div class="ar" style="font-size:22px;color:var(--text);margin-top:12px">${r.example}</div><div style="font-size:12px;color:var(--text3)">${r.de}</div><div style="margin-top:10px;background:var(--bg3);border-radius:10px;padding:10px;font-size:12px;color:var(--text2)">💡 ${r.tip}</div></div>`).join('')}
+  <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">5 Grundregeln — tippe zum Aufklappen</div>
+  ${BUILTIN_QAWAID.map((r,i)=>{const k='b'+i;const isOpen=!!open[k];return `<div class="card" style="padding:0;overflow:hidden">
+    <div onclick="toggleQawaid('${k}')" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:800;color:var(--gold)">${r.title}</div><div class="ar" style="font-size:22px;color:var(--text);margin-top:4px">${r.ar}</div></div>
+      <div style="color:var(--text3);font-size:16px;transform:rotate(${isOpen?'90deg':'0deg'});transition:transform 0.2s;flex-shrink:0">›</div>
+    </div>
+    ${isOpen?`<div style="padding:0 16px 16px"><div style="font-size:13px;color:var(--text2);line-height:1.6">${r.rule}</div>${qawaidBeispieleHtml(r.examples)}<div style="margin-top:6px;background:var(--bg3);border-radius:10px;padding:10px;font-size:12px;color:var(--text2)">💡 ${r.tip}</div></div>`:''}
+  </div>`;}).join('')}
   <div class="card"><div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Meine Regeln</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">Frage eine weitere Regel an. Die KI-Erklärung wird danach lokal und per Cloud-Sync gespeichert.</div><div style="display:flex;gap:8px"><input id="qawaidAsk" placeholder="z.B. Was ist Naṣb?"/><button class="gold-btn" onclick="askQawaidRule()" style="width:110px;padding:0">KI fragen</button></div></div>
-  <div id="myQawaidRules">${customGrammarRules.length?customGrammarRules.map((r,i)=>`<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><div style="font-size:15px;font-weight:800;color:var(--gold)">${r.title}</div><button onclick="deleteQawaidRule(${i})" style="background:#3b1a1a;border:none;border-radius:8px;color:#fca5a5;padding:6px 10px;cursor:pointer">Löschen</button></div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;margin-top:8px">${r.explanation}</div></div>`).join(''):`<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Noch keine eigenen Regeln gespeichert.</div>`}</div></div>`;
+  <div id="myQawaidRules">${customGrammarRules.length?customGrammarRules.map((r,i)=>{const k='c'+i;const isOpen=!!open[k];return `<div class="card" style="padding:0;overflow:hidden">
+    <div onclick="toggleQawaid('${k}')" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0;font-size:15px;font-weight:800;color:var(--gold)">${r.title}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><button onclick="event.stopPropagation();deleteQawaidRule(${i})" style="background:#3b1a1a;border:none;border-radius:8px;color:#fca5a5;padding:6px 10px;cursor:pointer">Löschen</button><div style="color:var(--text3);font-size:16px;transform:rotate(${isOpen?'90deg':'0deg'});transition:transform 0.2s">›</div></div>
+    </div>
+    ${isOpen?`<div style="padding:0 16px 16px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${r.explanation}</div>`:''}
+  </div>`;}).join(''):`<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Noch keine eigenen Regeln gespeichert.</div>`}</div></div>`;
 }
 async function askQawaidRule(){
   const input=document.getElementById('qawaidAsk'); const question=(input&&input.value||'').trim(); if(!question){ alert('Bitte gib eine Regel oder Frage ein.'); return; }
   try{
-    const answer=await callAI('Erkläre diese arabische Grammatikregel für deutschsprachige Anfänger klar, kurz und mit 2 arabischen Beispielen inkl. deutscher Übersetzung. Frage: '+question,1200);
+    const answer=await callAI('Erkläre diese arabische Grammatikregel für deutschsprachige Anfänger klar und kurz. Gib 2-3 arabische Beispiele, VOLLSTÄNDIG mit Harakat (Vokalzeichen) vokalisiert. WICHTIG: Verwende KEINE Transliteration bzw. Umschrift in lateinischen Buchstaben — die Beispiele sollen ausschließlich in arabischer Schrift mit Harakat stehen (eine kurze deutsche Übersetzung pro Beispiel ist erlaubt). Frage: '+question,1200);
     customGrammarRules.unshift({title:question,explanation:answer,createdAt:new Date().toISOString()});
+    window._qawaidOpen=window._qawaidOpen||{}; window._qawaidOpen['c0']=true; // neu erklärte Regel direkt geöffnet zeigen
     saveGrammarRules(); renderQawaid(document.getElementById('app'));
   }catch(e){ alert('KI-Fehler: '+e.message); }
 }
-function deleteQawaidRule(i){ customGrammarRules.splice(i,1); saveGrammarRules(); renderQawaid(document.getElementById('app')); }
+function deleteQawaidRule(i){ customGrammarRules.splice(i,1); if(window._qawaidOpen) delete window._qawaidOpen['c'+i]; saveGrammarRules(); renderQawaid(document.getElementById('app')); }
 
 // ═══════════════════════════════════════════════════════
 // AUTH — Login / Registrierung mit E-Mail + Passwort (Supabase)
