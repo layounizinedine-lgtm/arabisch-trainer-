@@ -2852,17 +2852,25 @@ function stripMarkdown(s){
     .replace(/\*(.+?)\*/g,'$1')      // Kursiv
     .replace(/^[-*]\s+/gm,'• ');     // Listenpunkte vereinheitlichen
 }
+function hasArabicScript(s){ return /[؀-ۿ]/.test(String(s||'')); }
 async function askQawaidRule(){
   const input=document.getElementById('qawaidAsk'); const question=(input&&input.value||'').trim(); if(!question){ alert('Bitte gib eine Regel oder Frage ein.'); return; }
   try{
-    const raw=await callAI(`Erkläre die arabische Grammatikregel "${question}" für deutschsprachige Anfänger — im selben Stil wie diese Beispiel-Regeln: "Nominalsatz", "Verbalsatz", "Iḍāfa", "Bestimmt/Unbestimmt". Antworte AUSSCHLIESSLICH mit einem einzigen JSON-Objekt, ohne Markdown-Codeblöcke, ohne Erklärtext davor oder danach, in genau diesem Format:
-{"title":"kurzer deutscher (oder eingedeutschter Fachbegriff) Name der Regel, z.B. 'Nominalsatz' oder 'Iḍāfa' — KEIN ganzer Satz, KEINE Frage, nur der Name des Grammatikphänomens","ar":"arabischer Name der Regel MIT vollem Harakat, z.B. الْجُمْلَةُ الاِسْمِيَّةُ","rule":"klare Erklärung auf Deutsch in 2-4 Sätzen, ausführlich genug dass ein Anfänger es direkt versteht, aber ohne abzuschweifen, ohne Markdown-Zeichen wie # oder **","examples":[{"ar":"arabischer Beispielsatz MIT vollem Harakat","de":"deutsche Übersetzung"}],"tip":"ein kurzer einprägsamer Merksatz auf Deutsch"}
+    const raw=await callAI(`Ein deutschsprachiger Anfänger fragt nach der arabischen Grammatikregel: "${question}"
+Diese Eingabe kann in unterschiedlicher Form vorliegen — auf Deutsch (z.B. "Nominalsatz"), in wissenschaftlicher Transliteration/Umschrift (z.B. "Idafa", "Naṣb") ODER direkt in arabischer Schrift (z.B. "الجملة الاسمية"). Erkenne in JEDEM dieser Fälle zuverlässig, um welches Grammatikphänomen es geht, und liefere IMMER beide Namen getrennt: einen deutschen (bzw. eingedeutschten) Namen für "title" und den arabischen Namen MIT Harakat für "ar" — unabhängig davon, in welcher Sprache die Frage gestellt wurde.
+Erkläre die Regel im selben Stil wie diese Beispiel-Regeln: "Nominalsatz", "Verbalsatz", "Iḍāfa", "Bestimmt/Unbestimmt". Antworte AUSSCHLIESSLICH mit einem einzigen JSON-Objekt, ohne Markdown-Codeblöcke, ohne Erklärtext davor oder danach, in genau diesem Format:
+{"title":"kurzer deutscher (oder eingedeutschter Fachbegriff) Name der Regel, z.B. 'Nominalsatz' oder 'Iḍāfa' — MUSS in lateinischer Schrift sein, KEIN arabischer Text, KEIN ganzer Satz, KEINE Frage, nur der Name des Grammatikphänomens","ar":"arabischer Name der Regel MIT vollem Harakat, z.B. الْجُمْلَةُ الاِسْمِيَّةُ — MUSS in arabischer Schrift sein","rule":"klare Erklärung auf Deutsch in 2-4 Sätzen, ausführlich genug dass ein Anfänger es direkt versteht, aber ohne abzuschweifen, ohne Markdown-Zeichen wie # oder **","examples":[{"ar":"arabischer Beispielsatz MIT vollem Harakat","de":"deutsche Übersetzung"}],"tip":"ein kurzer einprägsamer Merksatz auf Deutsch"}
 Gib genau 2-3 Einträge in "examples". WICHTIG: Nirgendwo lateinische Transliteration/Umschrift des Arabischen verwenden (also NICHT "al-baitu kabirun") — arabische Wörter ausschließlich in arabischer Schrift mit Harakat.`,1400);
     const parsed=pJ(raw);
     let entry;
     if(parsed&&parsed.rule){
-      // Deutscher Name kommt von der KI (wie bei den 5 Grundregeln) — nicht die rohe Nutzereingabe.
-      entry={title:stripMarkdown(parsed.title||question),ar:parsed.ar||'',rule:stripMarkdown(parsed.rule),examples:Array.isArray(parsed.examples)?parsed.examples:[],tip:parsed.tip?stripMarkdown(parsed.tip):'',createdAt:new Date().toISOString()};
+      let title=stripMarkdown(parsed.title||question);
+      let ar=parsed.ar||'';
+      // Sicherheitsnetz: falls die KI die Felder vertauscht (arabischer Text landet in "title"),
+      // automatisch tauschen — oben soll immer Deutsch (Gold), unten immer Arabisch (Weiß) stehen.
+      if(hasArabicScript(title)&&!hasArabicScript(ar)){ const tmp=title; title=ar; ar=tmp; }
+      if(hasArabicScript(title)) title=question; // letzter Fallback, falls immer noch arabisch
+      entry={title,ar,rule:stripMarkdown(parsed.rule),examples:Array.isArray(parsed.examples)?parsed.examples:[],tip:parsed.tip?stripMarkdown(parsed.tip):'',createdAt:new Date().toISOString()};
     } else {
       // Fallback, falls die KI kein valides JSON liefert
       entry={title:question,explanation:stripMarkdown(raw),createdAt:new Date().toISOString()};
