@@ -2769,6 +2769,9 @@ function showVocabDetail(id){
   document.body.appendChild(m);
 }
 // Beispiele: arabisch voll mit Harakat + deutsche Übersetzung. Keine Transliteration/Umschrift.
+// Ursprüngliche 5 Grundregeln — werden beim ersten Öffnen EINMALIG in customGrammarRules
+// überführt (qawaidEnsureSeeded) und danach genau wie jede andere Regel behandelt:
+// gleiche Optik, aufklappbar, löschbar, vertiefbar. Kein struktureller Unterschied mehr.
 const BUILTIN_QAWAID=[
   {title:'Nominalsatz',ar:'الْجُمْلَةُ الاِسْمِيَّةُ',rule:'Ein Nominalsatz beginnt mit einem Nomen (nicht mit einem Verb) und besteht aus zwei Teilen: dem Mubtadaʾ — dem Satzanfang, worüber gesprochen wird — und dem Khabar, der Aussage darüber. Im Arabischen fehlt dabei meist das Verb „sein“ im Präsens; es wird beim Übersetzen einfach mitgedacht.',examples:[
     {ar:'الْبَيْتُ كَبِيرٌ',de:'Das Haus ist groß.'},
@@ -2796,9 +2799,29 @@ const BUILTIN_QAWAID=[
     {ar:'وَلَدٌ وَالْوَلَدُ',de:'Ein Junge und der Junge.'}
   ],tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'}
 ];
-function toggleQawaid(key){
+function qawaidNewId(){ return 'q_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
+// Fügt die 5 Grundregeln einmalig in customGrammarRules ein (Migration von altem
+// zweigeteilten Modell auf eine einzige, einheitliche Liste). Läuft pro Gerät nur
+// einmal (lokaler Flag); bereits über die Cloud synchronisierte Titel werden nicht
+// doppelt angelegt. Vergibt außerdem fehlenden älteren Einträgen eine stabile ID.
+function qawaidEnsureSeeded(){
+  let changed=false;
+  if(!localStorage.getItem('qawaidSeeded_v1')){
+    const existing=new Set(customGrammarRules.map(r=>(r.title||'').trim().toLowerCase()));
+    BUILTIN_QAWAID.forEach(b=>{
+      if(!existing.has(b.title.trim().toLowerCase())){
+        customGrammarRules.push({id:qawaidNewId(),title:b.title,ar:b.ar,rule:b.rule,examples:b.examples,tip:b.tip,createdAt:new Date().toISOString()});
+      }
+    });
+    localStorage.setItem('qawaidSeeded_v1','1');
+    changed=true;
+  }
+  customGrammarRules.forEach(r=>{ if(!r.id){ r.id=qawaidNewId(); changed=true; } });
+  if(changed) saveGrammarRules();
+}
+function toggleQawaid(id){
   window._qawaidOpen=window._qawaidOpen||{};
-  window._qawaidOpen[key]=!window._qawaidOpen[key];
+  window._qawaidOpen[id]=!window._qawaidOpen[id];
   renderQawaid(document.getElementById('app'));
 }
 function qawaidBeispieleHtml(examples){
@@ -2812,38 +2835,45 @@ function qawaidBeispieleHtml(examples){
     </div>`;}).join('');
 }
 function renderQawaid(app){
+  qawaidEnsureSeeded();
   const open=window._qawaidOpen||{};
-  app.innerHTML=`<div style="padding:20px 16px 100px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Qawāʿid</div></div></div>
-  <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">5 Grundregeln — tippe zum Aufklappen</div>
-  ${BUILTIN_QAWAID.map((r,i)=>{const k='b'+i;const isOpen=!!open[k];return `<div class="card" style="padding:0;overflow:hidden">
-    <div onclick="toggleQawaid('${k}')" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:800;color:var(--gold)">${r.title}</div><div class="ar" style="font-size:22px;color:var(--text);margin-top:4px">${r.ar}</div></div>
-      <div style="color:var(--text3);font-size:16px;transform:rotate(${isOpen?'90deg':'0deg'});transition:transform 0.2s;flex-shrink:0">›</div>
-    </div>
-    ${isOpen?`<div style="padding:0 16px 16px"><div style="font-size:13px;color:var(--text2);line-height:1.6">${r.rule}</div>${qawaidBeispieleHtml(r.examples)}<div style="margin-top:6px;background:var(--bg3);border-radius:10px;padding:10px;font-size:12px;color:var(--text2)">💡 ${r.tip}</div></div>`:''}
-  </div>`;}).join('')}
-  <div class="card"><div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Meine Regeln</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">Frage eine weitere Regel an. Die KI-Erklärung wird danach lokal und per Cloud-Sync gespeichert.</div><div style="display:flex;gap:8px"><input id="qawaidAsk" placeholder="z.B. Was ist Naṣb?"/><button class="gold-btn" onclick="askQawaidRule()" style="width:110px;padding:0">KI fragen</button></div></div>
-  <div id="myQawaidRules">${customGrammarRules.length?customGrammarRules.map((r,i)=>{const k='c'+i;const isOpen=!!open[k];return `<div class="card" style="padding:0;overflow:hidden">
-    <div onclick="toggleQawaid('${k}')" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
+  const loading=window._qawaidLoading||{};
+  app.innerHTML=`<div style="padding:20px 16px 100px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:6px"><button onclick="subView=null;render()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:16px">←</button><div><div style="font-size:11px;color:var(--text3)">LERNEN</div><div style="font-size:20px;font-weight:800;color:var(--text)">Qawāʿid</div></div></div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">Neue Regel hinzufügen</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Auf Deutsch, Arabisch oder in Umschrift — die KI erklärt sie und speichert sie dauerhaft.</div>
+    <div style="display:flex;gap:8px"><input id="qawaidAsk" placeholder="z.B. Nominalsatz, الإضافة, Naṣb..."/><button class="gold-btn" onclick="askQawaidRule()" style="width:110px;padding:0">KI fragen</button></div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">tippe zum Aufklappen</div>
+  <div id="qawaidList">${customGrammarRules.length?customGrammarRules.map(r=>{
+    const isOpen=!!open[r.id]; const isLoading=!!loading[r.id];
+    return `<div class="card" style="padding:0;overflow:hidden">
+    <div onclick="toggleQawaid('${r.id}')" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
       <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:800;color:var(--gold)">${r.title}</div>${r.ar?`<div class="ar" style="font-size:22px;color:var(--text);margin-top:4px">${r.ar}</div>`:''}</div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><button onclick="event.stopPropagation();deleteQawaidRule(${i})" style="background:#3b1a1a;border:none;border-radius:8px;color:#fca5a5;padding:6px 10px;cursor:pointer">Löschen</button><div style="color:var(--text3);font-size:16px;transform:rotate(${isOpen?'90deg':'0deg'});transition:transform 0.2s">›</div></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><button onclick="event.stopPropagation();deleteQawaidRule('${r.id}')" style="background:#3b1a1a;border:none;border-radius:8px;color:#fca5a5;padding:6px 10px;cursor:pointer">Löschen</button><div style="color:var(--text3);font-size:16px;transform:rotate(${isOpen?'90deg':'0deg'});transition:transform 0.2s">›</div></div>
     </div>
-    ${isOpen?qawaidRuleBodyHtml(r):''}
-  </div>`;}).join(''):`<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Noch keine eigenen Regeln gespeichert.</div>`}</div></div>`;
+    ${isOpen?qawaidRuleBodyHtml(r,isLoading):''}
+  </div>`;}).join(''):`<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Noch keine Regeln vorhanden.</div>`}</div></div>`;
 }
-// Zeigt eine "Meine Regeln"-Karte im selben Stil wie die eingebauten Grundregeln
-// (strukturiert: Erklärung, Beispiele, Merksatz). Ältere, als Freitext gespeicherte
+// Rendert den aufgeklappten Inhalt einer Regel — für die 5 Grundregeln genauso wie
+// für später hinzugefügte, kein optischer Unterschied. Ältere, als Freitext gespeicherte
 // Einträge (r.explanation) werden als Fallback weiter angezeigt, aber von Markdown
-// (#, *, **) befreit, damit auch sie sauber aussehen.
-function qawaidRuleBodyHtml(r){
+// (#, *, **) befreit. Jede Karte bekommt einen "Genauer erklären"-Knopf.
+function qawaidRuleBodyHtml(r,isLoading){
+  const vertiefenBtn=`<button onclick="event.stopPropagation();vertiefeQawaidRegel('${r.id}')" ${isLoading?'disabled':''} style="margin-top:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--gold);padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;width:100%">${isLoading?'⏳ Wird vertieft…':'🔍 Genauer erklären lassen'}</button>`;
   if(r.rule||Array.isArray(r.examples)){
     return `<div style="padding:0 16px 16px">
       ${r.rule?`<div style="font-size:13px;color:var(--text2);line-height:1.6">${r.rule}</div>`:''}
       ${Array.isArray(r.examples)&&r.examples.length?qawaidBeispieleHtml(r.examples):''}
       ${r.tip?`<div style="margin-top:6px;background:var(--bg3);border-radius:10px;padding:10px;font-size:12px;color:var(--text2)">💡 ${r.tip}</div>`:''}
+      ${vertiefenBtn}
     </div>`;
   }
-  return `<div style="padding:0 16px 16px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${stripMarkdown(r.explanation||'')}</div>`;
+  return `<div style="padding:0 16px 16px">
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${stripMarkdown(r.explanation||'')}</div>
+    ${vertiefenBtn}
+  </div>`;
 }
 function stripMarkdown(s){
   return String(s||'')
@@ -2870,17 +2900,50 @@ Gib genau 2-3 Einträge in "examples". WICHTIG: Nirgendwo lateinische Transliter
       // automatisch tauschen — oben soll immer Deutsch (Gold), unten immer Arabisch (Weiß) stehen.
       if(hasArabicScript(title)&&!hasArabicScript(ar)){ const tmp=title; title=ar; ar=tmp; }
       if(hasArabicScript(title)) title=question; // letzter Fallback, falls immer noch arabisch
-      entry={title,ar,rule:stripMarkdown(parsed.rule),examples:Array.isArray(parsed.examples)?parsed.examples:[],tip:parsed.tip?stripMarkdown(parsed.tip):'',createdAt:new Date().toISOString()};
+      entry={id:qawaidNewId(),title,ar,rule:stripMarkdown(parsed.rule),examples:Array.isArray(parsed.examples)?parsed.examples:[],tip:parsed.tip?stripMarkdown(parsed.tip):'',createdAt:new Date().toISOString()};
     } else {
       // Fallback, falls die KI kein valides JSON liefert
-      entry={title:question,explanation:stripMarkdown(raw),createdAt:new Date().toISOString()};
+      entry={id:qawaidNewId(),title:question,explanation:stripMarkdown(raw),createdAt:new Date().toISOString()};
     }
     customGrammarRules.unshift(entry);
-    window._qawaidOpen=window._qawaidOpen||{}; window._qawaidOpen['c0']=true; // neu erklärte Regel direkt geöffnet zeigen
+    window._qawaidOpen=window._qawaidOpen||{}; window._qawaidOpen[entry.id]=true; // neu erklärte Regel direkt geöffnet zeigen
+    if(input) input.value='';
     saveGrammarRules(); renderQawaid(document.getElementById('app'));
   }catch(e){ alert('KI-Fehler: '+e.message); }
 }
-function deleteQawaidRule(i){ customGrammarRules.splice(i,1); if(window._qawaidOpen) delete window._qawaidOpen['c'+i]; saveGrammarRules(); renderQawaid(document.getElementById('app')); }
+function deleteQawaidRule(id){
+  const idx=customGrammarRules.findIndex(r=>r.id===id); if(idx<0) return;
+  customGrammarRules.splice(idx,1);
+  if(window._qawaidOpen) delete window._qawaidOpen[id];
+  saveGrammarRules(); renderQawaid(document.getElementById('app'));
+}
+// Lässt die KI eine bestehende Erklärung vertiefen (mehr Details, Sonderfälle,
+// zusätzliche Beispiele) — für den Fall, dass die bisherige Erklärung zu knapp ist.
+async function vertiefeQawaidRegel(id){
+  const r=customGrammarRules.find(x=>x.id===id); if(!r) return;
+  window._qawaidLoading=window._qawaidLoading||{}; window._qawaidLoading[id]=true;
+  renderQawaid(document.getElementById('app'));
+  const bisher=r.rule||r.explanation||'';
+  try{
+    const raw=await callAI(`Ein Arabisch-Lernender findet die bisherige Erklärung der Grammatikregel "${r.title}"${r.ar?(' ('+r.ar+')'):''} zu knapp und möchte sie GENAUER erklärt bekommen.
+Bisherige Erklärung: "${bisher}"
+Gib eine ausführlichere, vertiefte Erklärung auf Deutsch (4-7 Sätze) — ergänze Details, Sonderfälle oder Ausnahmen, die vorher fehlten, aber bleib klar verständlich, ohne Markdown-Zeichen wie # oder **. Gib außerdem 2-3 NEUE arabische Beispielsätze MIT vollem Harakat + deutscher Übersetzung, die die bisherigen sinnvoll ergänzen (keine Wiederholung). Antworte AUSSCHLIESSLICH mit einem JSON-Objekt in diesem Format:
+{"rule":"die neue, ausführlichere Erklärung","examples":[{"ar":"...","de":"..."}]}
+WICHTIG: keine lateinische Transliteration des Arabischen verwenden — arabische Wörter ausschließlich in arabischer Schrift mit Harakat.`,1400);
+    const parsed=pJ(raw);
+    if(parsed&&parsed.rule){
+      r.rule=stripMarkdown(parsed.rule);
+      delete r.explanation; // alte Freitext-Regeln werden dadurch ins strukturierte Format gehoben
+      if(Array.isArray(parsed.examples)&&parsed.examples.length){
+        r.examples=(Array.isArray(r.examples)?r.examples:[]).concat(parsed.examples);
+      }
+      saveGrammarRules();
+    } else {
+      alert('Die KI konnte die Erklärung gerade nicht vertiefen. Versuch es später erneut.');
+    }
+  }catch(e){ alert('KI-Fehler: '+e.message); }
+  finally{ delete window._qawaidLoading[id]; renderQawaid(document.getElementById('app')); }
+}
 
 // ═══════════════════════════════════════════════════════
 // AUTH — Login / Registrierung mit E-Mail + Passwort (Supabase)
