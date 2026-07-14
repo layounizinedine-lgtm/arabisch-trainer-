@@ -2825,17 +2825,48 @@ function renderQawaid(app){
   <div class="card"><div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Meine Regeln</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">Frage eine weitere Regel an. Die KI-Erklärung wird danach lokal und per Cloud-Sync gespeichert.</div><div style="display:flex;gap:8px"><input id="qawaidAsk" placeholder="z.B. Was ist Naṣb?"/><button class="gold-btn" onclick="askQawaidRule()" style="width:110px;padding:0">KI fragen</button></div></div>
   <div id="myQawaidRules">${customGrammarRules.length?customGrammarRules.map((r,i)=>{const k='c'+i;const isOpen=!!open[k];return `<div class="card" style="padding:0;overflow:hidden">
     <div onclick="toggleQawaid('${k}')" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <div style="flex:1;min-width:0;font-size:15px;font-weight:800;color:var(--gold)">${r.title}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;color:var(--gold)">${r.title}</div>${r.ar?`<div class="ar" style="font-size:20px;color:var(--text);margin-top:4px">${r.ar}</div>`:''}</div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><button onclick="event.stopPropagation();deleteQawaidRule(${i})" style="background:#3b1a1a;border:none;border-radius:8px;color:#fca5a5;padding:6px 10px;cursor:pointer">Löschen</button><div style="color:var(--text3);font-size:16px;transform:rotate(${isOpen?'90deg':'0deg'});transition:transform 0.2s">›</div></div>
     </div>
-    ${isOpen?`<div style="padding:0 16px 16px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${r.explanation}</div>`:''}
+    ${isOpen?qawaidRuleBodyHtml(r):''}
   </div>`;}).join(''):`<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Noch keine eigenen Regeln gespeichert.</div>`}</div></div>`;
+}
+// Zeigt eine "Meine Regeln"-Karte im selben Stil wie die eingebauten Grundregeln
+// (strukturiert: Erklärung, Beispiele, Merksatz). Ältere, als Freitext gespeicherte
+// Einträge (r.explanation) werden als Fallback weiter angezeigt, aber von Markdown
+// (#, *, **) befreit, damit auch sie sauber aussehen.
+function qawaidRuleBodyHtml(r){
+  if(r.rule||Array.isArray(r.examples)){
+    return `<div style="padding:0 16px 16px">
+      ${r.rule?`<div style="font-size:13px;color:var(--text2);line-height:1.6">${r.rule}</div>`:''}
+      ${Array.isArray(r.examples)&&r.examples.length?qawaidBeispieleHtml(r.examples):''}
+      ${r.tip?`<div style="margin-top:6px;background:var(--bg3);border-radius:10px;padding:10px;font-size:12px;color:var(--text2)">💡 ${r.tip}</div>`:''}
+    </div>`;
+  }
+  return `<div style="padding:0 16px 16px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${stripMarkdown(r.explanation||'')}</div>`;
+}
+function stripMarkdown(s){
+  return String(s||'')
+    .replace(/^#{1,6}\s*/gm,'')      // Überschriften-Hashtags
+    .replace(/\*\*(.+?)\*\*/g,'$1')  // Fett
+    .replace(/\*(.+?)\*/g,'$1')      // Kursiv
+    .replace(/^[-*]\s+/gm,'• ');     // Listenpunkte vereinheitlichen
 }
 async function askQawaidRule(){
   const input=document.getElementById('qawaidAsk'); const question=(input&&input.value||'').trim(); if(!question){ alert('Bitte gib eine Regel oder Frage ein.'); return; }
   try{
-    const answer=await callAI('Erkläre diese arabische Grammatikregel für deutschsprachige Anfänger klar und kurz. Gib 2-3 arabische Beispiele, VOLLSTÄNDIG mit Harakat (Vokalzeichen) vokalisiert, und schreibe direkt darunter jeweils die deutsche Übersetzung des Beispielsatzes. WICHTIG: Verwende NIRGENDS eine Transliteration bzw. lateinische Umschrift des Arabischen (also z.B. NICHT "al-baitu kabirun") — arabische Wörter erscheinen ausschließlich in arabischer Schrift mit Harakat, die deutsche Übersetzung ist aber jeweils erwünscht. Frage: '+question,1200);
-    customGrammarRules.unshift({title:question,explanation:answer,createdAt:new Date().toISOString()});
+    const raw=await callAI(`Erkläre die arabische Grammatikregel "${question}" für deutschsprachige Anfänger. Antworte AUSSCHLIESSLICH mit einem einzigen JSON-Objekt, ohne Markdown-Codeblöcke, ohne Erklärtext davor oder danach, in genau diesem Format:
+{"ar":"arabischer Name der Regel MIT vollem Harakat, z.B. الْجُمْلَةُ الاِسْمِيَّةُ","rule":"kurze, klare Erklärung auf Deutsch in 1-3 Sätzen, ohne Markdown-Zeichen wie # oder **","examples":[{"ar":"arabischer Beispielsatz MIT vollem Harakat","de":"deutsche Übersetzung"}],"tip":"ein kurzer einprägsamer Merksatz auf Deutsch"}
+Gib genau 2-3 Einträge in "examples". WICHTIG: Nirgendwo lateinische Transliteration/Umschrift des Arabischen verwenden (also NICHT "al-baitu kabirun") — arabische Wörter ausschließlich in arabischer Schrift mit Harakat.`,1200);
+    const parsed=pJ(raw);
+    let entry;
+    if(parsed&&parsed.rule){
+      entry={title:question,ar:parsed.ar||'',rule:stripMarkdown(parsed.rule),examples:Array.isArray(parsed.examples)?parsed.examples:[],tip:parsed.tip?stripMarkdown(parsed.tip):'',createdAt:new Date().toISOString()};
+    } else {
+      // Fallback, falls die KI kein valides JSON liefert
+      entry={title:question,explanation:stripMarkdown(raw),createdAt:new Date().toISOString()};
+    }
+    customGrammarRules.unshift(entry);
     window._qawaidOpen=window._qawaidOpen||{}; window._qawaidOpen['c0']=true; // neu erklärte Regel direkt geöffnet zeigen
     saveGrammarRules(); renderQawaid(document.getElementById('app'));
   }catch(e){ alert('KI-Fehler: '+e.message); }
