@@ -2770,27 +2770,27 @@ function showVocabDetail(id){
 }
 // Beispiele: arabisch voll mit Harakat + deutsche Übersetzung. Keine Transliteration/Umschrift.
 const BUILTIN_QAWAID=[
-  {title:'Nominalsatz',ar:'الْجُمْلَةُ الاِسْمِيَّةُ',rule:'Beginnt meist mit einem Namen/Nomen und besteht aus Mubtadaʾ (Subjekt) und Khabar (Aussage).',examples:[
+  {title:'Nominalsatz',ar:'الْجُمْلَةُ الاِسْمِيَّةُ',rule:'Ein Nominalsatz beginnt mit einem Nomen (nicht mit einem Verb) und besteht aus zwei Teilen: dem Mubtadaʾ — dem Satzanfang, worüber gesprochen wird — und dem Khabar, der Aussage darüber. Im Arabischen fehlt dabei meist das Verb „sein“ im Präsens; es wird beim Übersetzen einfach mitgedacht.',examples:[
     {ar:'الْبَيْتُ كَبِيرٌ',de:'Das Haus ist groß.'},
     {ar:'الطَّالِبُ مُجْتَهِدٌ',de:'Der Schüler ist fleißig.'},
     {ar:'الْجَوُّ جَمِيلٌ',de:'Das Wetter ist schön.'}
   ],tip:'Im Präsens braucht Arabisch hier kein „ist“.'},
-  {title:'Verbalsatz',ar:'الْجُمْلَةُ الْفِعْلِيَّةُ',rule:'Beginnt meist mit einem Verb. Danach folgen Täter und Ergänzungen.',examples:[
+  {title:'Verbalsatz',ar:'الْجُمْلَةُ الْفِعْلِيَّةُ',rule:'Ein Verbalsatz beginnt mit einem Verb. Danach folgt meist der Täter (wer die Handlung ausführt) und dann eine Ergänzung (was betroffen ist). Wichtig: Das Verb am Satzanfang steht immer im Singular, auch wenn mehrere Personen handeln — die Mehrzahl erkennt man am Täter, nicht am Verb.',examples:[
     {ar:'كَتَبَ الطَّالِبُ الدَّرْسَ',de:'Der Schüler schrieb die Lektion.'},
     {ar:'شَرِبَ الْوَلَدُ الْمَاءَ',de:'Der Junge trank das Wasser.'},
     {ar:'قَرَأَ الْمُعَلِّمُ الْكِتَابَ',de:'Der Lehrer las das Buch.'}
   ],tip:'Achte zuerst auf das Verb: Zeit und Grundbedeutung werden dort sichtbar.'},
-  {title:'Sonnen-/Mondbuchstaben',ar:'الْحُرُوفُ الشَّمْسِيَّةُ وَالْقَمَرِيَّةُ',rule:'Bei Sonnenbuchstaben wird das Lām von ال nicht gesprochen; bei Mondbuchstaben schon.',examples:[
+  {title:'Sonnen-/Mondbuchstaben',ar:'الْحُرُوفُ الشَّمْسِيَّةُ وَالْقَمَرِيَّةُ',rule:'Der Artikel „al-“ (ال) wird immer gleich geschrieben, aber unterschiedlich ausgesprochen. Vor Sonnenbuchstaben (z.B. س، ش، ت، د، ر، ن) verschwindet das L in der Aussprache, und der folgende Buchstabe wird verdoppelt gesprochen. Vor Mondbuchstaben (z.B. ق، م، ب، ح، ع) bleibt das L klar hörbar.',examples:[
     {ar:'الشَّمْسُ وَالْقَمَرُ',de:'Die Sonne und der Mond.'},
     {ar:'النُّورُ وَالْبَابُ',de:'Das Licht und die Tür.'},
     {ar:'الرَّجُلُ وَالْكِتَابُ',de:'Der Mann und das Buch.'}
   ],tip:'Sonnenbuchstabe: Verdopplung/Schadda hören. Mondbuchstabe: Lām bleibt hörbar.'},
-  {title:'Iḍāfa',ar:'الْإِضَافَةُ',rule:'Zwei Nomen bilden eine Besitz-/Zuordnungsgruppe. Das erste Nomen hat kein ال und kein Tanwīn.',examples:[
+  {title:'Iḍāfa',ar:'الْإِضَافَةُ',rule:'Die Iḍāfa verbindet zwei Nomen zu einer Besitz- oder Zugehörigkeitsgruppe, etwa „das Buch des Schülers“. Das erste Nomen bekommt dabei nie den Artikel ال und nie Tanwīn — es „leiht“ sich seine Bestimmtheit vom zweiten Nomen. Das zweite Nomen steht im Genitiv und trägt oft den Artikel.',examples:[
     {ar:'كِتَابُ الطَّالِبِ',de:'Das Buch des Schülers.'},
     {ar:'بَابُ الْبَيْتِ',de:'Die Tür des Hauses.'},
     {ar:'مِفْتَاحُ السَّيَّارَةِ',de:'Der Schlüssel des Autos.'}
   ],tip:'Übersetze oft von hinten nach vorne: „Buch des Schülers“.'},
-  {title:'Bestimmt/Unbestimmt',ar:'الْمَعْرِفَةُ وَالنَّكِرَةُ',rule:'Bestimmt ist z.B. ein Wort mit ال oder ein Eigenname. Unbestimmt hat häufig Tanwīn.',examples:[
+  {title:'Bestimmt/Unbestimmt',ar:'الْمَعْرِفَةُ وَالنَّكِرَةُ',rule:'Arabisch unterscheidet zwischen bestimmten Wörtern (z.B. mit dem Artikel ال, oder Eigennamen — vergleichbar mit „der/die/das“) und unbestimmten Wörtern (meist erkennbar am Tanwīn, der Doppelvokal-Endung — vergleichbar mit „ein/eine“). Ein Wort trägt dabei entweder den Artikel oder Tanwīn, niemals beides gleichzeitig.',examples:[
     {ar:'بَيْتٌ وَالْبَيْتُ',de:'Ein Haus und das Haus.'},
     {ar:'كِتَابٌ وَالْكِتَابُ',de:'Ein Buch und das Buch.'},
     {ar:'وَلَدٌ وَالْوَلَدُ',de:'Ein Junge und der Junge.'}
@@ -2825,7 +2825,7 @@ function renderQawaid(app){
   <div class="card"><div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Meine Regeln</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">Frage eine weitere Regel an. Die KI-Erklärung wird danach lokal und per Cloud-Sync gespeichert.</div><div style="display:flex;gap:8px"><input id="qawaidAsk" placeholder="z.B. Was ist Naṣb?"/><button class="gold-btn" onclick="askQawaidRule()" style="width:110px;padding:0">KI fragen</button></div></div>
   <div id="myQawaidRules">${customGrammarRules.length?customGrammarRules.map((r,i)=>{const k='c'+i;const isOpen=!!open[k];return `<div class="card" style="padding:0;overflow:hidden">
     <div onclick="toggleQawaid('${k}')" style="padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;color:var(--gold)">${r.title}</div>${r.ar?`<div class="ar" style="font-size:20px;color:var(--text);margin-top:4px">${r.ar}</div>`:''}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:800;color:var(--gold)">${r.title}</div>${r.ar?`<div class="ar" style="font-size:22px;color:var(--text);margin-top:4px">${r.ar}</div>`:''}</div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><button onclick="event.stopPropagation();deleteQawaidRule(${i})" style="background:#3b1a1a;border:none;border-radius:8px;color:#fca5a5;padding:6px 10px;cursor:pointer">Löschen</button><div style="color:var(--text3);font-size:16px;transform:rotate(${isOpen?'90deg':'0deg'});transition:transform 0.2s">›</div></div>
     </div>
     ${isOpen?qawaidRuleBodyHtml(r):''}
@@ -2855,13 +2855,14 @@ function stripMarkdown(s){
 async function askQawaidRule(){
   const input=document.getElementById('qawaidAsk'); const question=(input&&input.value||'').trim(); if(!question){ alert('Bitte gib eine Regel oder Frage ein.'); return; }
   try{
-    const raw=await callAI(`Erkläre die arabische Grammatikregel "${question}" für deutschsprachige Anfänger. Antworte AUSSCHLIESSLICH mit einem einzigen JSON-Objekt, ohne Markdown-Codeblöcke, ohne Erklärtext davor oder danach, in genau diesem Format:
-{"ar":"arabischer Name der Regel MIT vollem Harakat, z.B. الْجُمْلَةُ الاِسْمِيَّةُ","rule":"kurze, klare Erklärung auf Deutsch in 1-3 Sätzen, ohne Markdown-Zeichen wie # oder **","examples":[{"ar":"arabischer Beispielsatz MIT vollem Harakat","de":"deutsche Übersetzung"}],"tip":"ein kurzer einprägsamer Merksatz auf Deutsch"}
-Gib genau 2-3 Einträge in "examples". WICHTIG: Nirgendwo lateinische Transliteration/Umschrift des Arabischen verwenden (also NICHT "al-baitu kabirun") — arabische Wörter ausschließlich in arabischer Schrift mit Harakat.`,1200);
+    const raw=await callAI(`Erkläre die arabische Grammatikregel "${question}" für deutschsprachige Anfänger — im selben Stil wie diese Beispiel-Regeln: "Nominalsatz", "Verbalsatz", "Iḍāfa", "Bestimmt/Unbestimmt". Antworte AUSSCHLIESSLICH mit einem einzigen JSON-Objekt, ohne Markdown-Codeblöcke, ohne Erklärtext davor oder danach, in genau diesem Format:
+{"title":"kurzer deutscher (oder eingedeutschter Fachbegriff) Name der Regel, z.B. 'Nominalsatz' oder 'Iḍāfa' — KEIN ganzer Satz, KEINE Frage, nur der Name des Grammatikphänomens","ar":"arabischer Name der Regel MIT vollem Harakat, z.B. الْجُمْلَةُ الاِسْمِيَّةُ","rule":"klare Erklärung auf Deutsch in 2-4 Sätzen, ausführlich genug dass ein Anfänger es direkt versteht, aber ohne abzuschweifen, ohne Markdown-Zeichen wie # oder **","examples":[{"ar":"arabischer Beispielsatz MIT vollem Harakat","de":"deutsche Übersetzung"}],"tip":"ein kurzer einprägsamer Merksatz auf Deutsch"}
+Gib genau 2-3 Einträge in "examples". WICHTIG: Nirgendwo lateinische Transliteration/Umschrift des Arabischen verwenden (also NICHT "al-baitu kabirun") — arabische Wörter ausschließlich in arabischer Schrift mit Harakat.`,1400);
     const parsed=pJ(raw);
     let entry;
     if(parsed&&parsed.rule){
-      entry={title:question,ar:parsed.ar||'',rule:stripMarkdown(parsed.rule),examples:Array.isArray(parsed.examples)?parsed.examples:[],tip:parsed.tip?stripMarkdown(parsed.tip):'',createdAt:new Date().toISOString()};
+      // Deutscher Name kommt von der KI (wie bei den 5 Grundregeln) — nicht die rohe Nutzereingabe.
+      entry={title:stripMarkdown(parsed.title||question),ar:parsed.ar||'',rule:stripMarkdown(parsed.rule),examples:Array.isArray(parsed.examples)?parsed.examples:[],tip:parsed.tip?stripMarkdown(parsed.tip):'',createdAt:new Date().toISOString()};
     } else {
       // Fallback, falls die KI kein valides JSON liefert
       entry={title:question,explanation:stripMarkdown(raw),createdAt:new Date().toISOString()};
