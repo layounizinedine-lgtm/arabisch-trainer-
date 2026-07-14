@@ -2768,13 +2768,33 @@ function showVocabDetail(id){
   </div>`;
   document.body.appendChild(m);
 }
-// Beispiele nur in arabischer Schrift, voll mit Harakat, ohne Transliteration.
+// Beispiele: arabisch voll mit Harakat + deutsche Übersetzung. Keine Transliteration/Umschrift.
 const BUILTIN_QAWAID=[
-  {title:'Nominalsatz',ar:'الْجُمْلَةُ الاِسْمِيَّةُ',rule:'Beginnt meist mit einem Namen/Nomen und besteht aus Mubtadaʾ (Subjekt) und Khabar (Aussage).',examples:['الْبَيْتُ كَبِيرٌ','الطَّالِبُ مُجْتَهِدٌ','الْجَوُّ جَمِيلٌ'],tip:'Im Präsens braucht Arabisch hier kein „ist“.'},
-  {title:'Verbalsatz',ar:'الْجُمْلَةُ الْفِعْلِيَّةُ',rule:'Beginnt meist mit einem Verb. Danach folgen Täter und Ergänzungen.',examples:['كَتَبَ الطَّالِبُ الدَّرْسَ','شَرِبَ الْوَلَدُ الْمَاءَ','قَرَأَ الْمُعَلِّمُ الْكِتَابَ'],tip:'Achte zuerst auf das Verb: Zeit und Grundbedeutung werden dort sichtbar.'},
-  {title:'Sonnen-/Mondbuchstaben',ar:'الْحُرُوفُ الشَّمْسِيَّةُ وَالْقَمَرِيَّةُ',rule:'Bei Sonnenbuchstaben wird das Lām von ال nicht gesprochen; bei Mondbuchstaben schon.',examples:['الشَّمْسُ وَالْقَمَرُ','النُّورُ وَالْبَابُ','الرَّجُلُ وَالْكِتَابُ'],tip:'Sonnenbuchstabe: Verdopplung/Schadda hören. Mondbuchstabe: Lām bleibt hörbar.'},
-  {title:'Iḍāfa',ar:'الْإِضَافَةُ',rule:'Zwei Nomen bilden eine Besitz-/Zuordnungsgruppe. Das erste Nomen hat kein ال und kein Tanwīn.',examples:['كِتَابُ الطَّالِبِ','بَابُ الْبَيْتِ','مِفْتَاحُ السَّيَّارَةِ'],tip:'Übersetze oft von hinten nach vorne: „Buch des Schülers“.'},
-  {title:'Bestimmt/Unbestimmt',ar:'الْمَعْرِفَةُ وَالنَّكِرَةُ',rule:'Bestimmt ist z.B. ein Wort mit ال oder ein Eigenname. Unbestimmt hat häufig Tanwīn.',examples:['بَيْتٌ وَالْبَيْتُ','كِتَابٌ وَالْكِتَابُ','وَلَدٌ وَالْوَلَدُ'],tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'}
+  {title:'Nominalsatz',ar:'الْجُمْلَةُ الاِسْمِيَّةُ',rule:'Beginnt meist mit einem Namen/Nomen und besteht aus Mubtadaʾ (Subjekt) und Khabar (Aussage).',examples:[
+    {ar:'الْبَيْتُ كَبِيرٌ',de:'Das Haus ist groß.'},
+    {ar:'الطَّالِبُ مُجْتَهِدٌ',de:'Der Schüler ist fleißig.'},
+    {ar:'الْجَوُّ جَمِيلٌ',de:'Das Wetter ist schön.'}
+  ],tip:'Im Präsens braucht Arabisch hier kein „ist“.'},
+  {title:'Verbalsatz',ar:'الْجُمْلَةُ الْفِعْلِيَّةُ',rule:'Beginnt meist mit einem Verb. Danach folgen Täter und Ergänzungen.',examples:[
+    {ar:'كَتَبَ الطَّالِبُ الدَّرْسَ',de:'Der Schüler schrieb die Lektion.'},
+    {ar:'شَرِبَ الْوَلَدُ الْمَاءَ',de:'Der Junge trank das Wasser.'},
+    {ar:'قَرَأَ الْمُعَلِّمُ الْكِتَابَ',de:'Der Lehrer las das Buch.'}
+  ],tip:'Achte zuerst auf das Verb: Zeit und Grundbedeutung werden dort sichtbar.'},
+  {title:'Sonnen-/Mondbuchstaben',ar:'الْحُرُوفُ الشَّمْسِيَّةُ وَالْقَمَرِيَّةُ',rule:'Bei Sonnenbuchstaben wird das Lām von ال nicht gesprochen; bei Mondbuchstaben schon.',examples:[
+    {ar:'الشَّمْسُ وَالْقَمَرُ',de:'Die Sonne und der Mond.'},
+    {ar:'النُّورُ وَالْبَابُ',de:'Das Licht und die Tür.'},
+    {ar:'الرَّجُلُ وَالْكِتَابُ',de:'Der Mann und das Buch.'}
+  ],tip:'Sonnenbuchstabe: Verdopplung/Schadda hören. Mondbuchstabe: Lām bleibt hörbar.'},
+  {title:'Iḍāfa',ar:'الْإِضَافَةُ',rule:'Zwei Nomen bilden eine Besitz-/Zuordnungsgruppe. Das erste Nomen hat kein ال und kein Tanwīn.',examples:[
+    {ar:'كِتَابُ الطَّالِبِ',de:'Das Buch des Schülers.'},
+    {ar:'بَابُ الْبَيْتِ',de:'Die Tür des Hauses.'},
+    {ar:'مِفْتَاحُ السَّيَّارَةِ',de:'Der Schlüssel des Autos.'}
+  ],tip:'Übersetze oft von hinten nach vorne: „Buch des Schülers“.'},
+  {title:'Bestimmt/Unbestimmt',ar:'الْمَعْرِفَةُ وَالنَّكِرَةُ',rule:'Bestimmt ist z.B. ein Wort mit ال oder ein Eigenname. Unbestimmt hat häufig Tanwīn.',examples:[
+    {ar:'بَيْتٌ وَالْبَيْتُ',de:'Ein Haus und das Haus.'},
+    {ar:'كِتَابٌ وَالْكِتَابُ',de:'Ein Buch und das Buch.'},
+    {ar:'وَلَدٌ وَالْوَلَدُ',de:'Ein Junge und der Junge.'}
+  ],tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'}
 ];
 function toggleQawaid(key){
   window._qawaidOpen=window._qawaidOpen||{};
@@ -2783,10 +2803,13 @@ function toggleQawaid(key){
 }
 function qawaidBeispieleHtml(examples){
   return `<div style="font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px">Beispiele</div>`+
-    examples.map(ex=>`<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px">
-      <div class="ar" style="font-size:22px;color:var(--text);line-height:1.9">${ex}</div>
-      <button onclick="event.stopPropagation();speakAr('${String(ex).replace(/'/g,"\\'")}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',14,'var(--gold)',2)}</button>
-    </div>`).join('');
+    examples.map(ex=>{const ar=typeof ex==='string'?ex:ex.ar; const de=typeof ex==='string'?'':(ex.de||''); return `<div style="background:var(--bg3);border-radius:10px;padding:10px 14px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div class="ar" style="font-size:22px;color:var(--text);line-height:1.9">${ar}</div>
+        <button onclick="event.stopPropagation();speakAr('${String(ar).replace(/'/g,"\\'")}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">${icon('volume',14,'var(--gold)',2)}</button>
+      </div>
+      ${de?`<div style="font-size:12px;color:var(--text3);margin-top:4px">${de}</div>`:''}
+    </div>`;}).join('');
 }
 function renderQawaid(app){
   const open=window._qawaidOpen||{};
@@ -2811,7 +2834,7 @@ function renderQawaid(app){
 async function askQawaidRule(){
   const input=document.getElementById('qawaidAsk'); const question=(input&&input.value||'').trim(); if(!question){ alert('Bitte gib eine Regel oder Frage ein.'); return; }
   try{
-    const answer=await callAI('Erkläre diese arabische Grammatikregel für deutschsprachige Anfänger klar und kurz. Gib 2-3 arabische Beispiele, VOLLSTÄNDIG mit Harakat (Vokalzeichen) vokalisiert. WICHTIG: Verwende KEINE Transliteration bzw. Umschrift in lateinischen Buchstaben — die Beispiele sollen ausschließlich in arabischer Schrift mit Harakat stehen (eine kurze deutsche Übersetzung pro Beispiel ist erlaubt). Frage: '+question,1200);
+    const answer=await callAI('Erkläre diese arabische Grammatikregel für deutschsprachige Anfänger klar und kurz. Gib 2-3 arabische Beispiele, VOLLSTÄNDIG mit Harakat (Vokalzeichen) vokalisiert, und schreibe direkt darunter jeweils die deutsche Übersetzung des Beispielsatzes. WICHTIG: Verwende NIRGENDS eine Transliteration bzw. lateinische Umschrift des Arabischen (also z.B. NICHT "al-baitu kabirun") — arabische Wörter erscheinen ausschließlich in arabischer Schrift mit Harakat, die deutsche Übersetzung ist aber jeweils erwünscht. Frage: '+question,1200);
     customGrammarRules.unshift({title:question,explanation:answer,createdAt:new Date().toISOString()});
     window._qawaidOpen=window._qawaidOpen||{}; window._qawaidOpen['c0']=true; // neu erklärte Regel direkt geöffnet zeigen
     saveGrammarRules(); renderQawaid(document.getElementById('app'));
