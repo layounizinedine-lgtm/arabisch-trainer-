@@ -1469,7 +1469,7 @@ function showVerbDetail(id){
   function renderTenseContent(tc,verb){
     const vt=window._vt;
     const ORDER_N=['هُوَ','هُمَا','هُمْ','هِيَ','هُمَا','هُنَّ','أَنْتَ','أَنْتُمَا','أَنْتُمْ','أَنْتِ','أَنْتُمَا','أَنْتُنَّ','أَنَا','نَحْنُ'];
-    const ORDER_B=['أَنْتَ','أَنْتُمَا','أَنْتُمْ','أَنْتِ','أَنْتُنَّ'];
+    const ORDER_B=['أَنْتَ','أَنْتُمَا','أَنْتُمْ','أَنْتِ','أَنْتُمَا','أَنْتُنَّ'];
     const ORDER=vt==='befehl'?ORDER_B:ORDER_N;
     const raw=(verb.konjugation&&verb.konjugation[vt])||[];
     const strip=s=>(s||'').replace(/[\u064B-\u065F\u0670]/g,'').trim();
