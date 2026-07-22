@@ -2802,7 +2802,15 @@ const BUILTIN_QAWAID=[
     {ar:'بَيْتٌ وَالْبَيْتُ',de:'Ein Haus und das Haus.'},
     {ar:'كِتَابٌ وَالْكِتَابُ',de:'Ein Buch und das Buch.'},
     {ar:'وَلَدٌ وَالْوَلَدُ',de:'Ein Junge und der Junge.'}
-  ],tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'}
+  ],tip:'Tanwīn bedeutet oft „ein/eine“, ال bedeutet oft „der/die/das“.'},
+  {title:'Iʿrāb (die vier Fälle)',ar:'الْإِعْرَابُ',rule:'Der Iʿrāb ist die Beugung der Wortendungen: Je nachdem, welche Rolle ein Wort im Satz spielt, ändert sich seine Endung. Es gibt vier Fälle — drei betreffen vor allem Nomen, einer nur Verben. Jeder Fall hat ein Grundzeichen (die häufigste Endung) und einige Nebenzeichen, die es bei besonderen Wortarten wie dem Dual, dem gesunden Plural oder den fünf Verben ersetzen.<br><br><b style="color:var(--gold)">1. Marfūʿ (مَرْفُوعٌ) — Nominativ:</b> steht beim Satzsubjekt und beim Mubtadaʾ (Satzanfang). Grundzeichen: Ḍamma (ـُ). Nebenzeichen: Wāw (و) beim gesunden männlichen Plural und den fünf Nomen, Alif (ا) beim Dual, ein festes Nūn (ن) bei den fünf Verben.<br><br><b style="color:var(--gold)">2. Manṣūb (مَنْصُوبٌ) — Akkusativ:</b> steht z.B. beim direkten Objekt. Grundzeichen: Fatḥa (ـَ). Nebenzeichen: Alif (ا) bei den fünf Nomen, Kasra (ـِ) beim gesunden femininen Plural, Yāʾ (ي) bei Dual und gesundem männlichem Plural, Wegfall des Nūn bei den fünf Verben.<br><br><b style="color:var(--gold)">3. Majrūr (مَجْرُورٌ) — Genitiv:</b> steht nach Präpositionen und als zweites Glied der Iḍāfa. Grundzeichen: Kasra (ـِ). Nebenzeichen: Yāʾ (ي) bei den fünf Nomen, beim Dual und beim gesunden männlichen Plural, Fatḥa (ـَ) bei Wörtern, die kein Tanwīn annehmen (mamnūʿ mina ṣ-ṣarf).<br><br><b style="color:var(--gold)">4. Majzūm (مَجْزُومٌ) — Apokopat:</b> betrifft nur Verben, z.B. nach لَمْ. Grundzeichen: Sukūn (ـْ). Nebenzeichen: Wegfall des Nūn bei den fünf Verben, Wegfall des schwachen Endbuchstabens (ا/و/ي) bei Verben mit schwachem Auslaut.',examples:[
+    {ar:'حَضَرَ الْمُعَلِّمُ',de:'Der Lehrer kam. — Marfūʿ (Nominativ): Subjekt, Zeichen Ḍamma auf الْمُعَلِّمُ.'},
+    {ar:'رَأَيْتُ الْمُعَلِّمَ',de:'Ich sah den Lehrer. — Manṣūb (Akkusativ): direktes Objekt, Zeichen Fatḥa auf الْمُعَلِّمَ.'},
+    {ar:'سَلَّمْتُ عَلَى الْمُعَلِّمِ',de:'Ich grüßte den Lehrer. — Majrūr (Genitiv): nach Präposition, Zeichen Kasra auf الْمُعَلِّمِ.'},
+    {ar:'لَمْ يَكْتُبِ الْوَلَدُ',de:'Der Junge schrieb nicht. — Majzūm (Apokopat): Verb nach لَمْ, Zeichen Sukūn auf يَكْتُبْ.'},
+    {ar:'جَاءَ الْمُعَلِّمُونَ',de:'Die Lehrer kamen. — Marfūʿ mit Nebenzeichen Wāw (gesunder männlicher Plural).'},
+    {ar:'رَأَيْتُ الْمُعَلِّمَيْنِ',de:'Ich sah die beiden Lehrer. — Manṣūb mit Nebenzeichen Yāʾ (Dual).'}
+  ],tip:'Grundzeichen merken: Ḍamma → Nominativ, Fatḥa → Akkusativ, Kasra → Genitiv, Sukūn → Apokopat (nur Verben).'}
 ];
 function qawaidNewId(){ return 'q_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); }
 // Fügt die 5 Grundregeln einmalig in customGrammarRules ein (Migration von altem
@@ -2822,6 +2830,18 @@ function qawaidEnsureSeeded(){
     changed=true;
   }
   customGrammarRules.forEach(r=>{ if(!r.id){ r.id=qawaidNewId(); changed=true; } });
+  // Nachträglich ergänzte Grundregeln: einzeln je eigenem Flag EINMALIG einfügen, damit auch
+  // Nutzer, die die ersten 5 schon geseedet haben, die neue Regel bekommen — ohne vom Nutzer
+  // gelöschte Regeln wieder aufleben zu lassen (der Flag verhindert erneutes Einfügen).
+  if(!localStorage.getItem('qawaidIrab_v1')){
+    const irab=BUILTIN_QAWAID.find(b=>b.title==='Iʿrāb (die vier Fälle)');
+    const exists=customGrammarRules.some(r=>(r.title||'').trim().toLowerCase()===(irab?irab.title:'').trim().toLowerCase());
+    if(irab && !exists){
+      customGrammarRules.push({id:qawaidNewId(),title:irab.title,ar:irab.ar,rule:irab.rule,examples:irab.examples,tip:irab.tip,createdAt:new Date().toISOString()});
+      changed=true;
+    }
+    localStorage.setItem('qawaidIrab_v1','1');
+  }
   if(changed) saveGrammarRules();
 }
 function toggleQawaid(id){
