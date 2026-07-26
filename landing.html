@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>مركز التوفيق · Markaz Al-Tawfiq — Arabisch lernen mit Klarheit und Struktur</title>
+<meta name="description" content="Markaz Al-Tawfiq ist ein modernes Arabisch-Lernzentrum: klare Struktur, verständliche Erklärungen und ein professioneller Weg vom ersten Buchstaben bis zum echten Sprachverständnis."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230F3D2E'/%3E%3Cg fill='none' stroke='%23C7A253' stroke-width='2.4'%3E%3Crect x='19' y='19' width='26' height='26'/%3E%3Crect x='19' y='19' width='26' height='26' transform='rotate(45 32 32)'/%3E%3C/g%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --emerald-900:#0b2e23;
+    --emerald-800:#0f3d2e;
+    --emerald-700:#155c46;
+    --emerald-600:#1c7457;
+    --cream:#faf6ee;
+    --cream-2:#f2ead9;
+    --ink:#23211c;
+    --ink-2:#5b564c;
+    --ink-3:#8a8474;
+    --gold:#b8924f;
+    --gold-2:#c7a253;
+    --gold-soft:#e8d9b8;
+    --line:#e4dcc9;
+    --shadow-sm:0 2px 10px rgba(35,33,28,.05);
+    --shadow-md:0 12px 32px -12px rgba(15,61,46,.18);
+    --shadow-lg:0 24px 60px -20px rgba(15,61,46,.25);
+    --radius-sm:12px;
+    --radius-md:20px;
+    --radius-lg:28px;
+    --container:1160px;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Manrope',system-ui,-apple-system,sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img,svg{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+  ul{list-style:none}
+  button{font:inherit;cursor:pointer}
+
+  .ar{font-family:'Amiri','Noto Naskh Arabic',serif;direction:rtl}
+
+  .container{max-width:var(--container);margin:0 auto;padding:0 24px}
+
+  section{position:relative;padding:96px 0}
+  @media (max-width:768px){ section{padding:64px 0} }
+
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:18px;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--gold)}
+
+  h1,h2,h3{font-weight:800;color:var(--ink);letter-spacing:-.01em}
+  .section-head{max-width:640px;margin-bottom:56px}
+  .section-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .section-title{font-size:clamp(28px,3.4vw,40px);line-height:1.2;margin-bottom:16px}
+  .section-sub{color:var(--ink-2);font-size:17px}
+
+  /* ── ornament divider ───────────────────────────────── */
+  .ornament{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 auto 20px}
+  .ornament .bar{width:48px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .ornament svg{flex-shrink:0}
+
+  /* ── buttons ────────────────────────────────────────── */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:15px 30px;border-radius:100px;font-weight:700;font-size:15px;
+    border:1px solid transparent;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease;
+    white-space:nowrap;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--emerald-700),var(--emerald-800));color:var(--cream);box-shadow:var(--shadow-md)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 20px 40px -14px rgba(15,61,46,.4)}
+  .btn-outline{background:transparent;border-color:var(--ink);color:var(--ink)}
+  .btn-outline:hover{background:var(--ink);color:var(--cream);transform:translateY(-2px)}
+  .btn-gold{background:linear-gradient(135deg,var(--gold-2),var(--gold));color:var(--emerald-900);box-shadow:0 14px 30px -12px rgba(184,146,79,.55)}
+  .btn-gold:hover{transform:translateY(-2px)}
+  .btn-ghost-light{background:transparent;border-color:rgba(250,246,238,.35);color:var(--cream)}
+  .btn-ghost-light:hover{background:rgba(250,246,238,.12);border-color:rgba(250,246,238,.6)}
+  .link-arrow{font-weight:700;color:var(--cream);border-bottom:1px solid rgba(250,246,238,.4);padding-bottom:2px;font-size:15px}
+  .link-arrow:hover{border-color:var(--cream)}
+
+  /* ── header ─────────────────────────────────────────── */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    padding:18px 0;transition:background .25s ease,box-shadow .25s ease,padding .25s ease;
+  }
+  header.scrolled{background:rgba(250,246,238,.85);backdrop-filter:blur(14px);box-shadow:var(--shadow-sm);padding:12px 0}
+  .nav-wrap{display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-mark{width:42px;height:42px;flex-shrink:0}
+  .brand-text{display:flex;flex-direction:column;line-height:1.15}
+  .brand-text .ar{font-size:19px;font-weight:700;color:var(--emerald-800)}
+  .brand-text .en{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+
+  nav.links{display:flex;align-items:center;gap:36px}
+  nav.links a{font-size:14.5px;font-weight:600;color:var(--ink-2);transition:color .2s}
+  nav.links a:hover{color:var(--emerald-700)}
+  .nav-cta{display:flex;align-items:center;gap:14px}
+  .nav-cta .btn{padding:12px 24px;font-size:14px}
+
+  .burger{display:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--cream);align-items:center;justify-content:center}
+  .burger span{display:block;width:18px;height:2px;background:var(--ink);position:relative}
+  .burger span::before,.burger span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:var(--ink);transition:transform .2s}
+  .burger span::before{top:-6px}
+  .burger span::after{top:6px}
+
+  .mobile-panel{
+    position:fixed;inset:0;background:var(--cream);z-index:190;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;
+    opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .25s ease,transform .25s ease;
+  }
+  .mobile-panel.open{opacity:1;pointer-events:auto;transform:translateY(0)}
+  .mobile-panel a{font-size:20px;font-weight:700;color:var(--ink)}
+  .mobile-panel .btn{margin-top:10px}
+
+  @media (max-width:900px){
+    nav.links,.nav-cta .btn-outline{display:none}
+    .burger{display:flex}
+  }
+  @media (max-width:560px){
+    .nav-cta .btn-primary{display:none}
+    .brand-text .en{white-space:nowrap}
+  }
+  @media (max-width:360px){
+    .brand-text .en{font-size:9.5px;letter-spacing:.1em}
+  }
+
+  /* ── hero ───────────────────────────────────────────── */
+  .hero{
+    padding:168px 0 110px;
+    background:
+      radial-gradient(1100px 520px at 85% -10%, rgba(199,162,83,.14), transparent 60%),
+      var(--cream);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='none' stroke='rgba(15,61,46,0.07)' stroke-width='1'%3E%3Crect x='10' y='10' width='52' height='52'/%3E%3Crect x='10' y='10' width='52' height='52' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:72px 72px;
+    -webkit-mask-image:linear-gradient(to bottom, black, transparent 85%);
+    mask-image:linear-gradient(to bottom, black, transparent 85%);
+    pointer-events:none;
+  }
+  .hero-grid{
+    display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center;position:relative;z-index:1;
+  }
+  @media (max-width:960px){ .hero-grid{grid-template-columns:1fr} }
+
+  .hero h1{font-size:clamp(32px,4.4vw,52px);line-height:1.18;margin-bottom:22px}
+  .hero-ar-brand{font-size:clamp(30px,3.6vw,42px);color:var(--emerald-800);margin-bottom:6px}
+  .hero-en-brand{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:28px}
+  .hero-sub{font-size:19px;color:var(--ink-2);max-width:540px;margin-bottom:14px}
+  .hero-desc{font-size:15.5px;color:var(--ink-3);max-width:540px;margin-bottom:34px}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:26px}
+  .hero-trust{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-3);font-weight:600}
+  .hero-trust svg{color:var(--gold-2)}
+
+  /* hero visual */
+  .hero-visual{position:relative;height:460px}
+  .hv-card{
+    position:absolute;inset:0;border-radius:var(--radius-lg);
+    background:linear-gradient(160deg,var(--emerald-700) 0%,var(--emerald-800) 55%,var(--emerald-900) 100%);
+    box-shadow:var(--shadow-lg);
+    overflow:hidden;
+  }
+  .hv-card::before{
+    content:"";position:absolute;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='rgba(232,217,184,0.12)' stroke-width='1'%3E%3Crect x='12' y='12' width='56' height='56'/%3E%3Crect x='12' y='12' width='56' height='56' transform='rotate(45 40 40)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:80px 80px;
+  }
+  .hv-medallion{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:172px;height:172px;border-radius:50%;
+    border:1px solid rgba(232,217,184,.35);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .hv-medallion::before{
+    content:"";position:absolute;width:112px;height:112px;border:1.5px solid var(--gold-soft);
+  }
+  .hv-medallion::after{
+    content:"";position:absolute;width:112px;height:112px;border:1.5px solid var(--gold-soft);
+    transform:rotate(45deg);
+  }
+  .hv-medallion span{position:relative;z-index:1;font-family:'Amiri',serif;font-size:44px;color:var(--gold-soft)}
+
+  .hv-pill{
+    position:absolute;display:flex;flex-direction:column;gap:2px;
+    background:rgba(250,246,238,.1);border:1px solid rgba(250,246,238,.22);
+    backdrop-filter:blur(6px);border-radius:14px;padding:12px 16px;
+  }
+  .hv-pill .ar{font-size:15px;color:var(--cream)}
+  .hv-pill .en{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-soft);font-weight:700}
+  .hv-pill.p1{top:34px;left:34px}
+  .hv-pill.p2{bottom:40px;left:40px}
+  .hv-pill.p3{top:44px;right:32px}
+  .hv-pill.p4{bottom:34px;right:34px}
+  @media (max-width:960px){ .hero-visual{height:340px;margin-top:12px} .hv-pill{padding:9px 12px} .hv-medallion{width:130px;height:130px} .hv-medallion::before,.hv-medallion::after{width:82px;height:82px} }
+  @media (max-width:480px){ .hv-pill.p3,.hv-pill.p4{display:none} }
+
+  /* ── about ──────────────────────────────────────────── */
+  .about{background:var(--cream)}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start}
+  @media (max-width:860px){ .about-grid{grid-template-columns:1fr;gap:36px} }
+  .about-text p{color:var(--ink-2);font-size:16.5px;margin-bottom:18px}
+  .about-list{display:flex;flex-direction:column;gap:18px}
+  .about-item{display:flex;gap:14px;align-items:flex-start;padding:20px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)}
+  .about-item .ic{flex-shrink:0;width:38px;height:38px;border-radius:10px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;color:var(--emerald-700)}
+  .about-item h4{font-size:15.5px;margin-bottom:3px;color:var(--ink)}
+  .about-item p{font-size:14px;color:var(--ink-3);margin:0}
+
+  /* ── cards grid (why arabic) ────────────────────────── */
+  .why{background:var(--cream-2)}
+  .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  @media (max-width:860px){ .cards-grid{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:560px){ .cards-grid{grid-template-columns:1fr} }
+  .feature-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);
+    padding:32px 28px;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+  }
+  .feature-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-md);border-color:transparent}
+  .feature-card .ic{
+    width:52px;height:52px;border-radius:14px;
+    background:linear-gradient(145deg,var(--emerald-700),var(--emerald-800));
+    display:flex;align-items:center;justify-content:center;color:var(--gold-soft);margin-bottom:20px;
+  }
+  .feature-card h3{font-size:18px;margin-bottom:10px}
+  .feature-card p{font-size:14.5px;color:var(--ink-2)}
+
+  /* ── for whom ───────────────────────────────────────── */
+  .forwhom-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:center}
+  @media (max-width:860px){ .forwhom-grid{grid-template-columns:1fr;gap:36px} }
+  .check-list{display:flex;flex-direction:column;gap:16px}
+  .check-item{display:flex;gap:14px;align-items:center;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm)}
+  .check-item .ic{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--emerald-800);display:flex;align-items:center;justify-content:center;color:var(--gold-soft)}
+  .check-item span{font-size:15.5px;font-weight:600;color:var(--ink)}
+  .forwhom-panel{
+    background:linear-gradient(160deg,var(--emerald-800),var(--emerald-900));
+    border-radius:var(--radius-lg);padding:48px 40px;color:var(--cream);position:relative;overflow:hidden;
+  }
+  .forwhom-panel::before{
+    content:"";position:absolute;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='rgba(232,217,184,0.1)' stroke-width='1'%3E%3Crect x='12' y='12' width='56' height='56'/%3E%3Crect x='12' y='12' width='56' height='56' transform='rotate(45 40 40)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:80px 80px;
+  }
+  .forwhom-panel .ar{font-size:30px;margin-bottom:14px;color:var(--gold-soft);position:relative}
+  .forwhom-panel h3{color:var(--cream);font-size:24px;margin-bottom:14px;position:relative}
+  .forwhom-panel p{color:rgba(250,246,238,.78);font-size:15.5px;position:relative}
+
+  /* ── curriculum timeline ────────────────────────────── */
+  .curriculum{background:var(--cream-2)}
+  .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  @media (max-width:860px){ .timeline{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:560px){ .timeline{grid-template-columns:1fr} }
+  .tl-item{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:26px 22px;position:relative}
+  .tl-num{font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:var(--gold-2);letter-spacing:.08em;margin-bottom:12px;display:block}
+  .tl-item h4{font-size:15.5px;margin-bottom:6px}
+  .tl-item p{font-size:13.5px;color:var(--ink-3)}
+
+  /* ── why us split ───────────────────────────────────── */
+  .whyus-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  @media (max-width:860px){ .whyus-grid{grid-template-columns:1fr;gap:36px} }
+  .whyus-visual{
+    background:var(--cream-2);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:44px;position:relative;overflow:hidden;min-height:380px;display:flex;align-items:center;justify-content:center;
+  }
+  .whyus-visual .ar{font-size:64px;color:var(--emerald-800);opacity:.9;text-align:center}
+  .whyus-visual .cap{position:absolute;bottom:36px;left:0;right:0;text-align:center;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+  .whyus-list{display:flex;flex-direction:column;gap:0}
+  .whyus-list .row{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}
+  .whyus-list .row:first-child{padding-top:0}
+  .whyus-list .row .ic{flex-shrink:0;width:34px;height:34px;border-radius:9px;background:var(--cream-2);display:flex;align-items:center;justify-content:center;color:var(--emerald-700)}
+  .whyus-list .row h4{font-size:15.5px;margin-bottom:3px}
+  .whyus-list .row p{font-size:13.5px;color:var(--ink-3)}
+
+  /* ── process/ablauf ─────────────────────────────────── */
+  .process{background:var(--cream-2)}
+  .process-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+  @media (max-width:860px){ .process-grid{grid-template-columns:1fr 1fr;gap:24px} }
+  @media (max-width:560px){ .process-grid{grid-template-columns:1fr} }
+  .process-step{padding:0 20px;position:relative;text-align:center}
+  .process-step:not(:last-child)::after{
+    content:"";position:absolute;top:26px;right:-10px;width:20px;height:1px;background:var(--gold-2);
+  }
+  @media (max-width:860px){ .process-step:not(:last-child)::after{display:none} }
+  .process-step .n{
+    width:52px;height:52px;border-radius:50%;margin:0 auto 18px;
+    background:#fff;border:1.5px solid var(--gold-2);color:var(--emerald-800);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;
+  }
+  .process-step h4{font-size:15.5px;margin-bottom:8px}
+  .process-step p{font-size:13.5px;color:var(--ink-3)}
+
+  /* ── testimonials ───────────────────────────────────── */
+  .testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  @media (max-width:860px){ .testi-grid{grid-template-columns:1fr} }
+  .testi-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);padding:30px 28px;position:relative}
+  .testi-quote{font-size:15.5px;color:var(--ink);margin-bottom:22px;font-style:italic}
+  .testi-quote::before{content:"“"}
+  .testi-quote::after{content:"”"}
+  .testi-foot{display:flex;align-items:center;gap:12px}
+  .testi-avatar{width:38px;height:38px;border-radius:50%;background:var(--cream-2);color:var(--emerald-700);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:1px solid var(--line)}
+  .testi-name{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .testi-tag{font-size:12px;color:var(--gold-2);font-weight:700}
+
+  /* ── faq ────────────────────────────────────────────── */
+  .faq-list{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+  .faq-item{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
+  .faq-q{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:20px 24px;background:none;border:none;text-align:left;font-size:16px;font-weight:700;color:var(--ink);
+  }
+  .faq-q .chev{flex-shrink:0;transition:transform .25s ease;color:var(--gold-2)}
+  .faq-item.open .faq-q .chev{transform:rotate(180deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .faq-a p{padding:0 24px 22px;color:var(--ink-2);font-size:14.5px;max-width:640px}
+
+  /* ── final cta ──────────────────────────────────────── */
+  .cta-final{
+    background:linear-gradient(160deg,var(--emerald-800),var(--emerald-900));
+    color:var(--cream);position:relative;overflow:hidden;
+  }
+  .cta-final::before{
+    content:"";position:absolute;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84'%3E%3Cg fill='none' stroke='rgba(232,217,184,0.09)' stroke-width='1'%3E%3Crect x='13' y='13' width='58' height='58'/%3E%3Crect x='13' y='13' width='58' height='58' transform='rotate(45 42 42)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:84px 84px;
+  }
+  .cta-inner{position:relative;text-align:center;max-width:640px;margin:0 auto}
+  .cta-final h2{color:var(--cream);font-size:clamp(28px,3.6vw,40px);margin-bottom:16px}
+  .cta-final p{color:rgba(250,246,238,.78);font-size:17px;margin-bottom:38px}
+  .cta-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;align-items:center;margin-bottom:22px}
+
+  /* ── footer ─────────────────────────────────────────── */
+  footer{background:var(--ink);color:var(--cream-2);padding:72px 0 28px}
+  .footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px}
+  @media (max-width:860px){ .footer-grid{grid-template-columns:1fr 1fr;gap:36px} }
+  @media (max-width:560px){ .footer-grid{grid-template-columns:1fr} }
+  .footer-brand .brand-text .ar{color:var(--gold-soft)}
+  .footer-brand .brand-text .en{color:rgba(242,234,217,.55)}
+  .footer-brand p{margin-top:16px;font-size:14px;color:rgba(242,234,217,.6);max-width:280px}
+  .footer-col h5{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:18px;font-weight:700}
+  .footer-col ul{display:flex;flex-direction:column;gap:11px}
+  .footer-col a,.footer-col li{font-size:14px;color:rgba(242,234,217,.72)}
+  .footer-col a:hover{color:var(--cream)}
+  .social-row{display:flex;gap:10px;margin-top:18px}
+  .social-row a{width:36px;height:36px;border-radius:50%;border:1px solid rgba(242,234,217,.25);display:flex;align-items:center;justify-content:center}
+  .social-row a:hover{border-color:var(--gold-soft);color:var(--gold-soft)}
+  .footer-bottom{border-top:1px solid rgba(242,234,217,.14);padding-top:26px;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;font-size:13px;color:rgba(242,234,217,.5)}
+  .footer-bottom .legal{display:flex;gap:20px}
+
+  /* ── reveal animation (progressive enhancement: content stays visible unless JS confirms it can animate it back in) ─ */
+  .has-reveal .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ HEADER ══════════════════════ -->
+<header id="siteHeader">
+  <div class="container nav-wrap">
+    <a href="#top" class="brand">
+      <svg class="brand-mark" viewBox="0 0 64 64" fill="none">
+        <rect width="64" height="64" rx="16" fill="#0F3D2E"/>
+        <g stroke="#C7A253" stroke-width="2.2">
+          <rect x="19" y="19" width="26" height="26"/>
+          <rect x="19" y="19" width="26" height="26" transform="rotate(45 32 32)"/>
+        </g>
+      </svg>
+      <span class="brand-text">
+        <span class="ar">مركز التوفيق</span>
+        <span class="en">Markaz Al-Tawfiq</span>
+      </span>
+    </a>
+
+    <nav class="links">
+      <a href="#about">Über uns</a>
+      <a href="#why-arabic">Warum Arabisch</a>
+      <a href="#curriculum">Kurs</a>
+      <a href="#process">Ablauf</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <div class="nav-cta">
+      <a href="#faq" class="btn btn-outline">Mehr erfahren</a>
+      <a href="index.html" class="btn btn-primary">Jetzt anmelden</a>
+      <button class="burger" id="burgerBtn" aria-label="Menü öffnen"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-panel" id="mobilePanel">
+  <a href="#about" class="mnav">Über uns</a>
+  <a href="#why-arabic" class="mnav">Warum Arabisch</a>
+  <a href="#curriculum" class="mnav">Kurs</a>
+  <a href="#process" class="mnav">Ablauf</a>
+  <a href="#faq" class="mnav">FAQ</a>
+  <a href="index.html" class="btn btn-primary">Jetzt anmelden</a>
+</div>
+
+<!-- ══════════════════════ HERO ══════════════════════ -->
+<section class="hero" id="top">
+  <div class="container hero-grid">
+    <div>
+      <div class="eyebrow">Arabisch-Lernzentrum</div>
+      <div class="hero-ar-brand ar">مركز التوفيق</div>
+      <div class="hero-en-brand">Markaz Al-Tawfiq</div>
+      <h1>Lerne Arabisch mit Klarheit, Struktur und Barakah.</h1>
+      <p class="hero-sub">Ein moderner Arabisch-Lernkurs für alle, die die Sprache wirklich verstehen, sprechen und lesen möchten.</p>
+      <p class="hero-desc">Von den Grundlagen bis zu echtem Sprachverständnis – mit einem klaren Lernsystem, motivierender Begleitung und einem professionellen Unterrichtsansatz.</p>
+      <div class="hero-actions">
+        <a href="index.html" class="btn btn-primary">Jetzt anmelden</a>
+        <a href="#about" class="btn btn-outline">Mehr erfahren</a>
+      </div>
+      <div class="hero-trust">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Für Anfänger und Fortgeschrittene geeignet
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hv-card">
+        <div class="hv-medallion"><span class="ar">ت</span></div>
+        <div class="hv-pill p1"><span class="ar">الحروف</span><span class="en">Alphabet</span></div>
+        <div class="hv-pill p2"><span class="ar">المفردات</span><span class="en">Wortschatz</span></div>
+        <div class="hv-pill p3"><span class="ar">القواعد</span><span class="en">Grammatik</span></div>
+        <div class="hv-pill p4"><span class="ar">القراءة</span><span class="en">Lesen</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ ABOUT ══════════════════════ -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="reveal">
+        <div class="eyebrow">Über uns</div>
+        <h2 class="section-title">Was ist Markaz Al-Tawfiq?</h2>
+        <div class="about-text">
+          <p>Markaz Al-Tawfiq ist ein Arabisch-Lernzentrum mit dem Ziel, die arabische Sprache auf verständliche, strukturierte und motivierende Weise zu vermitteln.</p>
+          <p>Im Mittelpunkt steht ein klarer Weg, der Lernenden erlaubt, Schritt für Schritt echte Fortschritte zu machen – ganz gleich, ob sie bei null beginnen oder bereits über Grundlagen verfügen.</p>
+          <p>Unser Ansatz verbindet einen modernen, effektiven Lernaufbau mit der Tiefe und Schönheit der arabischen Sprache und ihrer Verbindung zur islamischen Tradition.</p>
+        </div>
+      </div>
+      <div class="about-list reveal">
+        <div class="about-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div>
+          <div><h4>Klare Lernstruktur</h4><p>Ein durchdachtes System statt planloses Lernen.</p></div>
+        </div>
+        <div class="about-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.45c-.7.2-1.5.8-1.5 2.05M12 17h.01"/></svg></div>
+          <div><h4>Verständliche Erklärungen</h4><p>Inhalte werden Schritt für Schritt nachvollziehbar erklärt.</p></div>
+        </div>
+        <div class="about-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div>
+          <div><h4>Echte Sprachentwicklung</h4><p>Nachhaltiger Fortschritt statt kurzfristigem Auswendiglernen.</p></div>
+        </div>
+        <div class="about-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-4Z"/></svg></div>
+          <div><h4>Verbindung zur Tradition</h4><p>Nähe zur Sprache des Qur'an und der islamischen Wissenschaften.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ WHY ARABIC ══════════════════════ -->
+<section class="why" id="why-arabic">
+  <div class="container">
+    <div class="section-head center reveal" style="margin-left:auto;margin-right:auto">
+      <div class="ornament">
+        <span class="bar"></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8924F" stroke-width="1.6"><rect x="4" y="4" width="16" height="16"/><rect x="4" y="4" width="16" height="16" transform="rotate(45 12 12)"/></svg>
+        <span class="bar"></span>
+      </div>
+      <h2 class="section-title">Warum Arabisch lernen?</h2>
+      <p class="section-sub">Arabisch zu lernen bedeutet weit mehr als eine neue Sprache – es öffnet den Zugang zu Wissen, Bedeutung und einer über Jahrhunderte gewachsenen Tradition.</p>
+    </div>
+
+    <div class="cards-grid reveal">
+      <div class="feature-card">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.7-1.3-4-2-6.5-2S3 5 3 5v13.5s2-1 5.5-1 6.5 2 6.5 2V5.5c-1-.6-2-1-3-1Z"/><path d="M12 6.5c1.7-1.3 4-2 6.5-2S21 5 21 5v13.5s-2-1-5.5-1-6.5 2-6.5 2"/></svg></div>
+        <h3>Qur'an &amp; islamische Texte verstehen</h3>
+        <p>Erschließe dir die arabische Sprache, um den Qur'an und klassische Texte im Original besser zu verstehen.</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg></div>
+        <h3>Der Sprache der Offenbarung näherkommen</h3>
+        <p>Ein bewussteres Verständnis der Sprache, in der die Offenbarung herabgesandt wurde.</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <h3>Lesen, schreiben, verstehen</h3>
+        <p>Alle drei Grundfertigkeiten systematisch aufbauen – nicht nur einzelne Vokabeln auswendig lernen.</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h3>Mehr Selbstvertrauen</h3>
+        <p>Mit jedem Lernschritt wächst dein Vertrauen in die eigene Sprachfähigkeit.</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15 9-4.2 2.3L9 15l4.2-2.3Z"/></svg></div>
+        <h3>Struktur statt Beliebigkeit</h3>
+        <p>Ein klarer Lernweg statt planlosem Springen zwischen Materialien und Methoden.</p>
+      </div>
+      <div class="feature-card">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 9 11l4 4L21 7M21 7h-5M21 7v5"/></svg></div>
+        <h3>Langfristige Sprachentwicklung</h3>
+        <p>Nachhaltiger Fortschritt, der weit über den Kurs hinaus trägt.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ FOR WHOM ══════════════════════ -->
+<section id="for-whom">
+  <div class="container">
+    <div class="forwhom-grid">
+      <div class="forwhom-panel reveal">
+        <div class="ar">لمن هذا؟</div>
+        <h3>Für wen ist der Kurs?</h3>
+        <p>Markaz Al-Tawfiq richtet sich an alle, die die arabische Sprache ernsthaft und mit Struktur lernen möchten – unabhängig vom aktuellen Lernstand.</p>
+      </div>
+      <div class="check-list reveal">
+        <div class="check-item">
+          <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <span>Für Anfänger, die bei null starten</span>
+        </div>
+        <div class="check-item">
+          <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <span>Für Schüler und Erwachsene gleichermaßen</span>
+        </div>
+        <div class="check-item">
+          <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <span>Für alle, die Arabisch von Grund auf lernen möchten</span>
+        </div>
+        <div class="check-item">
+          <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <span>Für Lernende mit Vorkenntnissen, die endlich Struktur suchen</span>
+        </div>
+        <div class="check-item">
+          <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <span>Für Muslime, die ihre Sprache tiefer verstehen möchten</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ CURRICULUM ══════════════════════ -->
+<section class="curriculum" id="curriculum">
+  <div class="container">
+    <div class="section-head center reveal" style="margin-left:auto;margin-right:auto">
+      <div class="eyebrow" style="justify-content:center">Lernziele</div>
+      <h2 class="section-title">Was die Teilnehmer lernen</h2>
+      <p class="section-sub">Ein klar aufgebauter Lernpfad, der Schritt für Schritt zu echtem Arabischverständnis führt.</p>
+    </div>
+    <div class="timeline reveal">
+      <div class="tl-item"><span class="tl-num">01</span><h4>Alphabet &amp; Aussprache</h4><p>Die arabischen Buchstaben sicher erkennen und korrekt aussprechen.</p></div>
+      <div class="tl-item"><span class="tl-num">02</span><h4>Lesen &amp; Schreiben</h4><p>Wörter flüssig lesen und die Schrift sauber schreiben lernen.</p></div>
+      <div class="tl-item"><span class="tl-num">03</span><h4>Wortschatzaufbau</h4><p>Systematischer Aufbau eines soliden Grundwortschatzes.</p></div>
+      <div class="tl-item"><span class="tl-num">04</span><h4>Grundgrammatik</h4><p>Die wichtigsten grammatikalischen Strukturen verständlich erklärt.</p></div>
+      <div class="tl-item"><span class="tl-num">05</span><h4>Satzbildung</h4><p>Eigene Sätze korrekt und selbstständig bilden.</p></div>
+      <div class="tl-item"><span class="tl-num">06</span><h4>Einfache Texte verstehen</h4><p>Erste zusammenhängende Texte lesen und inhaltlich erfassen.</p></div>
+      <div class="tl-item"><span class="tl-num">07</span><h4>Sprachgefühl &amp; Wiederholung</h4><p>Durch gezielte Wiederholung ein natürliches Sprachgefühl entwickeln.</p></div>
+      <div class="tl-item"><span class="tl-num">08</span><h4>Sicheres Sprachverständnis</h4><p>Schrittweiser Aufbau zu einem soliden, tragfähigen Arabischverständnis.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ WHY US ══════════════════════ -->
+<section id="why-us">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Unser Ansatz</div>
+      <h2 class="section-title">Warum Markaz Al-Tawfiq?</h2>
+      <p class="section-sub">Ein Lernkonzept, das Struktur, Verständlichkeit und echten Fortschritt in den Mittelpunkt stellt.</p>
+    </div>
+    <div class="whyus-grid">
+      <div class="whyus-visual reveal">
+        <div class="ar">التوفيق</div>
+        <div class="cap">Struktur · Klarheit · Barakah</div>
+      </div>
+      <div class="whyus-list reveal">
+        <div class="row">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg></div>
+          <div><h4>Strukturierter Lernplan</h4><p>Jeder Schritt baut logisch auf dem vorherigen auf.</p></div>
+        </div>
+        <div class="row">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.45c-.7.2-1.5.8-1.5 2.05M12 17h.01"/></svg></div>
+          <div><h4>Verständliche Erklärungen</h4><p>Komplexe Inhalte einfach und nachvollziehbar vermittelt.</p></div>
+        </div>
+        <div class="row">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-4Z"/></svg></div>
+          <div><h4>Motivierende Lernumgebung</h4><p>Eine Begleitung, die zum Dranbleiben ermutigt.</p></div>
+        </div>
+        <div class="row">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div>
+          <div><h4>Modernes Lernkonzept</h4><p>Zeitgemäße Methoden statt veralteter Lehrbuch-Routinen.</p></div>
+        </div>
+        <div class="row">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 9 11l4 4L21 7M21 7h-5M21 7v5"/></svg></div>
+          <div><h4>Fokus auf echten Fortschritt</h4><p>Messbare Entwicklung statt bloßer Beschäftigung.</p></div>
+        </div>
+        <div class="row" style="border-bottom:none">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M8 16h5M8 8h8"/></svg></div>
+          <div><h4>Für verschiedene Lernniveaus geeignet</h4><p>Ein ruhiger, klarer Unterrichtsstil für jedes Tempo.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ PROCESS ══════════════════════ -->
+<section class="process" id="process">
+  <div class="container">
+    <div class="section-head center reveal" style="margin-left:auto;margin-right:auto">
+      <div class="eyebrow" style="justify-content:center">Kursformat</div>
+      <h2 class="section-title">So läuft dein Lernweg ab</h2>
+      <p class="section-sub">Ein klar strukturierter Ablauf von der Anmeldung bis zum sicheren Sprachverständnis.</p>
+    </div>
+    <div class="process-grid reveal">
+      <div class="process-step">
+        <div class="n">1</div>
+        <h4>Anmeldung &amp; Einstufung</h4>
+        <p>Du meldest dich an und wir ordnen dich deinem Lernstand entsprechend ein.</p>
+      </div>
+      <div class="process-step">
+        <div class="n">2</div>
+        <h4>Strukturierte Lektionen</h4>
+        <p>Online-Unterricht, Schritt für Schritt aufgebaut und klar nachvollziehbar.</p>
+      </div>
+      <div class="process-step">
+        <div class="n">3</div>
+        <h4>Übung &amp; Wiederholung</h4>
+        <p>Gezielte Wiederholung festigt das Gelernte nachhaltig.</p>
+      </div>
+      <div class="process-step">
+        <div class="n">4</div>
+        <h4>Begleitung &amp; Fortschritt</h4>
+        <p>Kontinuierliche Begleitung auf deinem gesamten Lernweg.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ TESTIMONIALS ══════════════════════ -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-head center reveal" style="margin-left:auto;margin-right:auto">
+      <div class="eyebrow" style="justify-content:center">Stimmen</div>
+      <h2 class="section-title">Was Teilnehmer sagen</h2>
+      <p class="section-sub">Erste Erfahrungsberichte folgen in Kürze – hier ein Einblick, was Lernende von einem strukturierten Ansatz erwarten dürfen.</p>
+    </div>
+    <div class="testi-grid reveal">
+      <div class="testi-card">
+        <p class="testi-quote">Strukturiert und leicht verständlich – genau das, was mir beim Arabischlernen bisher gefehlt hat.</p>
+        <div class="testi-foot">
+          <div class="testi-avatar">A.</div>
+          <div><div class="testi-name">Platzhalter-Stimme</div><div class="testi-tag">Demnächst verfügbar</div></div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <p class="testi-quote">Endlich ein klarer Weg, Arabisch zu lernen, statt planlos zwischen Materialien zu springen.</p>
+        <div class="testi-foot">
+          <div class="testi-avatar">M.</div>
+          <div><div class="testi-name">Platzhalter-Stimme</div><div class="testi-tag">Demnächst verfügbar</div></div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <p class="testi-quote">Motivierend und professionell aufgebaut – man merkt den Fortschritt von Woche zu Woche.</p>
+        <div class="testi-foot">
+          <div class="testi-avatar">S.</div>
+          <div><div class="testi-name">Platzhalter-Stimme</div><div class="testi-tag">Demnächst verfügbar</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ FAQ ══════════════════════ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-head center reveal" style="margin-left:auto;margin-right:auto">
+      <div class="eyebrow" style="justify-content:center">FAQ</div>
+      <h2 class="section-title">Häufige Fragen</h2>
+    </div>
+    <div class="faq-list reveal" id="faqList">
+      <div class="faq-item">
+        <button class="faq-q"><span>Für wen ist der Kurs geeignet?</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="faq-a"><p>Für Anfänger und Fortgeschrittene, Jugendliche und Erwachsene – für alle, die Arabisch strukturiert und verständlich lernen möchten.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Brauche ich Vorkenntnisse?</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="faq-a"><p>Nein. Du kannst als absoluter Anfänger starten – der Kurs beginnt bei den Grundlagen und baut Schritt für Schritt darauf auf.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Ist der Kurs online?</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="faq-a"><p>Ja, der Unterricht findet online statt – strukturiert, Schritt für Schritt und begleitet.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Wie ist der Unterricht aufgebaut?</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="faq-a"><p>In klar definierten Lektionen mit Wiederholung und Übung, die aufeinander aufbauen und dich sicher voranbringen.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Kann ich als Anfänger starten?</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="faq-a"><p>Ja, ausdrücklich. Der Kurs ist so aufgebaut, dass er dich bei null abholt und sicher weiterführt.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Wird alles Schritt für Schritt erklärt?</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="faq-a"><p>Ja. Klarheit und Struktur stehen im Mittelpunkt – jede Lektion baut nachvollziehbar auf der vorherigen auf.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ FINAL CTA ══════════════════════ -->
+<section class="cta-final">
+  <div class="container cta-inner reveal">
+    <div class="ornament"><span class="bar" style="background:linear-gradient(90deg,transparent,rgba(232,217,184,.6),transparent)"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8D9B8" stroke-width="1.6"><rect x="4" y="4" width="16" height="16"/><rect x="4" y="4" width="16" height="16" transform="rotate(45 12 12)"/></svg><span class="bar" style="background:linear-gradient(90deg,transparent,rgba(232,217,184,.6),transparent)"></span></div>
+    <h2>Starte deine Reise mit Markaz Al-Tawfiq</h2>
+    <p>Lerne Arabisch mit einem klaren System, einem professionellen Ansatz und einer Umgebung, die dich wirklich voranbringt.</p>
+    <div class="cta-actions">
+      <a href="index.html" class="btn btn-gold">Jetzt anmelden</a>
+      <a href="index.html" class="btn btn-ghost-light">Platz sichern</a>
+    </div>
+    <a href="index.html" class="link-arrow">Oder unverbindlich zur Warteliste →</a>
+  </div>
+</section>
+
+<!-- ══════════════════════ FOOTER ══════════════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="#F2EAD9" fill-opacity="0.08"/>
+            <g stroke="#C7A253" stroke-width="2.2">
+              <rect x="19" y="19" width="26" height="26"/>
+              <rect x="19" y="19" width="26" height="26" transform="rotate(45 32 32)"/>
+            </g>
+          </svg>
+          <span class="brand-text">
+            <span class="ar">مركز التوفيق</span>
+            <span class="en">Markaz Al-Tawfiq</span>
+          </span>
+        </div>
+        <p>Ein modernes Arabisch-Lernzentrum für einen klaren, strukturierten und motivierenden Lernweg.</p>
+        <div class="social-row">
+          <a href="#" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+          <a href="#" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3Z"/></svg></a>
+          <a href="#" aria-label="Telegram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m21 4-19 8 6 2 2 6 3-4 5 3Z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Navigation</h5>
+        <ul>
+          <li><a href="#about">Über uns</a></li>
+          <li><a href="#why-arabic">Warum Arabisch</a></li>
+          <li><a href="#curriculum">Kurs</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Kontakt</h5>
+        <ul>
+          <li>info@markaz-al-tawfiq.de</li>
+          <li>Mo–Fr, 9–18 Uhr</li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Rechtliches</h5>
+        <ul>
+          <li><a href="#">Impressum</a></li>
+          <li><a href="#">Datenschutz</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Markaz Al-Tawfiq. Alle Rechte vorbehalten.</span>
+      <div class="legal"><a href="#">Impressum</a><a href="#">Datenschutz</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // header scroll state
+  const header = document.getElementById('siteHeader');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 20);
+  }, { passive: true });
+
+  // mobile menu
+  const burger = document.getElementById('burgerBtn');
+  const panel = document.getElementById('mobilePanel');
+  burger.addEventListener('click', () => panel.classList.toggle('open'));
+  panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => panel.classList.remove('open')));
+
+  // faq accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    q.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(o => {
+        o.classList.remove('open');
+        o.querySelector('.faq-a').style.maxHeight = null;
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+
+  // scroll reveal (progressive enhancement, with safety fallback so content never gets stuck hidden)
+  if ('IntersectionObserver' in window) {
+    document.documentElement.classList.add('has-reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    setTimeout(() => document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in')), 2500);
+  }
+</script>
+</body>
+</html>
