@@ -391,6 +391,16 @@ function getExTr(item){ return item.exampleTranslation?(item.exampleTranslation[
 // ═══════════════════════════════════════════════════════
 // CLOUD SYNC — speichert Lernfortschritt bei Supabase, sobald eingeloggt
 // ═══════════════════════════════════════════════════════
+// Lässt eine Supabase-Anfrage nach spätestens `ms` mit einem Fehler fehlschlagen, statt sie
+// endlos hängen zu lassen. Ohne das würde z.B. ein pausiertes Supabase-Projekt oder ein
+// Netzwerkabbruch dazu führen, dass ein await hier (und damit auch der Login/Signup-Button,
+// siehe withTimeout-Nutzung in window._doAuth) für immer "lädt".
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('TIMEOUT_KEINE_ANTWORT')), ms||20000))
+  ]);
+}
 let _cloudSyncTimer=null;
 function cloudSyncDebounced(){
   if(!supa||!currentUser) return;
@@ -400,19 +410,19 @@ function cloudSyncDebounced(){
 async function cloudSyncNow(){
   if(!supa||!currentUser) return;
   try{
-    await supa.from('progress').upsert({
+    await withTimeout(supa.from('progress').upsert({
       user_id: currentUser.id,
       projects: projects,
       streak: streak,
       settings: { cardDirection, sentenceLayout, lang, theme, remindersEnabled, customGrammarRules },
       updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
+    }, { onConflict: 'user_id' }));
   }catch(e){ console.warn('Cloud-Sync fehlgeschlagen:', e); }
 }
 async function cloudLoadForUser(){
   if(!supa||!currentUser) return false;
   try{
-    const { data, error } = await supa.from('progress').select('*').eq('user_id', currentUser.id).maybeSingle();
+    const { data, error } = await withTimeout(supa.from('progress').select('*').eq('user_id', currentUser.id).maybeSingle());
     if(error) throw error;
     if(data){
       if(data.projects&&data.projects.length) projects=data.projects;
@@ -3022,13 +3032,13 @@ window._doAuth=async function(){
   authLoading=true; authError=''; authInfo=''; renderAuth(document.getElementById('app'));
   try{
     if(isReset){
-      const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+      const {error}=await withTimeout(supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname}));
       if(error) throw error;
       authLoading=false;
       authInfo='Wenn ein Konto existiert, wurde ein Reset-Link an deine E-Mail-Adresse gesendet.';
       renderAuth(document.getElementById('app'));
     } else if(isUpdatePassword){
-      const {data,error}=await supa.auth.updateUser({password});
+      const {data,error}=await withTimeout(supa.auth.updateUser({password}));
       if(error) throw error;
       const user=data.user;
       currentUser=user?{id:user.id,email:user.email,name:user.user_metadata?.name||''}:currentUser;
@@ -3039,7 +3049,7 @@ window._doAuth=async function(){
       currentUser=null;
       renderAuth(document.getElementById('app'));
     } else if(isSignup){
-      const {data,error}=await supa.auth.signUp({email,password,options:{data:{name}}});
+      const {data,error}=await withTimeout(supa.auth.signUp({email,password,options:{data:{name}}}));
       if(error) throw error;
       if(data.user){
         currentUser={id:data.user.id,email:data.user.email,name};
@@ -3048,7 +3058,7 @@ window._doAuth=async function(){
         authLoading=false; render();
       }
     } else {
-      const {data,error}=await supa.auth.signInWithPassword({email,password});
+      const {data,error}=await withTimeout(supa.auth.signInWithPassword({email,password}));
       if(error) throw error;
       currentUser={id:data.user.id,email:data.user.email,name:data.user.user_metadata?.name||''};
       await cloudLoadForUser();
@@ -3057,7 +3067,10 @@ window._doAuth=async function(){
     }
   }catch(e){
     authLoading=false;
-    authError=(e.message||'Fehler bei der Anmeldung.').includes('Invalid login')?'E-Mail oder Passwort falsch.':(e.message||'Fehler bei der Anmeldung.');
+    const msg=e&&e.message||'Fehler bei der Anmeldung.';
+    authError = msg==='TIMEOUT_KEINE_ANTWORT' ? 'Keine Antwort vom Server. Bitte Internetverbindung prüfen und erneut versuchen.'
+      : msg.includes('Invalid login') ? 'E-Mail oder Passwort falsch.'
+      : msg;
     renderAuth(document.getElementById('app'));
   }
 };
