@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>مركز اللغة</title>
+<title>مركز التوفيق</title>
 <meta name="theme-color" content="#080c14"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-title" content="مركز"/>
@@ -234,7 +234,11 @@ function ui(key){ return (UI_TEXT[lang]||UI_TEXT.de)[key]||key; }
 // ═══════════════════════════════════════════════════════
 // PROJECTS & DATA
 // ═══════════════════════════════════════════════════════
-let projects = JSON.parse(localStorage.getItem('projects_v2') || 'null') || VOKABELN_DATA.map((v,i)=>({id:v.id,name:v.name,vocab:v.vocab,verbs:(VERBEN_DATA[i]&&VERBEN_DATA[i].verbs)||[]}));
+// Neue Accounts starten mit einem einzigen leeren Projekt (keine vorinstallierten Vokabeln/Verben) —
+// alles wird vollständig selbst angelegt. Ein leeres projects-Array wäre hier nicht sicher: getP()
+// & Co. gehen an mehreren Stellen davon aus, dass mindestens ein Projekt existiert.
+// (Bestehende Nutzer sind hiervon nicht betroffen: siehe resolveBuiltInThemesPolicy() weiter unten.)
+let projects = JSON.parse(localStorage.getItem('projects_v2') || 'null') || [{id:Date.now(),name:'Meine Vokabeln',vocab:[],verbs:[]}];
 let curProject = 0;
 
 // ═══════════════════════════════════════════════════════
@@ -627,7 +631,7 @@ window.completeTutorial=completeTutorial;
 window.resetTutorial=function(){localStorage.removeItem('tutorialDone');localStorage.removeItem('tutorialStep');const ov=document.getElementById('tutorialOverlay');if(ov)ov.remove();render();};
 
 const TUTORIAL_STEPS=[
-  {target:null, title:'Willkommen bei مركز اللغة', desc:'Deine App zum echten Arabisch lernen — strukturiert, mit KI und vollständigen Konjugationen. Lass uns kurz zeigen, wo was ist.', ar:'أَهْلًا وَسَهْلًا'},
+  {target:null, title:'Willkommen bei مركز التوفيق', desc:'Deine App zum echten Arabisch lernen — strukturiert, mit KI und vollständigen Konjugationen. Lass uns kurz zeigen, wo was ist.', ar:'أَهْلًا وَسَهْلًا'},
   {target:1, title:'Vokabeln & Spiele', desc:'Hier lernst du neue Wörter, übst Konjugationstabellen und spielst Lernspiele mit Spaced Repetition.', ar:'الْمُفْرَدَاتُ'},
   {target:2, title:'KI-Gesprächspartner', desc:'Führe echte Arabisch-Gespräche mit KI. Der Bot kennt deine gelernten Wörter und erklärt neue automatisch.', ar:'الصَّدِيقُ'},
   {target:3, title:'Profil & Einstellungen', desc:'Dein Streak, Statistiken, Thema wechseln und Sprache einstellen — alles hier.', ar:'الْمَلَفُّ'},
@@ -1990,7 +1994,7 @@ function renderProfil(app){
         Angemeldet: ✗ nein
       </div>
     </div>`}
-    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der ${ui('language')}</div>
+    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز التوفيق · Zentrum der ${ui('language')}</div>
   </div>`;
 }
 
@@ -2157,7 +2161,7 @@ async function saveName(){
 // VOKABELN TEILEN — Export als Datei, Import mit Duplikat-Schutz
 // ═══════════════════════════════════════════════════════
 function exportVocab(){
-  const data=JSON.stringify({exportedAt:new Date().toISOString(),app:'مركز اللغة',projects},null,2);
+  const data=JSON.stringify({exportedAt:new Date().toISOString(),app:'مركز التوفيق',projects},null,2);
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -2983,7 +2987,7 @@ function renderAuth(app){
   const authSubtitle=isSignup?'Erstelle dein Konto':(isReset?'Passwort zurücksetzen':(isUpdatePassword?'Neues Passwort festlegen':'Melde dich an'));
   const authButtonText=authLoading?'Lädt...':(isSignup?'Konto erstellen':(isReset?'Reset-Link senden':(isUpdatePassword?'Passwort speichern':'Anmelden')));
   app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
-    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
+    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز التوفيق</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${authSubtitle}</div>
     <div style="width:100%;max-width:340px">
       ${isSignup?`<input id="authName" type="text" placeholder="Name (z.B. Abu Fulan)" style="margin-bottom:10px" autocomplete="given-name"/>`:''}
@@ -3039,7 +3043,8 @@ window._doAuth=async function(){
       if(error) throw error;
       if(data.user){
         currentUser={id:data.user.id,email:data.user.email,name};
-        await cloudSyncNow(); // Ersteinrichtung: lokalen Stand hochladen
+        await cloudSyncNow(); // Ersteinrichtung: lokalen Stand (leeres Startprojekt) hochladen
+        if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
         authLoading=false; render();
       }
     } else {
@@ -3047,6 +3052,7 @@ window._doAuth=async function(){
       if(error) throw error;
       currentUser={id:data.user.id,email:data.user.email,name:data.user.user_metadata?.name||''};
       await cloudLoadForUser();
+      if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
       authLoading=false; render();
     }
   }catch(e){
@@ -3058,6 +3064,12 @@ window._doAuth=async function(){
 async function doLogout(){
   if(supa) await supa.auth.signOut();
   currentUser=null;
+  // Gerätedaten zurücksetzen, damit ein späterer neuer Account auf diesem Gerät (z.B. bei
+  // gemeinsam genutzten Geräten) nicht versehentlich die Vokabeln des vorherigen Nutzers erbt.
+  localStorage.removeItem('projects_v2');
+  localStorage.removeItem('builtinThemesPolicy_v1');
+  projects=[{id:Date.now(),name:'Meine Vokabeln',vocab:[],verbs:[]}];
+  curProject=0;
   render();
 }
 window.doLogout=doLogout;
@@ -3066,8 +3078,24 @@ window.doLogout=doLogout;
 let _bootComplete = false;
 let _authListenerAttached = false;
 
+// Entscheidet EINMALIG und dauerhaft pro Gerät/Account, ob mitgelieferte Standard-Themen
+// synchronisiert werden sollen. Nutzer, die beim ersten Start dieser Version bereits eigene
+// oder mitgelieferte Vokabeln/Verben hatten ("sync"), bekommen auch künftig neue mitgelieferte
+// Themen automatisch ergänzt. Ganz neue Accounts ohne jegliche Daten ("skip") starten dagegen
+// komplett leer und bleiben es auch dann, wenn sie später eigene Vokabeln anlegen — sonst würde
+// das Anlegen des ersten eigenen Wortes sofort wieder alle Standard-Themen nachladen.
+function resolveBuiltInThemesPolicy(){
+  const stored=localStorage.getItem('builtinThemesPolicy_v1');
+  if(stored==='sync'||stored==='skip') return stored;
+  const hasContent=projects.some(p=>(p.vocab&&p.vocab.length)||(p.verbs&&p.verbs.length));
+  const policy=hasContent?'sync':'skip';
+  localStorage.setItem('builtinThemesPolicy_v1',policy);
+  return policy;
+}
+
 // Fügt neue mitgelieferte Themen (z.B. Thema 6) zum bestehenden Account hinzu,
-// ohne vorhandenen Fortschritt anzurühren. Läuft bei jedem Start, ändert aber
+// ohne vorhandenen Fortschritt anzurühren. Wird nur aufgerufen, wenn
+// resolveBuiltInThemesPolicy() 'sync' liefert (siehe boot()), ändert aber ohnehin
 // nur etwas, wenn ein Thema aus VOKABELN_DATA/VERBEN_DATA beim Nutzer noch fehlt.
 function ensureBuiltInThemes(){
   let changed=false;
@@ -3151,10 +3179,14 @@ async function boot(){
       }
     }
     _bootComplete = true;
-    ensureBuiltInThemes();
     if(supa&&!currentUser){
+      // Noch nicht eingeloggt (keine wiederhergestellte Session) — die Policy wird erst nach
+      // erfolgreichem Login/Signup in window._doAuth() entschieden, wenn der echte Datenstand
+      // (leer bei Signup, vollständig geladen bei Login) feststeht. Sonst würde ein bestehender
+      // Nutzer, der sich auf einem neuen Gerät manuell einloggt, hier fälschlich als "neu" erkannt.
       renderAuth(document.getElementById('app'));
     } else {
+      if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
       if(!supa) console.warn('supa ist null — Login wird komplett übersprungen. libReady war:', libReady);
       render();
     }
