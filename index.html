@@ -271,6 +271,7 @@ const ICON_PATHS = {
   key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
   rotate: '<path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/>',
   arrowLeft: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
   chevronRight: '<polyline points="9 18 15 12 9 6"/>',
@@ -1449,6 +1450,7 @@ function showVerbDetail(id){
     window._mehrData=verb.mehrData||null;
     window._mehrLoading=false;
     window._mehrError=null;
+    window._variantIdx={}; // Konjugationsvarianten-Auswahl pro Zeitform, zurückgesetzt für jedes neu geöffnete Verb
   }
   window._verbDetailId=id;
 
@@ -1485,7 +1487,13 @@ function showVerbDetail(id){
     const ORDER_N=['هُوَ','هُمَا','هُمْ','هِيَ','هُمَا','هُنَّ','أَنْتَ','أَنْتُمَا','أَنْتُمْ','أَنْتِ','أَنْتُمَا','أَنْتُنَّ','أَنَا','نَحْنُ'];
     const ORDER_B=['أَنْتَ','أَنْتُمَا','أَنْتُمْ','أَنْتِ','أَنْتُمَا','أَنْتُنَّ'];
     const ORDER=vt==='befehl'?ORDER_B:ORDER_N;
-    const raw=(verb.konjugation&&verb.konjugation[vt])||[];
+    // Manche Verben haben f\u00FCr eine Zeitform mehrere g\u00FCltige Konjugationsarten (z.B. zwei
+    // Formen im Befehl). Wenn verb.konjugationVarianten[vt] existiert, zeigt ein Umschalter
+    // oben die Varianten zur Auswahl; ohne Varianten bleibt alles wie bisher (verb.konjugation[vt]).
+    const variants=(verb.konjugationVarianten&&verb.konjugationVarianten[vt])||null;
+    window._variantIdx=window._variantIdx||{};
+    const variantIdx=Math.min(window._variantIdx[vt]||0,variants?variants.length-1:0);
+    const raw=variants?(variants[variantIdx].forms||[]):((verb.konjugation&&verb.konjugation[vt])||[]);
     const strip=s=>(s||'').replace(/[\u064B-\u065F\u0670]/g,'').trim();
     const usedIdx=new Set();
     const sorted=raw.map(f=>{
@@ -1497,7 +1505,15 @@ function showVerbDetail(id){
       usedIdx.add(bestI);
       return {f,idx:bestI};
     }).sort((a,b)=>a.idx-b.idx).map(x=>x.f);
-    return `<div style="font-size:12px;font-weight:700;color:${tc.color};margin-bottom:12px">${tc.label}</div>
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px">
+      <div style="font-size:12px;font-weight:700;color:${tc.color}">${tc.label}${variants?' · '+variants[variantIdx].label:''}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${variants&&variants.length>1?`<div style="display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:3px">
+          ${variants.map((va,i)=>`<div onclick="window._variantIdx=window._variantIdx||{};window._variantIdx['${vt}']=${i};showVerbDetail(window._verbDetailId)" style="padding:5px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;background:${i===variantIdx?tc.color:'transparent'};color:${i===variantIdx?'#080c14':'var(--text3)'}">${va.label}</div>`).join('')}
+        </div>`:''}
+        <button onclick="openReportModal('Verb',${verb.id},'${verb.arabic.replace(/'/g,"\\'")}')" title="Fehler melden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3)">${icon('flag',14,'currentColor',2)}</button>
+      </div>
+    </div>
     ${sorted.map(f=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:11px;color:var(--text3)">${f.p} · ${f.d}</div>
       <div class="ar" style="font-size:26px;color:${tc.color};font-weight:700">${f.a}</div>
@@ -2727,6 +2743,26 @@ function getChapterPath(project,chapterId){
   while(c&&guard++<10){ names.unshift(c.name); c=c.parentId?byId(c.parentId):null; }
   return names.join(' › ')||'ohne Kapitel';
 }
+// Sammelt JEDE konjugierte Form eines Verbs (alle Zeiten/Modi + alle Konjugationsvarianten,
+// siehe konjugationVarianten in renderTenseContent), damit die Suche nicht nur die Grundform
+// (z.B. "سَأَلَ") findet, sondern auch z.B. "يَسْأَلُ" oder "تَسْأَلُ".
+function getAllVerbForms(v){
+  const forms=[];
+  if(v.konjugation){
+    Object.keys(v.konjugation).forEach(key=>{
+      const entries=v.konjugation[key];
+      if(Array.isArray(entries)) entries.forEach(f=>{ if(f&&f.a) forms.push(f.a); });
+    });
+  }
+  if(v.konjugationVarianten){
+    Object.keys(v.konjugationVarianten).forEach(tense=>{
+      (v.konjugationVarianten[tense]||[]).forEach(variant=>{
+        (variant.forms||[]).forEach(f=>{ if(f&&f.a) forms.push(f.a); });
+      });
+    });
+  }
+  return forms;
+}
 function getGlobalSearchResults(query){
   const q=normalizeSearch(query);
   if(!q) return [];
@@ -2737,7 +2773,8 @@ function getGlobalSearchResults(query){
       if(hay.includes(q)) out.push({type:'Vokabel',projectIndex:pi,chapterId:v.chapterId,arabic:v.arabic,title:getTr(v),id:v.id,chapter:getChapterPath(p,v.chapterId)});
     });
     (p.verbs||[]).forEach(v=>{
-      const hay=[v.arabic,stripHarakat(v.arabic),getTr(v),v.root].map(normalizeSearch).join(' ');
+      const forms=getAllVerbForms(v);
+      const hay=[v.arabic,stripHarakat(v.arabic),getTr(v),v.root,...forms].map(normalizeSearch).join(' ');
       if(hay.includes(q)) out.push({type:'Verb',projectIndex:pi,arabic:v.arabic,title:getTr(v),id:v.id,chapter:'Verben'});
     });
   });
@@ -2755,6 +2792,61 @@ function openGlobalSearchResult(projectIndex,type,id){
   if(type==='Verb') showVerbDetail(id);   // volles Verb-Modal inkl. Konjugation
   else showVocabDetail(id);               // Einzelwort-Ansicht: Arabisch, Plural, Gegenteil, Beispielsatz
 }
+// ═══════════════════════════════════════════════════════
+// FEHLER MELDEN — Nutzer können falsche/fehlende Konjugationen, Übersetzungen etc. melden.
+// Landet in der Supabase-Tabelle 'word_reports' (siehe SQL-Setup), von wo aus sie geprüft
+// und behoben werden können.
+// ═══════════════════════════════════════════════════════
+function openReportModal(wordType,wordId,arabic){
+  const existing=document.getElementById('reportModal'); if(existing) existing.remove();
+  const m=document.createElement('div'); m.className='overlay'; m.id='reportModal';
+  m.innerHTML=`<div class="sheet" style="max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800;color:var(--text)">Fehler melden</div>
+      <button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:12px;padding:12px;margin-bottom:14px">
+      <div class="ar" style="font-size:22px;color:var(--gold)">${arabic}</div>
+      <div style="font-size:11px;color:var(--text3)">${wordType}</div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Was ist falsch oder fehlt?</div>
+    <textarea id="reportText" rows="4" placeholder="z.B. 'Die Befehlsform ist falsch, es müsste ... heißen' oder 'Übersetzung passt nicht'" style="margin-bottom:12px;resize:vertical"></textarea>
+    <div id="reportStatus" style="font-size:12px;color:var(--text3);margin-bottom:10px;min-height:16px"></div>
+    <button class="gold-btn" id="reportSubmitBtn" onclick="submitWordReport('${wordType}',${wordId},'${String(arabic).replace(/'/g,"\\'")}')">Melden</button>
+  </div>`;
+  document.body.appendChild(m);
+  setTimeout(()=>{ const t=document.getElementById('reportText'); if(t) t.focus(); },50);
+}
+async function submitWordReport(wordType,wordId,arabic){
+  const textEl=document.getElementById('reportText');
+  const statusEl=document.getElementById('reportStatus');
+  const btn=document.getElementById('reportSubmitBtn');
+  const description=textEl?textEl.value.trim():'';
+  if(!description){ statusEl.textContent='Bitte kurz beschreiben, was falsch ist.'; statusEl.style.color='#f87171'; return; }
+  if(!supa){ statusEl.textContent='Melden ist gerade nicht verfügbar (keine Verbindung).'; statusEl.style.color='#f87171'; return; }
+  btn.disabled=true; btn.textContent='Wird gesendet...'; statusEl.textContent='';
+  try{
+    const {error}=await withTimeout(supa.from('word_reports').insert({
+      word_type: wordType,
+      word_id: wordId,
+      arabic: arabic,
+      project_name: getP()?getP().name:null,
+      description: description,
+      reporter_email: currentUser?currentUser.email:null,
+      status: 'open'
+    }));
+    if(error) throw error;
+    statusEl.textContent='Danke! Die Meldung wurde gesendet.';
+    statusEl.style.color='#4ade80';
+    btn.textContent='Gesendet ✓';
+    setTimeout(()=>{ const ov=document.getElementById('reportModal'); if(ov) ov.remove(); },1400);
+  }catch(e){
+    console.warn('Fehlermeldung konnte nicht gesendet werden:', e);
+    statusEl.textContent='Senden fehlgeschlagen (Tabelle evtl. noch nicht eingerichtet). Bitte später erneut versuchen.';
+    statusEl.style.color='#f87171';
+    btn.disabled=false; btn.textContent='Melden';
+  }
+}
 // Einzelnes Nomen/Wort als Overlay anzeigen (aus der globalen Suche)
 function showVocabDetail(id){
   const v=getVocab().find(x=>x.id===id); if(!v)return;
@@ -2765,7 +2857,10 @@ function showVocabDetail(id){
   m.innerHTML=`<div class="sheet" style="max-height:88vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <div style="font-size:12px;color:var(--text3)">${v.wordType||'Wort'}</div>
-      <button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px">✕</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="openReportModal('Vokabel',${v.id},'${String(v.arabic||'').replace(/'/g,"\\'")}')" title="Fehler melden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3)">${icon('flag',14,'currentColor',2)}</button>
+        <button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px">✕</button>
+      </div>
     </div>
     <div style="text-align:center;margin-bottom:6px">
       <div style="display:flex;align-items:center;justify-content:center;gap:10px">
