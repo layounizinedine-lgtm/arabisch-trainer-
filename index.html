@@ -2915,26 +2915,28 @@ async function submitWordReport(wordType,wordId,arabic){
   const btn=document.getElementById('reportSubmitBtn');
   const description=textEl?textEl.value.trim():'';
   if(!description){ statusEl.textContent='Bitte kurz beschreiben, was falsch ist.'; statusEl.style.color='#f87171'; return; }
-  if(!supa){ statusEl.textContent='Melden ist gerade nicht verfügbar (keine Verbindung).'; statusEl.style.color='#f87171'; return; }
   btn.disabled=true; btn.textContent='Wird gesendet...'; statusEl.textContent='';
   try{
-    const {error}=await withTimeout(supa.from('word_reports').insert({
-      word_type: wordType,
-      word_id: wordId,
-      arabic: arabic,
-      project_name: getP()?getP().name:null,
-      description: description,
-      reporter_email: currentUser?currentUser.email:null,
-      status: 'open'
+    const res=await withTimeout(fetch('/.netlify/functions/report-error',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        wordType,
+        arabic,
+        projectName: getP()?getP().name:null,
+        description,
+        reporterEmail: currentUser?currentUser.email:null
+      })
     }));
-    if(error) throw error;
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error||('HTTP '+res.status));
     statusEl.textContent='Danke! Die Meldung wurde gesendet.';
     statusEl.style.color='#4ade80';
     btn.textContent='Gesendet ✓';
     setTimeout(()=>{ const ov=document.getElementById('reportModal'); if(ov) ov.remove(); },1400);
   }catch(e){
     console.warn('Fehlermeldung konnte nicht gesendet werden:', e);
-    statusEl.textContent='Senden fehlgeschlagen (Tabelle evtl. noch nicht eingerichtet). Bitte später erneut versuchen.';
+    statusEl.textContent='Senden fehlgeschlagen. Bitte später erneut versuchen.';
     statusEl.style.color='#f87171';
     btn.disabled=false; btn.textContent='Melden';
   }
