@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>مركز اللغة</title>
+<title>مركز التوفيق</title>
 <meta name="theme-color" content="#080c14"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-title" content="مركز"/>
@@ -49,6 +49,7 @@ input,textarea,select{background:var(--bg3);border:1px solid var(--border);borde
 <div id="navbar"></div>
 <script src="vokabeln.js"></script>
 <script src="verben.js"></script>
+<script src="woerterbuch.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════
 // SUPABASE — Cloud-Speicherung des Lernfortschritts
@@ -239,7 +240,11 @@ function ui(key){ return (UI_TEXT[lang]||UI_TEXT.de)[key]||key; }
 // ═══════════════════════════════════════════════════════
 // PROJECTS & DATA
 // ═══════════════════════════════════════════════════════
-let projects = JSON.parse(localStorage.getItem('projects_v2') || 'null') || VOKABELN_DATA.map((v,i)=>({id:v.id,name:v.name,vocab:v.vocab,verbs:(VERBEN_DATA[i]&&VERBEN_DATA[i].verbs)||[]}));
+// Neue Accounts starten mit einem einzigen leeren Projekt (keine vorinstallierten Vokabeln/Verben) —
+// alles wird vollständig selbst angelegt. Ein leeres projects-Array wäre hier nicht sicher: getP()
+// & Co. gehen an mehreren Stellen davon aus, dass mindestens ein Projekt existiert.
+// (Bestehende Nutzer sind hiervon nicht betroffen: siehe resolveBuiltInThemesPolicy() weiter unten.)
+let projects = JSON.parse(localStorage.getItem('projects_v2') || 'null') || [{id:Date.now(),name:'Meine Vokabeln',vocab:[],verbs:[]}];
 let curProject = 0;
 
 // ═══════════════════════════════════════════════════════
@@ -272,6 +277,7 @@ const ICON_PATHS = {
   key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
   rotate: '<path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/>',
   arrowLeft: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
   chevronRight: '<polyline points="9 18 15 12 9 6"/>',
@@ -392,6 +398,16 @@ function getExTr(item){ return item.exampleTranslation?(item.exampleTranslation[
 // ═══════════════════════════════════════════════════════
 // CLOUD SYNC — speichert Lernfortschritt bei Supabase, sobald eingeloggt
 // ═══════════════════════════════════════════════════════
+// Lässt eine Supabase-Anfrage nach spätestens `ms` mit einem Fehler fehlschlagen, statt sie
+// endlos hängen zu lassen. Ohne das würde z.B. ein pausiertes Supabase-Projekt oder ein
+// Netzwerkabbruch dazu führen, dass ein await hier (und damit auch der Login/Signup-Button,
+// siehe withTimeout-Nutzung in window._doAuth) für immer "lädt".
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('TIMEOUT_KEINE_ANTWORT')), ms||20000))
+  ]);
+}
 let _cloudSyncTimer=null;
 function cloudSyncDebounced(){
   if(!supa||!currentUser) return;
@@ -401,19 +417,19 @@ function cloudSyncDebounced(){
 async function cloudSyncNow(){
   if(!supa||!currentUser) return;
   try{
-    await supa.from('progress').upsert({
+    await withTimeout(supa.from('progress').upsert({
       user_id: currentUser.id,
       projects: projects,
       streak: streak,
       settings: { cardDirection, sentenceLayout, lang, theme, remindersEnabled, customGrammarRules },
       updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
+    }, { onConflict: 'user_id' }));
   }catch(e){ console.warn('Cloud-Sync fehlgeschlagen:', e); }
 }
 async function cloudLoadForUser(){
   if(!supa||!currentUser) return false;
   try{
-    const { data, error } = await supa.from('progress').select('*').eq('user_id', currentUser.id).maybeSingle();
+    const { data, error } = await withTimeout(supa.from('progress').select('*').eq('user_id', currentUser.id).maybeSingle());
     if(error) throw error;
     if(data){
       if(data.projects&&data.projects.length) projects=data.projects;
@@ -598,6 +614,7 @@ function render(){
   const TABS=[
     {id:'home',icon:'home',label:ui('home')||'Home'},
     {id:'lernen',icon:'book',label:ui('learn')||'Lernen'},
+    {id:'woerterbuch',icon:'search',label:'Wörterbuch'},
     {id:'sprechen',icon:'mic',label:ui('speak')||'Sprechen'},
     {id:'profil',icon:'user',label:ui('profile')||'Profil'},
   ];
@@ -611,11 +628,96 @@ function render(){
   nav.style.display='flex';
   if(tab==='home') renderHome(app);
   else if(tab==='lernen') renderLernen(app);
+  else if(tab==='woerterbuch') renderWoerterbuch(app);
   else if(tab==='sprechen') renderSprechen(app);
   else renderProfil(app);
 }
 function goTab(t){
   tab=t; subView=null; render();
+}
+
+// ═══════════════════════════════════════════════════════
+// WÖRTERBUCH — Nachschlage-Wortschatz (woerterbuch.js), getrennt vom SRS-Vokabeltrainer
+// ═══════════════════════════════════════════════════════
+const WB_POS_LABEL={n:'Nomen',v:'Verb',adj:'Adjektiv',adv:'Adverb',pron:'Pronomen',prep:'Präposition',conj:'Konjunktion',num:'Zahlwort',intj:'Interjektion',phrase:'Redewendung'};
+const WB_CAT_LABEL={q:'Qur\'an',g:'Alltag',w:'Beruf'};
+let wbQuery='';
+let wbCatFilter='all';
+
+function getWbResults(){
+  const q=normalizeSearch(wbQuery);
+  const data=(typeof WOERTERBUCH_DATA!=='undefined')?WOERTERBUCH_DATA:[];
+  return data.filter(e=>{
+    if(wbCatFilter!=='all' && !e.cat.split(',').includes(wbCatFilter)) return false;
+    if(!q) return true;
+    const hay=normalizeSearch([e.a,stripHarakat(e.a),e.de,e.pl||''].join(' '));
+    return hay.includes(q);
+  }).slice(0, q ? 60 : 700); // Freitextsuche enger begrenzt, reines Kategorie-Browsen (bis zu 618 Einträge) nicht abgeschnitten
+}
+
+function renderWoerterbuch(app){
+  const total=(typeof WOERTERBUCH_DATA!=='undefined')?WOERTERBUCH_DATA.length:0;
+  app.innerHTML=`<div style="padding:20px 16px 100px">
+    <div style="padding-top:6px;margin-bottom:18px">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Nachschlagen</div>
+      <div style="font-size:26px;font-weight:800;color:var(--text)">Wörterbuch</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">${total} Wörter · Qur'an &amp; Sunnah, Alltag, Beruf</div>
+    </div>
+    <input id="wbSearchInput" placeholder="Arabisch oder Deutsch suchen... (z.B. يسأل, سأل, fragen)" value="${wbQuery.replace(/"/g,'&quot;')}" oninput="wbQuery=this.value;renderWbResults()" style="margin-bottom:12px"/>
+    <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto">
+      ${[{k:'all',l:'Alle'},{k:'q',l:'Qur\'an'},{k:'g',l:'Alltag'},{k:'w',l:'Beruf'}].map(c=>`
+        <button onclick="wbCatFilter='${c.k}';renderWbResults()" style="flex-shrink:0;padding:8px 16px;border-radius:20px;cursor:pointer;background:${wbCatFilter===c.k?'var(--gold)':'var(--bg3)'};border:none;color:${wbCatFilter===c.k?'#080c14':'var(--text2)'};font-size:13px;font-weight:700">${c.l}</button>
+      `).join('')}
+    </div>
+    <div id="wbResults" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>`;
+  renderWbResults();
+}
+
+function renderWbResults(){
+  const box=document.getElementById('wbResults'); if(!box) return;
+  const results=getWbResults();
+  if(!wbQuery.trim() && wbCatFilter==='all'){
+    box.innerHTML=`<div style="font-size:12px;color:var(--text3);text-align:center;padding:24px 0">Tippe oben, um zu suchen, oder wähle eine Kategorie.</div>`;
+    return;
+  }
+  if(!results.length){
+    box.innerHTML=`<div style="font-size:12px;color:var(--text3);text-align:center;padding:24px 0">Keine Treffer gefunden.</div>`;
+    return;
+  }
+  box.innerHTML=results.map(e=>{
+    const idx=WOERTERBUCH_DATA.indexOf(e);
+    const cats=e.cat.split(',').map(c=>WB_CAT_LABEL[c]||c).join(' · ');
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="ar" style="font-size:22px;color:var(--gold);font-weight:700">${e.a}</div>
+          <button onclick="speakAr('${e.a.replace(/'/g,"\\'")}')" style="background:var(--bg3);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon('volume',12,'var(--gold)',2)}</button>
+        </div>
+        <div style="font-size:14px;color:var(--text);margin-top:2px">${e.de}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${WB_POS_LABEL[e.p]||e.p}${e.pl?' · Plural: '+e.pl:''} · ${cats}</div>
+      </div>
+      <button onclick="addDictWordToVocab(${idx})" title="Zu meinen Vokabeln hinzufügen" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gold)">${icon('plus',16,'var(--gold)',2.5)}</button>
+    </div>`;
+  }).join('');
+}
+
+function addDictWordToVocab(idx){
+  const e=WOERTERBUCH_DATA[idx]; if(!e) return;
+  const wordType=WB_POS_LABEL[e.p]||e.p;
+  const newItem={
+    id:Date.now()+Math.floor(Math.random()*1000),
+    arabic:e.a, harakat:e.a,
+    translations:{de:e.de},
+    wordType,
+    plural:e.pl||'', pluralHarakat:e.pl||'',
+    status:'neu', interval:1, easeFactor:2.5, repetitions:0, failCount:0, nextReview:0
+  };
+  getP().vocab=getP().vocab||[];
+  getP().vocab.push(newItem);
+  saveProjects();
+  const btn=event&&event.target&&event.target.closest('button');
+  if(btn){ btn.innerHTML=icon('check',16,'#4ade80',3); btn.disabled=true; }
 }
 
 function completeTutorial(){
@@ -632,7 +734,7 @@ window.completeTutorial=completeTutorial;
 window.resetTutorial=function(){localStorage.removeItem('tutorialDone');localStorage.removeItem('tutorialStep');const ov=document.getElementById('tutorialOverlay');if(ov)ov.remove();render();};
 
 const TUTORIAL_STEPS=[
-  {target:null, title:'Willkommen bei مركز اللغة', desc:'Deine App zum echten Arabisch lernen — strukturiert, mit KI und vollständigen Konjugationen. Lass uns kurz zeigen, wo was ist.', ar:'أَهْلًا وَسَهْلًا'},
+  {target:null, title:'Willkommen bei مركز التوفيق', desc:'Deine App zum echten Arabisch lernen — strukturiert, mit KI und vollständigen Konjugationen. Lass uns kurz zeigen, wo was ist.', ar:'أَهْلًا وَسَهْلًا'},
   {target:1, title:'Vokabeln & Spiele', desc:'Hier lernst du neue Wörter, übst Konjugationstabellen und spielst Lernspiele mit Spaced Repetition.', ar:'الْمُفْرَدَاتُ'},
   {target:2, title:'KI-Gesprächspartner', desc:'Führe echte Arabisch-Gespräche mit KI. Der Bot kennt deine gelernten Wörter und erklärt neue automatisch.', ar:'الصَّدِيقُ'},
   {target:3, title:'Profil & Einstellungen', desc:'Dein Streak, Statistiken, Thema wechseln und Sprache einstellen — alles hier.', ar:'الْمَلَفُّ'},
@@ -1440,6 +1542,7 @@ function showVerbDetail(id){
     window._mehrData=verb.mehrData||null;
     window._mehrLoading=false;
     window._mehrError=null;
+    window._variantIdx={}; // Konjugationsvarianten-Auswahl pro Zeitform, zurückgesetzt für jedes neu geöffnete Verb
   }
   window._verbDetailId=id;
 
@@ -1476,7 +1579,13 @@ function showVerbDetail(id){
     const ORDER_N=['هُوَ','هُمَا','هُمْ','هِيَ','هُمَا','هُنَّ','أَنْتَ','أَنْتُمَا','أَنْتُمْ','أَنْتِ','أَنْتُمَا','أَنْتُنَّ','أَنَا','نَحْنُ'];
     const ORDER_B=['أَنْتَ','أَنْتُمَا','أَنْتُمْ','أَنْتِ','أَنْتُمَا','أَنْتُنَّ'];
     const ORDER=vt==='befehl'?ORDER_B:ORDER_N;
-    const raw=(verb.konjugation&&verb.konjugation[vt])||[];
+    // Manche Verben haben f\u00FCr eine Zeitform mehrere g\u00FCltige Konjugationsarten (z.B. zwei
+    // Formen im Befehl). Wenn verb.konjugationVarianten[vt] existiert, zeigt ein Umschalter
+    // oben die Varianten zur Auswahl; ohne Varianten bleibt alles wie bisher (verb.konjugation[vt]).
+    const variants=(verb.konjugationVarianten&&verb.konjugationVarianten[vt])||null;
+    window._variantIdx=window._variantIdx||{};
+    const variantIdx=Math.min(window._variantIdx[vt]||0,variants?variants.length-1:0);
+    const raw=variants?(variants[variantIdx].forms||[]):((verb.konjugation&&verb.konjugation[vt])||[]);
     const strip=s=>(s||'').replace(/[\u064B-\u065F\u0670]/g,'').trim();
     const usedIdx=new Set();
     const sorted=raw.map(f=>{
@@ -1488,7 +1597,15 @@ function showVerbDetail(id){
       usedIdx.add(bestI);
       return {f,idx:bestI};
     }).sort((a,b)=>a.idx-b.idx).map(x=>x.f);
-    return `<div style="font-size:12px;font-weight:700;color:${tc.color};margin-bottom:12px">${tc.label}</div>
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px">
+      <div style="font-size:12px;font-weight:700;color:${tc.color}">${tc.label}${variants?' · '+variants[variantIdx].label:''}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${variants&&variants.length>1?`<div style="display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:3px">
+          ${variants.map((va,i)=>`<div onclick="window._variantIdx=window._variantIdx||{};window._variantIdx['${vt}']=${i};showVerbDetail(window._verbDetailId)" style="padding:5px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;background:${i===variantIdx?tc.color:'transparent'};color:${i===variantIdx?'#080c14':'var(--text3)'}">${va.label}</div>`).join('')}
+        </div>`:''}
+        <button onclick="openReportModal('Verb',${verb.id},'${verb.arabic.replace(/'/g,"\\'")}')" title="Fehler melden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3)">${icon('flag',14,'currentColor',2)}</button>
+      </div>
+    </div>
     ${sorted.map(f=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:11px;color:var(--text3)">${f.p} · ${f.d}</div>
       <div class="ar" style="font-size:26px;color:${tc.color};font-weight:700">${f.a}</div>
@@ -1995,7 +2112,7 @@ function renderProfil(app){
         Angemeldet: ✗ nein
       </div>
     </div>`}
-    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز اللغة · Zentrum der ${ui('language')}</div>
+    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text3)">مركز التوفيق · Markaz Al-Tawfiq</div>
   </div>`;
 }
 
@@ -2162,7 +2279,7 @@ async function saveName(){
 // VOKABELN TEILEN — Export als Datei, Import mit Duplikat-Schutz
 // ═══════════════════════════════════════════════════════
 function exportVocab(){
-  const data=JSON.stringify({exportedAt:new Date().toISOString(),app:'مركز اللغة',projects},null,2);
+  const data=JSON.stringify({exportedAt:new Date().toISOString(),app:'مركز التوفيق',projects},null,2);
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -2718,6 +2835,26 @@ function getChapterPath(project,chapterId){
   while(c&&guard++<10){ names.unshift(c.name); c=c.parentId?byId(c.parentId):null; }
   return names.join(' › ')||'ohne Kapitel';
 }
+// Sammelt JEDE konjugierte Form eines Verbs (alle Zeiten/Modi + alle Konjugationsvarianten,
+// siehe konjugationVarianten in renderTenseContent), damit die Suche nicht nur die Grundform
+// (z.B. "سَأَلَ") findet, sondern auch z.B. "يَسْأَلُ" oder "تَسْأَلُ".
+function getAllVerbForms(v){
+  const forms=[];
+  if(v.konjugation){
+    Object.keys(v.konjugation).forEach(key=>{
+      const entries=v.konjugation[key];
+      if(Array.isArray(entries)) entries.forEach(f=>{ if(f&&f.a) forms.push(f.a); });
+    });
+  }
+  if(v.konjugationVarianten){
+    Object.keys(v.konjugationVarianten).forEach(tense=>{
+      (v.konjugationVarianten[tense]||[]).forEach(variant=>{
+        (variant.forms||[]).forEach(f=>{ if(f&&f.a) forms.push(f.a); });
+      });
+    });
+  }
+  return forms;
+}
 function getGlobalSearchResults(query){
   const q=normalizeSearch(query);
   if(!q) return [];
@@ -2728,7 +2865,8 @@ function getGlobalSearchResults(query){
       if(hay.includes(q)) out.push({type:'Vokabel',projectIndex:pi,chapterId:v.chapterId,arabic:v.arabic,title:getTr(v),id:v.id,chapter:getChapterPath(p,v.chapterId)});
     });
     (p.verbs||[]).forEach(v=>{
-      const hay=[v.arabic,stripHarakat(v.arabic),getTr(v),v.root].map(normalizeSearch).join(' ');
+      const forms=getAllVerbForms(v);
+      const hay=[v.arabic,stripHarakat(v.arabic),getTr(v),v.root,...forms].map(normalizeSearch).join(' ');
       if(hay.includes(q)) out.push({type:'Verb',projectIndex:pi,arabic:v.arabic,title:getTr(v),id:v.id,chapter:'Verben'});
     });
   });
@@ -2746,6 +2884,61 @@ function openGlobalSearchResult(projectIndex,type,id){
   if(type==='Verb') showVerbDetail(id);   // volles Verb-Modal inkl. Konjugation
   else showVocabDetail(id);               // Einzelwort-Ansicht: Arabisch, Plural, Gegenteil, Beispielsatz
 }
+// ═══════════════════════════════════════════════════════
+// FEHLER MELDEN — Nutzer können falsche/fehlende Konjugationen, Übersetzungen etc. melden.
+// Landet in der Supabase-Tabelle 'word_reports' (siehe SQL-Setup), von wo aus sie geprüft
+// und behoben werden können.
+// ═══════════════════════════════════════════════════════
+function openReportModal(wordType,wordId,arabic){
+  const existing=document.getElementById('reportModal'); if(existing) existing.remove();
+  const m=document.createElement('div'); m.className='overlay'; m.id='reportModal';
+  m.innerHTML=`<div class="sheet" style="max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800;color:var(--text)">Fehler melden</div>
+      <button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:12px;padding:12px;margin-bottom:14px">
+      <div class="ar" style="font-size:22px;color:var(--gold)">${arabic}</div>
+      <div style="font-size:11px;color:var(--text3)">${wordType}</div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Was ist falsch oder fehlt?</div>
+    <textarea id="reportText" rows="4" placeholder="z.B. 'Die Befehlsform ist falsch, es müsste ... heißen' oder 'Übersetzung passt nicht'" style="margin-bottom:12px;resize:vertical"></textarea>
+    <div id="reportStatus" style="font-size:12px;color:var(--text3);margin-bottom:10px;min-height:16px"></div>
+    <button class="gold-btn" id="reportSubmitBtn" onclick="submitWordReport('${wordType}',${wordId},'${String(arabic).replace(/'/g,"\\'")}')">Melden</button>
+  </div>`;
+  document.body.appendChild(m);
+  setTimeout(()=>{ const t=document.getElementById('reportText'); if(t) t.focus(); },50);
+}
+async function submitWordReport(wordType,wordId,arabic){
+  const textEl=document.getElementById('reportText');
+  const statusEl=document.getElementById('reportStatus');
+  const btn=document.getElementById('reportSubmitBtn');
+  const description=textEl?textEl.value.trim():'';
+  if(!description){ statusEl.textContent='Bitte kurz beschreiben, was falsch ist.'; statusEl.style.color='#f87171'; return; }
+  if(!supa){ statusEl.textContent='Melden ist gerade nicht verfügbar (keine Verbindung).'; statusEl.style.color='#f87171'; return; }
+  btn.disabled=true; btn.textContent='Wird gesendet...'; statusEl.textContent='';
+  try{
+    const {error}=await withTimeout(supa.from('word_reports').insert({
+      word_type: wordType,
+      word_id: wordId,
+      arabic: arabic,
+      project_name: getP()?getP().name:null,
+      description: description,
+      reporter_email: currentUser?currentUser.email:null,
+      status: 'open'
+    }));
+    if(error) throw error;
+    statusEl.textContent='Danke! Die Meldung wurde gesendet.';
+    statusEl.style.color='#4ade80';
+    btn.textContent='Gesendet ✓';
+    setTimeout(()=>{ const ov=document.getElementById('reportModal'); if(ov) ov.remove(); },1400);
+  }catch(e){
+    console.warn('Fehlermeldung konnte nicht gesendet werden:', e);
+    statusEl.textContent='Senden fehlgeschlagen (Tabelle evtl. noch nicht eingerichtet). Bitte später erneut versuchen.';
+    statusEl.style.color='#f87171';
+    btn.disabled=false; btn.textContent='Melden';
+  }
+}
 // Einzelnes Nomen/Wort als Overlay anzeigen (aus der globalen Suche)
 function showVocabDetail(id){
   const v=getVocab().find(x=>x.id===id); if(!v)return;
@@ -2756,7 +2949,10 @@ function showVocabDetail(id){
   m.innerHTML=`<div class="sheet" style="max-height:88vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <div style="font-size:12px;color:var(--text3)">${v.wordType||'Wort'}</div>
-      <button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px">✕</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="openReportModal('Vokabel',${v.id},'${String(v.arabic||'').replace(/'/g,"\\'")}')" title="Fehler melden" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3)">${icon('flag',14,'currentColor',2)}</button>
+        <button onclick="this.closest('.overlay').remove()" style="background:var(--bg3);border:none;color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:16px">✕</button>
+      </div>
     </div>
     <div style="text-align:center;margin-bottom:6px">
       <div style="display:flex;align-items:center;justify-content:center;gap:10px">
@@ -2988,7 +3184,7 @@ function renderAuth(app){
   const authSubtitle=isSignup?'Erstelle dein Konto':(isReset?'Passwort zurücksetzen':(isUpdatePassword?'Neues Passwort festlegen':'Melde dich an'));
   const authButtonText=authLoading?'Lädt...':(isSignup?'Konto erstellen':(isReset?'Reset-Link senden':(isUpdatePassword?'Passwort speichern':'Anmelden')));
   app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
-    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز اللغة</div>
+    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:4px">مركز التوفيق</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:32px">${authSubtitle}</div>
     <div style="width:100%;max-width:340px">
       ${isSignup?`<input id="authName" type="text" placeholder="Name (z.B. Abu Fulan)" style="margin-bottom:10px" autocomplete="given-name"/>`:''}
@@ -3023,13 +3219,13 @@ window._doAuth=async function(){
   authLoading=true; authError=''; authInfo=''; renderAuth(document.getElementById('app'));
   try{
     if(isReset){
-      const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+      const {error}=await withTimeout(supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname}));
       if(error) throw error;
       authLoading=false;
       authInfo='Wenn ein Konto existiert, wurde ein Reset-Link an deine E-Mail-Adresse gesendet.';
       renderAuth(document.getElementById('app'));
     } else if(isUpdatePassword){
-      const {data,error}=await supa.auth.updateUser({password});
+      const {data,error}=await withTimeout(supa.auth.updateUser({password}));
       if(error) throw error;
       const user=data.user;
       currentUser=user?{id:user.id,email:user.email,name:user.user_metadata?.name||''}:currentUser;
@@ -3040,29 +3236,40 @@ window._doAuth=async function(){
       currentUser=null;
       renderAuth(document.getElementById('app'));
     } else if(isSignup){
-      const {data,error}=await supa.auth.signUp({email,password,options:{data:{name}}});
+      const {data,error}=await withTimeout(supa.auth.signUp({email,password,options:{data:{name}}}));
       if(error) throw error;
       if(data.user){
         currentUser={id:data.user.id,email:data.user.email,name};
-        await cloudSyncNow(); // Ersteinrichtung: lokalen Stand hochladen
+        await cloudSyncNow(); // Ersteinrichtung: lokalen Stand (leeres Startprojekt) hochladen
+        if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
         authLoading=false; render();
       }
     } else {
-      const {data,error}=await supa.auth.signInWithPassword({email,password});
+      const {data,error}=await withTimeout(supa.auth.signInWithPassword({email,password}));
       if(error) throw error;
       currentUser={id:data.user.id,email:data.user.email,name:data.user.user_metadata?.name||''};
       await cloudLoadForUser();
+      if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
       authLoading=false; render();
     }
   }catch(e){
     authLoading=false;
-    authError=(e.message||'Fehler bei der Anmeldung.').includes('Invalid login')?'E-Mail oder Passwort falsch.':(e.message||'Fehler bei der Anmeldung.');
+    const msg=e&&e.message||'Fehler bei der Anmeldung.';
+    authError = msg==='TIMEOUT_KEINE_ANTWORT' ? 'Keine Antwort vom Server. Bitte Internetverbindung prüfen und erneut versuchen.'
+      : msg.includes('Invalid login') ? 'E-Mail oder Passwort falsch.'
+      : msg;
     renderAuth(document.getElementById('app'));
   }
 };
 async function doLogout(){
   if(supa) await supa.auth.signOut();
   currentUser=null;
+  // Gerätedaten zurücksetzen, damit ein späterer neuer Account auf diesem Gerät (z.B. bei
+  // gemeinsam genutzten Geräten) nicht versehentlich die Vokabeln des vorherigen Nutzers erbt.
+  localStorage.removeItem('projects_v2');
+  localStorage.removeItem('builtinThemesPolicy_v1');
+  projects=[{id:Date.now(),name:'Meine Vokabeln',vocab:[],verbs:[]}];
+  curProject=0;
   render();
 }
 window.doLogout=doLogout;
@@ -3071,8 +3278,24 @@ window.doLogout=doLogout;
 let _bootComplete = false;
 let _authListenerAttached = false;
 
+// Entscheidet EINMALIG und dauerhaft pro Gerät/Account, ob mitgelieferte Standard-Themen
+// synchronisiert werden sollen. Nutzer, die beim ersten Start dieser Version bereits eigene
+// oder mitgelieferte Vokabeln/Verben hatten ("sync"), bekommen auch künftig neue mitgelieferte
+// Themen automatisch ergänzt. Ganz neue Accounts ohne jegliche Daten ("skip") starten dagegen
+// komplett leer und bleiben es auch dann, wenn sie später eigene Vokabeln anlegen — sonst würde
+// das Anlegen des ersten eigenen Wortes sofort wieder alle Standard-Themen nachladen.
+function resolveBuiltInThemesPolicy(){
+  const stored=localStorage.getItem('builtinThemesPolicy_v1');
+  if(stored==='sync'||stored==='skip') return stored;
+  const hasContent=projects.some(p=>(p.vocab&&p.vocab.length)||(p.verbs&&p.verbs.length));
+  const policy=hasContent?'sync':'skip';
+  localStorage.setItem('builtinThemesPolicy_v1',policy);
+  return policy;
+}
+
 // Fügt neue mitgelieferte Themen (z.B. Thema 6) zum bestehenden Account hinzu,
-// ohne vorhandenen Fortschritt anzurühren. Läuft bei jedem Start, ändert aber
+// ohne vorhandenen Fortschritt anzurühren. Wird nur aufgerufen, wenn
+// resolveBuiltInThemesPolicy() 'sync' liefert (siehe boot()), ändert aber ohnehin
 // nur etwas, wenn ein Thema aus VOKABELN_DATA/VERBEN_DATA beim Nutzer noch fehlt.
 function ensureBuiltInThemes(){
   let changed=false;
@@ -3156,10 +3379,14 @@ async function boot(){
       }
     }
     _bootComplete = true;
-    ensureBuiltInThemes();
     if(supa&&!currentUser){
+      // Noch nicht eingeloggt (keine wiederhergestellte Session) — die Policy wird erst nach
+      // erfolgreichem Login/Signup in window._doAuth() entschieden, wenn der echte Datenstand
+      // (leer bei Signup, vollständig geladen bei Login) feststeht. Sonst würde ein bestehender
+      // Nutzer, der sich auf einem neuen Gerät manuell einloggt, hier fälschlich als "neu" erkannt.
       renderAuth(document.getElementById('app'));
     } else {
+      if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
       if(!supa) console.warn('supa ist null — Login wird komplett übersprungen. libReady war:', libReady);
       render();
     }
