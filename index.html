@@ -44,6 +44,7 @@ input,textarea,select{background:var(--bg3);border:1px solid var(--border);borde
 <div id="navbar"></div>
 <script src="vokabeln.js"></script>
 <script src="verben.js"></script>
+<script src="woerterbuch.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════
 // SUPABASE — Cloud-Speicherung des Lernfortschritts
@@ -608,6 +609,7 @@ function render(){
   const TABS=[
     {id:'home',icon:'home',label:ui('home')||'Home'},
     {id:'lernen',icon:'book',label:ui('learn')||'Lernen'},
+    {id:'woerterbuch',icon:'search',label:'Wörterbuch'},
     {id:'sprechen',icon:'mic',label:ui('speak')||'Sprechen'},
     {id:'profil',icon:'user',label:ui('profile')||'Profil'},
   ];
@@ -621,11 +623,96 @@ function render(){
   nav.style.display='flex';
   if(tab==='home') renderHome(app);
   else if(tab==='lernen') renderLernen(app);
+  else if(tab==='woerterbuch') renderWoerterbuch(app);
   else if(tab==='sprechen') renderSprechen(app);
   else renderProfil(app);
 }
 function goTab(t){
   tab=t; subView=null; render();
+}
+
+// ═══════════════════════════════════════════════════════
+// WÖRTERBUCH — Nachschlage-Wortschatz (woerterbuch.js), getrennt vom SRS-Vokabeltrainer
+// ═══════════════════════════════════════════════════════
+const WB_POS_LABEL={n:'Nomen',v:'Verb',adj:'Adjektiv',adv:'Adverb',pron:'Pronomen',prep:'Präposition',conj:'Konjunktion',num:'Zahlwort',intj:'Interjektion',phrase:'Redewendung'};
+const WB_CAT_LABEL={q:'Qur\'an',g:'Alltag',w:'Beruf'};
+let wbQuery='';
+let wbCatFilter='all';
+
+function getWbResults(){
+  const q=normalizeSearch(wbQuery);
+  const data=(typeof WOERTERBUCH_DATA!=='undefined')?WOERTERBUCH_DATA:[];
+  return data.filter(e=>{
+    if(wbCatFilter!=='all' && !e.cat.split(',').includes(wbCatFilter)) return false;
+    if(!q) return true;
+    const hay=normalizeSearch([e.a,stripHarakat(e.a),e.de,e.pl||''].join(' '));
+    return hay.includes(q);
+  }).slice(0, q ? 60 : 700); // Freitextsuche enger begrenzt, reines Kategorie-Browsen (bis zu 618 Einträge) nicht abgeschnitten
+}
+
+function renderWoerterbuch(app){
+  const total=(typeof WOERTERBUCH_DATA!=='undefined')?WOERTERBUCH_DATA.length:0;
+  app.innerHTML=`<div style="padding:20px 16px 100px">
+    <div style="padding-top:6px;margin-bottom:18px">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">Nachschlagen</div>
+      <div style="font-size:26px;font-weight:800;color:var(--text)">Wörterbuch</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">${total} Wörter · Qur'an &amp; Sunnah, Alltag, Beruf</div>
+    </div>
+    <input id="wbSearchInput" placeholder="Arabisch oder Deutsch suchen... (z.B. يسأل, سأل, fragen)" value="${wbQuery.replace(/"/g,'&quot;')}" oninput="wbQuery=this.value;renderWbResults()" style="margin-bottom:12px"/>
+    <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto">
+      ${[{k:'all',l:'Alle'},{k:'q',l:'Qur\'an'},{k:'g',l:'Alltag'},{k:'w',l:'Beruf'}].map(c=>`
+        <button onclick="wbCatFilter='${c.k}';renderWbResults()" style="flex-shrink:0;padding:8px 16px;border-radius:20px;cursor:pointer;background:${wbCatFilter===c.k?'var(--gold)':'var(--bg3)'};border:none;color:${wbCatFilter===c.k?'#080c14':'var(--text2)'};font-size:13px;font-weight:700">${c.l}</button>
+      `).join('')}
+    </div>
+    <div id="wbResults" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>`;
+  renderWbResults();
+}
+
+function renderWbResults(){
+  const box=document.getElementById('wbResults'); if(!box) return;
+  const results=getWbResults();
+  if(!wbQuery.trim() && wbCatFilter==='all'){
+    box.innerHTML=`<div style="font-size:12px;color:var(--text3);text-align:center;padding:24px 0">Tippe oben, um zu suchen, oder wähle eine Kategorie.</div>`;
+    return;
+  }
+  if(!results.length){
+    box.innerHTML=`<div style="font-size:12px;color:var(--text3);text-align:center;padding:24px 0">Keine Treffer gefunden.</div>`;
+    return;
+  }
+  box.innerHTML=results.map(e=>{
+    const idx=WOERTERBUCH_DATA.indexOf(e);
+    const cats=e.cat.split(',').map(c=>WB_CAT_LABEL[c]||c).join(' · ');
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="ar" style="font-size:22px;color:var(--gold);font-weight:700">${e.a}</div>
+          <button onclick="speakAr('${e.a.replace(/'/g,"\\'")}')" style="background:var(--bg3);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon('volume',12,'var(--gold)',2)}</button>
+        </div>
+        <div style="font-size:14px;color:var(--text);margin-top:2px">${e.de}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${WB_POS_LABEL[e.p]||e.p}${e.pl?' · Plural: '+e.pl:''} · ${cats}</div>
+      </div>
+      <button onclick="addDictWordToVocab(${idx})" title="Zu meinen Vokabeln hinzufügen" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gold)">${icon('plus',16,'var(--gold)',2.5)}</button>
+    </div>`;
+  }).join('');
+}
+
+function addDictWordToVocab(idx){
+  const e=WOERTERBUCH_DATA[idx]; if(!e) return;
+  const wordType=WB_POS_LABEL[e.p]||e.p;
+  const newItem={
+    id:Date.now()+Math.floor(Math.random()*1000),
+    arabic:e.a, harakat:e.a,
+    translations:{de:e.de},
+    wordType,
+    plural:e.pl||'', pluralHarakat:e.pl||'',
+    status:'neu', interval:1, easeFactor:2.5, repetitions:0, failCount:0, nextReview:0
+  };
+  getP().vocab=getP().vocab||[];
+  getP().vocab.push(newItem);
+  saveProjects();
+  const btn=event&&event.target&&event.target.closest('button');
+  if(btn){ btn.innerHTML=icon('check',16,'#4ade80',3); btn.disabled=true; }
 }
 
 function completeTutorial(){
