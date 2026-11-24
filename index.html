@@ -652,7 +652,7 @@ function getWbResults(){
     if(!q) return true;
     const hay=normalizeSearch([e.a,stripHarakat(e.a),e.de,e.pl||''].join(' '));
     return hay.includes(q);
-  }).slice(0, q ? 60 : 700); // Freitextsuche enger begrenzt, reines Kategorie-Browsen (bis zu 618 Einträge) nicht abgeschnitten
+  }).slice(0, q ? 60 : 1500); // Freitextsuche enger begrenzt, reines Kategorie-Browsen (größte Kategorie aktuell ~1100 Einträge) nicht abgeschnitten
 }
 
 function renderWoerterbuch(app){
