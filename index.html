@@ -50,6 +50,7 @@ input,textarea,select{background:var(--bg3);border:1px solid var(--border);borde
 <script src="vokabeln.js"></script>
 <script src="verben.js"></script>
 <script src="woerterbuch.js"></script>
+<script src="woerterbuch-verben.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════
 // SUPABASE — Cloud-Speicherung des Lernfortschritts
@@ -719,8 +720,42 @@ function renderWbResults(){
   }).join('');
 }
 
+// Verben aus dem Wörterbuch bekommen ihre volle Konjugation (tasrif) aus
+// WOERTERBUCH_VERBEN_DATA, verknüpft über die Vergangenheitsform (e.a <-> past).
+// Damit landen sie in getP().verbs statt in getP().vocab — siehe Bug-Report:
+// vorher wurden Verben fälschlich als einfache Vokabel ohne Konjugation abgelegt.
+function findWoerterbuchVerbConjugation(pastForm){
+  if(typeof WOERTERBUCH_VERBEN_DATA==='undefined') return null;
+  return WOERTERBUCH_VERBEN_DATA.find(v=>v.past===pastForm)||null;
+}
+
 function addDictWordToVocab(idx){
   const e=WOERTERBUCH_DATA[idx]; if(!e) return;
+  const btn=event&&event.target&&event.target.closest('button');
+
+  if(e.p==='v'){
+    const vb=findWoerterbuchVerbConjugation(e.a);
+    if(vb){
+      const newVerb={
+        id:Date.now()+Math.floor(Math.random()*1000),
+        arabic:vb.arabic,
+        translations:{...vb.translations},
+        konjugation:JSON.parse(JSON.stringify(vb.konjugation)),
+        status:'neu', interval:1, easeFactor:2.5, repetitions:0, failCount:0, nextReview:0
+      };
+      getP().verbs=getP().verbs||[];
+      getP().verbs.push(newVerb);
+      saveProjects();
+      if(btn){ btn.innerHTML=icon('check',16,'#4ade80',3); btn.disabled=true; }
+      return;
+    }
+    // Sicherheitsnetz: falls für dieses Verb (noch) keine Konjugation vorliegt,
+    // nicht ohne Tasrif als Vokabel ablegen, sondern sichtbar melden.
+    if(btn){ btn.title='Für dieses Verb liegt noch keine volle Konjugation vor.'; }
+    alert('Für dieses Verb liegt noch keine vollständige Konjugation vor. Bitte über "Fehler melden" Bescheid geben.');
+    return;
+  }
+
   const wordType=WB_POS_LABEL[e.p]||e.p;
   const newItem={
     id:Date.now()+Math.floor(Math.random()*1000),
@@ -733,8 +768,43 @@ function addDictWordToVocab(idx){
   getP().vocab=getP().vocab||[];
   getP().vocab.push(newItem);
   saveProjects();
-  const btn=event&&event.target&&event.target.closest('button');
   if(btn){ btn.innerHTML=icon('check',16,'#4ade80',3); btn.disabled=true; }
+}
+
+// Migration: Verben, die ein Nutzer vor diesem Fix über das Wörterbuch als
+// einfache Vokabel gespeichert hat, werden erkannt (Abgleich der Arabisch-
+// Schreibung ohne Harakat gegen die Vergangenheitsform in WOERTERBUCH_VERBEN_DATA)
+// und nach .verbs mit voller Konjugation verschoben.
+function migrateMisfiledDictVerbs(){
+  if(typeof WOERTERBUCH_VERBEN_DATA==='undefined') return 0;
+  const byStrippedPast=new Map();
+  WOERTERBUCH_VERBEN_DATA.forEach(v=>{ byStrippedPast.set(stripH(v.past), v); });
+  let moved=0;
+  projects.forEach(proj=>{
+    if(!proj.vocab||!proj.vocab.length) return;
+    const stillVocab=[];
+    proj.verbs=proj.verbs||[];
+    proj.vocab.forEach(item=>{
+      const key=stripH(item.arabic||item.harakat||'');
+      const vb=key?byStrippedPast.get(key):null;
+      if(vb){
+        proj.verbs.push({
+          id:item.id||(Date.now()+Math.floor(Math.random()*1000)),
+          arabic:vb.arabic,
+          translations:{...vb.translations},
+          konjugation:JSON.parse(JSON.stringify(vb.konjugation)),
+          status:item.status||'neu', interval:item.interval||1, easeFactor:item.easeFactor||2.5,
+          repetitions:item.repetitions||0, failCount:item.failCount||0, nextReview:item.nextReview||0
+        });
+        moved++;
+      } else {
+        stillVocab.push(item);
+      }
+    });
+    proj.vocab=stillVocab;
+  });
+  if(moved>0) saveProjects();
+  return moved;
 }
 
 function completeTutorial(){
@@ -3261,6 +3331,7 @@ window._doAuth=async function(){
         currentUser={id:data.user.id,email:data.user.email,name};
         await cloudSyncNow(); // Ersteinrichtung: lokalen Stand (leeres Startprojekt) hochladen
         if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
+        migrateMisfiledDictVerbs();
         authLoading=false; render();
       }
     } else {
@@ -3269,6 +3340,7 @@ window._doAuth=async function(){
       currentUser={id:data.user.id,email:data.user.email,name:data.user.user_metadata?.name||''};
       await cloudLoadForUser();
       if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
+      migrateMisfiledDictVerbs();
       authLoading=false; render();
     }
   }catch(e){
@@ -3406,6 +3478,7 @@ async function boot(){
       renderAuth(document.getElementById('app'));
     } else {
       if(resolveBuiltInThemesPolicy()==='sync') ensureBuiltInThemes();
+      migrateMisfiledDictVerbs();
       if(!supa) console.warn('supa ist null — Login wird komplett übersprungen. libReady war:', libReady);
       render();
     }

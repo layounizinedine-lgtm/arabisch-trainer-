@@ -2227,4 +2227,12 @@ const WOERTERBUCH_DATA = [
 {a:"عُطْلَة الخَرِيف",p:"phrase",de:"Herbstferien",cat:"g"},
 {a:"عُطْلَة عِيد المِيلَاد",p:"phrase",de:"Weihnachtsferien",cat:"g"},
 {a:"عُطْلَة نِصْف السَّنَة",p:"phrase",de:"Semesterferien, Halbjahresferien",cat:"g"},
+
+// ── Schulstufen (zusammengesetzte Begriffe) ────────────────────────────────
+{a:"مَدْرَسَة اِبْتِدَائِيَّة",p:"phrase",de:"Grundschule",cat:"g"},
+{a:"مَدْرَسَة ثَانَوِيَّة",p:"phrase",de:"weiterführende Schule, Oberschule",cat:"g"},
+{a:"مَرْحَلَة اِبْتِدَائِيَّة",p:"phrase",de:"Grundschulstufe",cat:"g"},
+{a:"مَرْحَلَة ثَانَوِيَّة",p:"phrase",de:"Oberstufe, Sekundarstufe",cat:"g"},
+{a:"مَرْحَلَة مُتَوَسِّطَة",p:"phrase",de:"Mittelstufe",cat:"g"},
+{a:"مَدْرَسَة مُتَوَسِّطَة",p:"phrase",de:"Mittelschule",cat:"g"},
 ];
