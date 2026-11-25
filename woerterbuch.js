@@ -2219,4 +2219,12 @@ const WOERTERBUCH_DATA = [
 {a:"بَكَى الرَّضِيع",p:"phrase",de:"das Baby weinte",cat:"g"},
 {a:"هَدْهَدَ",p:"v",de:"wiegen, in den Schlaf schaukeln",cat:"g"},
 {a:"نَوَّمَ الطِّفْلَ",p:"phrase",de:"das Kind zum Schlafen bringen",cat:"g"},
+
+// ── Ferienarten (zusammengesetzte Begriffe, damit sie direkt auffindbar sind) ─
+{a:"عُطْلَة صَيْفِيَّة",p:"phrase",de:"Sommerferien",cat:"g"},
+{a:"عُطْلَة شِتَوِيَّة",p:"phrase",de:"Winterferien",cat:"g"},
+{a:"عُطْلَة الرَّبِيع",p:"phrase",de:"Osterferien, Frühjahrsferien",cat:"g"},
+{a:"عُطْلَة الخَرِيف",p:"phrase",de:"Herbstferien",cat:"g"},
+{a:"عُطْلَة عِيد المِيلَاد",p:"phrase",de:"Weihnachtsferien",cat:"g"},
+{a:"عُطْلَة نِصْف السَّنَة",p:"phrase",de:"Semesterferien, Halbjahresferien",cat:"g"},
 ];
