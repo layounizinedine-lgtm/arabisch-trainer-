@@ -644,15 +644,32 @@ const WB_CAT_LABEL={q:'Qur\'an',g:'Alltag',w:'Beruf'};
 let wbQuery='';
 let wbCatFilter='all';
 
+// Bewertet, wie gut ein Treffer zur Suche passt (niedriger = besser), damit z.B. "seit" das
+// Wort "seit" selbst oben zeigt statt es hinter "Jenseits"/"väterlicherseits" zu verstecken,
+// in denen "seit" nur als Teilstring vorkommt.
+function wbMatchScore(e,q){
+  const deNorm=normalizeSearch(e.de);
+  const aNorm=normalizeSearch(e.a);
+  const aStripped=normalizeSearch(stripHarakat(e.a));
+  const plNorm=e.pl?normalizeSearch(e.pl):'';
+  if(deNorm===q||aNorm===q||aStripped===q||plNorm===q) return 0;
+  const deWords=deNorm.split(/[^a-zäöüß]+/).filter(Boolean);
+  if(deWords.includes(q)) return 1;
+  if(deNorm.startsWith(q)||aNorm.startsWith(q)||aStripped.startsWith(q)) return 2;
+  if(deWords.some(w=>w.startsWith(q))) return 3;
+  return 4;
+}
 function getWbResults(){
   const q=normalizeSearch(wbQuery);
   const data=(typeof WOERTERBUCH_DATA!=='undefined')?WOERTERBUCH_DATA:[];
-  return data.filter(e=>{
+  const filtered=data.filter(e=>{
     if(wbCatFilter!=='all' && !e.cat.split(',').includes(wbCatFilter)) return false;
     if(!q) return true;
     const hay=normalizeSearch([e.a,stripHarakat(e.a),e.de,e.pl||''].join(' '));
     return hay.includes(q);
-  }).slice(0, q ? 60 : 1500); // Freitextsuche enger begrenzt, reines Kategorie-Browsen (größte Kategorie aktuell ~1100 Einträge) nicht abgeschnitten
+  });
+  if(q) filtered.sort((a,b)=>wbMatchScore(a,q)-wbMatchScore(b,q));
+  return filtered.slice(0, q ? 60 : 1500); // Freitextsuche enger begrenzt, reines Kategorie-Browsen (größte Kategorie aktuell ~1100 Einträge) nicht abgeschnitten
 }
 
 function renderWoerterbuch(app){
